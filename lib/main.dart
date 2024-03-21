@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:restauflutter/home/home_page.dart';
 import 'package:restauflutter/login/login_page.dart';
 import 'package:restauflutter/home/productos/productos_page.dart';
 
@@ -16,7 +17,8 @@ class MyApp extends StatelessWidget {
       initialRoute: 'home/productos',
       routes: {
         'login': (_) =>  LoginPage(),
-        'home/productos': (_) => ProductosPage()
+        'home/productos': (_) => ProductosPage(),
+        'home':(_)=>HomePage()
       },
     );
   }
