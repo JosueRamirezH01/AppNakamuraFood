@@ -29,7 +29,7 @@ class _LoginPageState extends State<LoginPage> {
   }
   Widget _centro(){
     return  Container(
-      width: ,
+      //width: ,
       margin: EdgeInsets.only(left: 15, right: 15),
       child: Material(
         borderRadius: BorderRadius.all(Radius.circular(20)),

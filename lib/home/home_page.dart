@@ -14,17 +14,31 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  late List<bool> _isSelected;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: options.length, vsync: this);
+    _isSelected = List.generate(3, (_) => false);
   }
 
   @override
   void dispose() {
     _tabController.dispose();
     super.dispose();
+  }
+
+  void _updateSelection(int index) {
+    setState(() {
+      for (int buttonIndex = 0; buttonIndex < _isSelected.length; buttonIndex++) {
+        if (buttonIndex == index) {
+          _isSelected[buttonIndex] = true;
+        } else {
+          _isSelected[buttonIndex] = false;
+        }
+      }
+    });
   }
 
   @override
@@ -64,20 +78,24 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             children: options.map((Widget option) {
               return Column(
                 children: [
-                  ButtonBar(
-                    alignment: MainAxisAlignment.center,
-                    children: [
-                      ElevatedButton(
-                        onPressed: () {
-                        },
-                        child: Text('Button 1'),
-                      ),
-                      ElevatedButton(
-                        onPressed: () {
-                        },
-                        child: Text('Button 2'),
-                      ),
-                    ],
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 20), // Padding entre los ToggleButtons y el texto
+                    child: ToggleButtons(
+                      isSelected: _isSelected,
+                      onPressed: (int index) {
+                        _updateSelection(index);
+                      },
+                      children: [
+                        Text('Local'),
+                        Text('Llevar'),
+                        Text('Delivery'),
+                      ],
+                      borderRadius: BorderRadius.circular(15),
+                      selectedBorderColor: Colors.black87,
+                      selectedColor: Colors.black87,
+                      borderWidth: 2.0,
+                      borderColor: Colors.black87,
+                    ),
                   ),
                 ],
               );
