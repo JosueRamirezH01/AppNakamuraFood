@@ -33,7 +33,7 @@ class _ProductosPageState extends State<ProductosPage> {
             backgroundColor: const Color(0xFF99CFB5),
             actions: [
               Padding(
-                        padding: const EdgeInsets.only(top: 10,right: 120),
+                        padding: const EdgeInsets.only(top: 10,right: 100),
                         child: ElevatedButton.icon(
                           style: const ButtonStyle(backgroundColor: MaterialStatePropertyAll(Colors.deepOrange)),
                             onPressed: (){
