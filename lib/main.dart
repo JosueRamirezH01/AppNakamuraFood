@@ -20,7 +20,6 @@ class MyApp extends StatelessWidget {
         'login': (_) =>  LoginPage(),
         'home/productos': (_) => ProductosPage(),
         'home':(_)=>HomePage(),
-        'home/details': (_) =>DetailsPage()
       },
     );
   }
