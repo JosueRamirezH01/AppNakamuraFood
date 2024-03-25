@@ -11,6 +11,7 @@ class HomePage extends StatefulWidget {
   @override
   State<HomePage> createState() => _HomePageState();
 }
+
 enum Calendar { day, week, month, year }
 
 class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
@@ -53,7 +54,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       side: BorderSide(color: Colors.black87, width: 2.0),
     ),
     //backgroundColor: Colors.transparent,
-    foregroundColor: Colors.black87,
+    foregroundColor: Color(0xFF000000),
   );
 
   @override
@@ -85,7 +86,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         ),
         body: ClipRRect(
             borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(40), topRight: Radius.circular(40)),
+                topLeft: Radius.circular(30), topRight: Radius.circular(30)),
             child: Container(
               color: Color(0xFFD9D9D9), // Fondo de color D9D9D9
               child: TabBarView(
@@ -95,15 +96,17 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                   Center(
                     child: Column(
                       children: [
-                         Container(
-                            child: subopt(),
-                           margin: EdgeInsets.all(20),
-                         )
+                        Container(
+                          child: subopt(),
+                          margin: EdgeInsets.all(15),
+                        ),
+                        _textFieldSearch(),
+                        //pedidosList()
                       ],
                     ),
                   ),
                   // Vista para 'POS'
-                  Center(
+                  const Center(
                     child: Column(
                       children: [
                         Text('Contenido de POS'),
@@ -117,60 +120,74 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
   Widget _textFieldSearch() {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20),
+      margin: const EdgeInsets.symmetric(horizontal: 35),
       child: TextField(
-        //onChanged: _con.onChangeText,
         decoration: InputDecoration(
             hintText: 'Buscar',
-            suffixIcon: const Icon(Icons.search, color: Colors.grey),
-            hintStyle: const TextStyle(fontSize: 17, color: Colors.grey),
+            suffixIcon: const Icon(Icons.search, color: Color(0xFF000000)),
+            hintStyle: const TextStyle(fontSize: 15, color: Color(0xFF000000)),
             enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(25),
+                borderRadius: BorderRadius.circular(20),
                 borderSide: const BorderSide(color: Colors.grey)),
             focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(25),
+                borderRadius: BorderRadius.circular(20),
                 borderSide: const BorderSide(color: Colors.grey)),
             contentPadding: const EdgeInsets.all(10)),
       ),
     );
   }
 
-  Widget subopt(){
-      return SegmentedButton<Calendar>(
-        style: SegmentedButton.styleFrom(
-          backgroundColor: Colors.grey[200],
-          foregroundColor: Colors.red,
-          selectedForegroundColor: Colors.white,
-          selectedBackgroundColor: Colors.green,
+  Widget subopt() {
+    return SegmentedButton<Calendar>(
+      style: SegmentedButton.styleFrom(
+        backgroundColor: Colors.grey[200],
+        foregroundColor: Color(0xFF000000),
+        selectedForegroundColor: Colors.white,
+        selectedBackgroundColor: Color(0xFFFF562F),
+      ),
+
+      segments: const <ButtonSegment<Calendar>>[
+        ButtonSegment<Calendar>(
+          value: Calendar.day,
+          label: SizedBox(
+          width: 53, // Ancho fijo deseado
+          child: Center(child: Text('Local')),
+        ),),
+        ButtonSegment<Calendar>(
+          value: Calendar.week,
+          label: SizedBox(
+            width: 53, // Ancho fijo deseado
+            child: Center(child: Text('llevar')),
+          ),
         ),
-        segments: const <ButtonSegment<Calendar>>[
-          ButtonSegment<Calendar>(
-              value: Calendar.day,
-              label: Text('Day'),
-              icon: Icon(Icons.calendar_view_day)),
-          ButtonSegment<Calendar>(
-              value: Calendar.week,
-              label: Text('Week'),
-              icon: Icon(Icons.calendar_view_week)),
-          ButtonSegment<Calendar>(
-              value: Calendar.month,
-              label: Text('Month'),
-              icon: Icon(Icons.calendar_view_month)),
-          ButtonSegment<Calendar>(
-              value: Calendar.year,
-              label: Text('Year'),
-              icon: Icon(Icons.calendar_today)),
-        ],
-        selected: <Calendar>{calendarView},
-        onSelectionChanged: (Set<Calendar> newSelection) {
-          setState(() {
-            // By default there is only a single segment that can be
-            // selected at one time, so its value is always the first
-            // item in the selected set.
-            calendarView = newSelection.first;
-          });
-        },
-      );
-    }
+        ButtonSegment<Calendar>(
+          value: Calendar.month,
+          label: SizedBox(
+            width: 53, // Ancho fijo deseado
+            child: Center(child: Text('Delivery')),
+          ),
+        ),
+      ],
+      selected: <Calendar>{calendarView},
+      onSelectionChanged: (Set<Calendar> newSelection) {
+        setState(() {
+          calendarView = newSelection.first;
+        });
+      },
+    );
   }
 
+  Widget pedidosList() {
+    return Column(
+      children: [
+        _textFieldSearch(),
+        Expanded(
+          child: Container(
+            child: Text('Aquí empezaremos de cero'),
+          ),
+        ),
+      ],
+    );
+  }
+
+}
