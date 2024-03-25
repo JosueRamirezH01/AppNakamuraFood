@@ -11,12 +11,13 @@ class HomePage extends StatefulWidget {
   @override
   State<HomePage> createState() => _HomePageState();
 }
+enum Calendar { day, week, month, year }
 
 class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   late TabController _tabController;
   late TabController _tabControllerToSubMenu;
   late List<bool> _isSelected;
-
+  Calendar calendarView = Calendar.week;
   @override
   void initState() {
     super.initState();
@@ -95,7 +96,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     child: Column(
                       children: [
                          Container(
-
+                            child: subopt(),
+                           margin: EdgeInsets.all(20),
                          )
                       ],
                     ),
@@ -132,4 +134,43 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       ),
     );
   }
-}
+
+  Widget subopt(){
+      return SegmentedButton<Calendar>(
+        style: SegmentedButton.styleFrom(
+          backgroundColor: Colors.grey[200],
+          foregroundColor: Colors.red,
+          selectedForegroundColor: Colors.white,
+          selectedBackgroundColor: Colors.green,
+        ),
+        segments: const <ButtonSegment<Calendar>>[
+          ButtonSegment<Calendar>(
+              value: Calendar.day,
+              label: Text('Day'),
+              icon: Icon(Icons.calendar_view_day)),
+          ButtonSegment<Calendar>(
+              value: Calendar.week,
+              label: Text('Week'),
+              icon: Icon(Icons.calendar_view_week)),
+          ButtonSegment<Calendar>(
+              value: Calendar.month,
+              label: Text('Month'),
+              icon: Icon(Icons.calendar_view_month)),
+          ButtonSegment<Calendar>(
+              value: Calendar.year,
+              label: Text('Year'),
+              icon: Icon(Icons.calendar_today)),
+        ],
+        selected: <Calendar>{calendarView},
+        onSelectionChanged: (Set<Calendar> newSelection) {
+          setState(() {
+            // By default there is only a single segment that can be
+            // selected at one time, so its value is always the first
+            // item in the selected set.
+            calendarView = newSelection.first;
+          });
+        },
+      );
+    }
+  }
+
