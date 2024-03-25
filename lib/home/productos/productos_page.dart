@@ -1,5 +1,8 @@
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:restauflutter/home/details/datails_page.dart';
 
@@ -32,22 +35,29 @@ class _ProductosPageState extends State<ProductosPage> {
             toolbarHeight: 100,
             backgroundColor: const Color(0xFF99CFB5),
             actions: [
-              Padding(
-                        padding: const EdgeInsets.only(top: 10,right: 100),
-                        child: ElevatedButton.icon(
-                          style: const ButtonStyle(backgroundColor: MaterialStatePropertyAll(Colors.deepOrange)),
-                            onPressed: (){
-                            },
-                            icon: const Icon(Icons.arrow_back_ios_outlined, color: Colors.white,),
-                            label: const Text("SALIR", style: TextStyle(fontSize: 18, color: Colors.white),)),
-                      ),
-              Padding(
-                padding: const EdgeInsets.only(top: 10,right: 10),
-                child: ElevatedButton(
-                  onPressed: (){
-                  },
-                  child: const Text('MESA 4', style: TextStyle(fontSize: 18)),),
-              )
+              const SizedBox(width: 5),
+              Expanded(
+                child: Padding(
+                          padding: const EdgeInsets.only(top: 10),
+                          child: ElevatedButton.icon(
+                            style: const ButtonStyle(backgroundColor: MaterialStatePropertyAll(Colors.deepOrange)),
+                              onPressed: (){
+                              },
+                              icon: const Icon(Icons.arrow_back_ios_outlined, color: Colors.white,),
+                              label: const Text("SALIR", style: TextStyle(fontSize: 18, color: Colors.white),)),
+                        ),
+              ),
+              const SizedBox(width: 50),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 10),
+                  child: ElevatedButton(
+                    onPressed: (){
+                    },
+                    child: const Text('MESA 4', style: TextStyle(fontSize: 18)),),
+                ),
+              ),
+              const SizedBox(width: 5)
             ],
             bottom: const TabBar(
               isScrollable: true,
@@ -114,7 +124,7 @@ class _ProductosPageState extends State<ProductosPage> {
         return SingleChildScrollView(
           child: SizedBox(
             height: MediaQuery.of(context).size.height * 0.87,
-            child: DetailsPage(),
+            child: const DetailsPage(),
           ),
         );
       },
@@ -123,7 +133,7 @@ class _ProductosPageState extends State<ProductosPage> {
  Widget _cardProduct() {
    return GestureDetector(
      onTap: () {
-
+       agregarMsj();
      },
      child: SizedBox(
        child: Card(
@@ -230,4 +240,16 @@ class _ProductosPageState extends State<ProductosPage> {
       ),
     );
   }
+  void agregarMsj(){
+    Fluttertoast.showToast(
+        msg: "Se Guardo correctamente a Pre-cuenta",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.green,
+        textColor: Colors.white,
+        fontSize: 16.0
+    );
+  }
+
 }
