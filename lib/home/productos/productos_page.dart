@@ -1,5 +1,7 @@
 
 import 'package:flutter/material.dart';
+import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
+import 'package:restauflutter/home/details/datails_page.dart';
 
 class ProductosPage extends StatefulWidget {
   const ProductosPage({super.key});
@@ -10,65 +12,190 @@ class ProductosPage extends StatefulWidget {
 
 class _ProductosPageState extends State<ProductosPage> {
  static const List<Tab> myTabs = <Tab>[
-    Tab(text: 'LEFT'),
-    Tab(text: 'RIGHT'),
-  ];
+    Tab(text: 'TODOS'),
+    Tab(text: 'CHAUFAS'),
+   Tab(text: 'SOPAS'),
+   Tab(text: 'PASTAS'),
+   Tab(text: 'SOPAS'),
+   Tab(text: 'PASTAS'),
+   Tab(text: 'SOPAS'),
+   Tab(text: 'PASTAS'),
+
+ ];
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-        length: myTabs.length,
-        child: Scaffold(
-        appBar: AppBar(
-          elevation: 3,
-          toolbarHeight: 100,
-          backgroundColor: const Color(0xFF99CFB5),
-          actions: [
-            Padding(
-              padding: const EdgeInsets.only(right: 100, top: 10),
-              child: ElevatedButton.icon(
-                style: const ButtonStyle(backgroundColor: MaterialStatePropertyAll(Colors.deepOrange)),
+          length: myTabs.length,
+          child: Scaffold(
+          appBar: AppBar(
+            elevation: 3,
+            toolbarHeight: 100,
+            backgroundColor: const Color(0xFF99CFB5),
+            actions: [
+              Padding(
+                        padding: const EdgeInsets.only(top: 10,right: 100),
+                        child: ElevatedButton.icon(
+                          style: const ButtonStyle(backgroundColor: MaterialStatePropertyAll(Colors.deepOrange)),
+                            onPressed: (){
+                            },
+                            icon: const Icon(Icons.arrow_back_ios_outlined, color: Colors.white,),
+                            label: const Text("SALIR", style: TextStyle(fontSize: 18, color: Colors.white),)),
+                      ),
+              Padding(
+                padding: const EdgeInsets.only(top: 10,right: 10),
+                child: ElevatedButton(
                   onPressed: (){
                   },
-                  icon: const Icon(Icons.arrow_back_ios_outlined, color: Colors.white,),
-                  label: const Text("SALIR", style: TextStyle(fontSize: 18, color: Colors.white),)),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(top: 10,right: 10),
-              child: ElevatedButton(
-                  onPressed: (){
-                  },
-                   child: const Text('MESA 4', style: TextStyle(fontSize: 18)),),
-            )
-          ],
-        ),
-        body:  Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 10),
-            _textFieldSearch(),
-            const SizedBox(height: 10),
-            const TabBar(
+                  child: const Text('MESA 4', style: TextStyle(fontSize: 18)),),
+              )
+            ],
+            bottom: const TabBar(
+              isScrollable: true,
               tabs: myTabs,
             ),
-            const SizedBox(height: 20),
-            Expanded(
-              child: TabBarView(
-                children: myTabs.map((Tab tab) {
-                  final String label = tab.text!.toLowerCase();
-                  return Center(
-                    child: Text(
-                      'This is the $label tab',
-                      style: const TextStyle(fontSize: 36),
-                    ),
-                  );
-                }).toList(),
+          ),
+          body:  Column(
+            children: [
+              const SizedBox(height: 10),
+              _textFieldSearch(),
+              const SizedBox(height: 10),
+              const SizedBox(height: 20),
+              Expanded(
+                child: TabBarView(
+                  children: myTabs.map((Tab tab) {
+                    return  GridView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            childAspectRatio: 0.7
+                        ),
+                        itemCount: 8,
+                        itemBuilder: (_, index) {
+                          return _cardProduct();
+                        }
+                    );
+                  }).toList(),
+                ),
+              ),
+            ],
+          ),
+            floatingActionButton: Container(
+              width: MediaQuery.of(context).size.width,
+              alignment: Alignment.bottomCenter,
+              child: SizedBox(
+                width: 200,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: () {
+                    pedido();
+                  },
+                  child: const Row(
+                    children: [
+                      Text('CANTIDAD'),
+                      SizedBox(width: 30),
+                      Text('PRECIO')
+                    ],
+                  ),
+                ),
               ),
             ),
-          ],
-        ),
-        ),
+            floatingActionButtonLocation: FloatingActionButtonLocation.miniCenterFloat,
+          ),
+
     );
   }
+
+
+  Future pedido(){
+    return showCupertinoModalBottomSheet(
+      barrierColor: Colors.transparent,
+      context: context,
+      builder: (BuildContext context) {
+        return SingleChildScrollView(
+          child: SizedBox(
+            height: MediaQuery.of(context).size.height * 0.87,
+            child: DetailsPage(),
+          ),
+        );
+      },
+    );
+  }
+ Widget _cardProduct() {
+   return GestureDetector(
+     onTap: () {
+
+     },
+     child: SizedBox(
+       child: Card(
+         elevation: 3.0,
+         shape: RoundedRectangleBorder(
+             borderRadius: BorderRadius.circular(15)
+         ),
+         child: Stack(
+           children: [
+             Positioned(
+                 bottom: double.minPositive,
+                 right: -1.0,
+                 child: Container(
+                   width: 40,
+                   height: 40,
+                   decoration: const BoxDecoration(
+                       color: Colors.green,
+                       borderRadius: BorderRadius.only(
+                         bottomLeft: Radius.circular(10),
+                         topLeft: Radius.circular(15),
+                       )
+                   ),
+                   child: const Icon(Icons.add, color: Colors.white,),
+                 )
+             ),
+             Column(
+               crossAxisAlignment: CrossAxisAlignment.start,
+               children: [
+                 Container(
+                   height: MediaQuery.of(context).size.height * 0.2,
+                   width: MediaQuery.of(context).size.width,
+                   padding: const EdgeInsets.only(left: 10, right: 10),
+                   child: const FadeInImage(
+                     image: AssetImage('assets/img/arrozconpollo.jpeg'),
+                     fit: BoxFit.contain,
+                     fadeInDuration: Duration(milliseconds: 50),
+                     placeholder: AssetImage('assets/img/no-image.png'),
+                   ),
+                 ),
+                 Container(
+                   margin: const EdgeInsets.symmetric(horizontal: 20),
+                   height: 40,
+                   child:  const Text(
+                    'arroz con pollo',
+                     maxLines: 2,
+                     overflow: TextOverflow.ellipsis,
+                     style: TextStyle(
+                         fontSize: 15,
+                         fontFamily: 'NimbusSans'
+                     ),
+                   ),
+                 ),
+                 const SizedBox(height: 10),
+                 Container(
+                   margin: const EdgeInsets.symmetric(horizontal: 20),
+                   child: const Text(
+                     'S/ 12.30',
+                     style: TextStyle(
+                         fontSize: 15,
+                         fontWeight: FontWeight.bold,
+                         fontFamily: 'NimbusSans'
+                     ),
+                   ),
+                 )
+               ],
+             )
+           ],
+         ),
+       ),
+     ),
+   );
+ }
 
 
   Widget _textFieldSearch() {
