@@ -28,12 +28,18 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(_handleTabSelection);
   }
 
   @override
   void dispose() {
     _tabController.dispose();
     super.dispose();
+  }
+  void _handleTabSelection() {
+    setState(() {
+      _selectedIndex = _tabController.index;
+    });
   }
 
 
@@ -44,7 +50,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   static final ButtonStyle selectedButtonStyle = ElevatedButton.styleFrom(
     backgroundColor: const Color(0xFFFF562F), // Cambia el color de fondo cuando está seleccionado
     foregroundColor: Colors.white, // Cambia el color del texto cuando está seleccionado
-    elevation: 5
+    elevation: 5,
+      animationDuration: Duration(milliseconds: 1000)
   );
 
   @override
@@ -53,7 +60,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         appBar: AppBar(
           automaticallyImplyLeading: false,
           bottom: PreferredSize(
-            preferredSize: const Size.fromHeight(48.0),
+            preferredSize: const Size.fromHeight(10),
             child: ButtonBar(
               alignment: MainAxisAlignment.center,
               children: [
@@ -94,68 +101,76 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                   controller: _tabController,
                   children: [
                     // Vista para 'Listado de pedidos'
-                    Center(
-                      child: Column(
-                        children: [
-                          Container(
-                            child: subopt(),
-                            margin: const EdgeInsets.all(15),
-                          ),
-                         Expanded(
-                            child: pedidosList(),
-                          ),
-                        ],
+                    _buildAnimatedContent(
+                      key: const Key('Listado de pedidos'),
+                      child: Center(
+                        child: Column(
+                          children: [
+                            Container(
+                              child: subopt(),
+                              margin: const EdgeInsets.all(15),
+                            ),
+                           Expanded(
+                              child: pedidosList(),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                     // Vista para 'POS'
-                    Center(
-                      child: Column(
-                        children: [
-                          // Otros widgets...
-                          DefaultTabController(
-                            length: myTabs.length,
-                            child: Expanded(
-                              child: Column(
-                                children: [
-                                  const Row(
-                                    children: [
-                                      SizedBox(width: 20),
-                                      Icon(Icons.table_bar_sharp, size: 30),
-                                      SizedBox(width: 20),
-                                      Expanded(
-                                        child: TabBar(
-                                          tabs: myTabs,
-                                          dividerColor: Colors.orange,
-                                          indicatorColor: Colors.orange,
-                                          labelColor: Colors.orange,
-                                        ),
-                                      ),
-                                      Spacer()
-                                    ],
-                                  ),
-                                  const SizedBox(height: 10),
-                                  Expanded(
-                                    child: TabBarView(
-                                      children: myTabs.map((Tab tab) {
-                                        return GridView.builder(
-                                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                            crossAxisCount: 2,
-                                            childAspectRatio: 0.7,
+                    _buildAnimatedContent(
+                      key: const Key('POS'),
+                      child: Center(
+                        child: Column(
+                          children: [
+                            // Otros widgets...
+                            DefaultTabController(
+                              length: myTabs.length,
+                              child: Expanded(
+                                child: Column(
+                                  children: [
+                                    const Row(
+                                      children: [
+                                        SizedBox(width: 20),
+                                        Icon(Icons.table_bar_sharp, size: 30),
+                                        SizedBox(width: 20),
+                                        Expanded(
+                                          child: TabBar(
+                                            tabs: myTabs,
+                                            dividerColor: Colors.orange,
+                                            indicatorColor: Colors.orange,
+                                            labelColor: Colors.orange,
+                                            labelPadding: EdgeInsets.only(left: 12),
+                                            labelStyle: TextStyle(fontSize: 16),
                                           ),
-                                          itemCount: 8,
-                                          itemBuilder: (_, index) {
-                                            return _cardProduct();
-                                          },
-                                        );
-                                      }).toList(),
+                                        ),
+                                        Spacer()
+                                      ],
                                     ),
-                                  ),
-                                ],
+                                    const SizedBox(height: 10),
+                                    Expanded(
+                                      child: TabBarView(
+                                        children: myTabs.map((Tab tab) {
+                                          return GridView.builder(
+                                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                              crossAxisCount: 2,
+                                              childAspectRatio: 0.7,
+                                            ),
+                                            itemCount: 8,
+                                            itemBuilder: (_, index) {
+                                              return _cardProduct();
+                                            },
+                                          );
+                                        }).toList(),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ],
@@ -355,4 +370,15 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       ),
     );
   }
+
+  Widget _buildAnimatedContent({required Key key, required Widget child}) {
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 500),
+      child: SizedBox(
+        key: key,
+        child: child,
+      ),
+    );
+  }
+
 }
