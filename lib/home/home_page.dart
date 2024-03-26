@@ -19,6 +19,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   int _selectedIndex = 0;
 
   Calendar calendarView = Calendar.week;
+  static const List<Tab> myTabs = <Tab>[
+    Tab(text: 'PISO 1'),
+    Tab(text: 'PISO 2'),
+
+  ];
   @override
   void initState() {
     super.initState();
@@ -45,6 +50,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
+          automaticallyImplyLeading: false,
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(48.0),
             child: ButtonBar(
@@ -101,10 +107,53 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                       ),
                     ),
                     // Vista para 'POS'
-                    const Center(
+                    Center(
                       child: Column(
                         children: [
-                          Text('Contenido de POS'),
+                          // Otros widgets...
+                          DefaultTabController(
+                            length: myTabs.length,
+                            child: Expanded(
+                              child: Column(
+                                children: [
+                                  const Row(
+                                    children: [
+                                      SizedBox(width: 20),
+                                      Icon(Icons.table_bar_sharp, size: 30),
+                                      SizedBox(width: 20),
+                                      Expanded(
+                                        child: TabBar(
+                                          tabs: myTabs,
+                                          dividerColor: Colors.orange,
+                                          indicatorColor: Colors.orange,
+                                          labelColor: Colors.orange,
+                                        ),
+                                      ),
+                                      Spacer()
+                                    ],
+                                  ),
+                                  const SizedBox(height: 10),
+                                  Expanded(
+                                    child: TabBarView(
+                                      children: myTabs.map((Tab tab) {
+                                        return GridView.builder(
+                                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                            crossAxisCount: 2,
+                                            childAspectRatio: 0.7,
+                                          ),
+                                          itemCount: 8,
+                                          itemBuilder: (_, index) {
+                                            return _cardProduct();
+                                          },
+                                        );
+                                      }).toList(),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -218,7 +267,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                   margin: const EdgeInsets.fromLTRB(8.0, 0, 8.0, 8.0),
                   decoration: BoxDecoration(
                     color: Colors.grey[300],
-
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: ListView.builder(
@@ -236,6 +284,70 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                   ),
                 ),
               ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _cardProduct() {
+    return GestureDetector(
+      onTap: () {
+        Navigator.pushNamed(context, 'home/productos');
+      },
+      child: SizedBox(
+        child: Card(
+          margin: const EdgeInsets.all(10),
+          color: const Color(0xFF8EFF72),
+          elevation: 3.0,
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(15)
+          ),
+          child: Stack(
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 10,),
+                  Container(
+                    margin: const EdgeInsets.only(left: 10),
+                    height: 40,
+                    child:  const Text(
+                      'MESA 1',
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold
+                      ),
+                    ),
+                  ),
+                  Container(
+                    height: MediaQuery.of(context).size.height * 0.18,
+                    width: MediaQuery.of(context).size.width,
+                    padding: const EdgeInsets.only(left: 10, right: 10),
+                    child:  const Padding(
+                      padding: EdgeInsets.all(15.0),
+                      child: FadeInImage(
+                        image: AssetImage('assets/img/Vector.png'),
+                        fit: BoxFit.contain,
+                        color: Colors.black,
+                        fadeInDuration: Duration(milliseconds: 50),
+                        placeholder: AssetImage('assets/img/no-image.png'),
+                      ),
+                    ),
+                  ),
+                  const Center(
+                    child:  Text(
+                      'Disponible',
+                      style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold
+                      ),
+                    ),
+                  ),
+                ],
+              )
             ],
           ),
         ),

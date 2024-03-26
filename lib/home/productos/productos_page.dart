@@ -23,8 +23,8 @@ class _ProductosPageState extends State<ProductosPage> {
    Tab(text: 'PASTAS'),
    Tab(text: 'SOPAS'),
    Tab(text: 'PASTAS'),
-
  ];
+ List<String> productosSeleccionados = [];
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
@@ -42,6 +42,7 @@ class _ProductosPageState extends State<ProductosPage> {
                           child: ElevatedButton.icon(
                             style: const ButtonStyle(backgroundColor: MaterialStatePropertyAll(Colors.deepOrange)),
                               onPressed: (){
+                              Navigator.pushNamed(context, 'home');
                               },
                               icon: const Icon(Icons.arrow_back_ios_outlined, color: Colors.white,),
                               label: const Text("SALIR", style: TextStyle(fontSize: 18, color: Colors.white),)),
@@ -124,7 +125,7 @@ class _ProductosPageState extends State<ProductosPage> {
         return SingleChildScrollView(
           child: SizedBox(
             height: MediaQuery.of(context).size.height * 0.87,
-            child: const DetailsPage(),
+            child:  DetailsPage(productosSeleccionados: productosSeleccionados),
           ),
         );
       },
@@ -133,6 +134,9 @@ class _ProductosPageState extends State<ProductosPage> {
  Widget _cardProduct() {
    return GestureDetector(
      onTap: () {
+       setState(() {
+         productosSeleccionados.add('arroz con pollo mas tallarin rojo y ver jasjsajdahdad');
+       });
        agregarMsj();
      },
      child: SizedBox(
