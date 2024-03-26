@@ -120,7 +120,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                   const Row(
                                     children: [
                                       SizedBox(width: 20),
-                                      Icon(Icons.table_bar_sharp, size: 30),
+                                      Padding(
+                                        padding: EdgeInsets.only(top: 10),
+                                        child: Icon(Icons.table_bar_sharp, size: 30),
+                                      ),
                                       SizedBox(width: 20),
                                       Expanded(
                                         child: TabBar(
@@ -128,6 +131,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                           dividerColor: Colors.orange,
                                           indicatorColor: Colors.orange,
                                           labelColor: Colors.orange,
+                                          labelPadding: EdgeInsets.only(left: 12),
+                                          labelStyle: TextStyle(fontSize: 16),
                                         ),
                                       ),
                                       Spacer()
