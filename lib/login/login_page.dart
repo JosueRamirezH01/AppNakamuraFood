@@ -1,7 +1,5 @@
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:mysql1/mysql1.dart';
 import 'package:restauflutter/bd/conexion.dart';
 
 
@@ -19,23 +17,6 @@ class _LoginPageState extends State<LoginPage> {
   var db = Connection();
   var email = '';
 
-  void _getCustomer() async {
-    MySqlConnection? conn;
-    try {
-      conn = await db.getConnection();
-      String sql = 'select email from usuarios where id = 42;';
-      var results = await conn.query(sql);
-      for (var row in results) {
-        setState(() {
-          email = row[0];
-        });
-      }
-    } catch (e) {
-      print("Error: $e");
-    } finally {
-      await conn?.close();
-    }
-  }
   @override
   Widget build(BuildContext context) {
     return  Scaffold(
@@ -113,7 +94,8 @@ class _LoginPageState extends State<LoginPage> {
                   Padding(
                     padding: const EdgeInsets.all(40.0),
                     child: ElevatedButton(onPressed: (){
-                      Navigator.pushNamed(context, 'home');
+                      db.getConnection();
+
                     }, style: const ButtonStyle(
                       backgroundColor: MaterialStatePropertyAll(Colors.deepOrange),
                     ), child: const Text('Iniciar Sesion', style: TextStyle(color: Colors.white, fontSize: 20),),),

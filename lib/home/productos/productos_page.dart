@@ -14,6 +14,7 @@ class ProductosPage extends StatefulWidget {
 }
 
 class _ProductosPageState extends State<ProductosPage> {
+  int estado = 1;
  static const List<Tab> myTabs = <Tab>[
     Tab(text: 'TODOS'),
     Tab(text: 'CHAUFAS'),
@@ -70,7 +71,6 @@ class _ProductosPageState extends State<ProductosPage> {
               const SizedBox(height: 10),
               _textFieldSearch(),
               const SizedBox(height: 10),
-              const SizedBox(height: 20),
               Expanded(
                 child: TabBarView(
                   children: myTabs.map((Tab tab) {
@@ -125,7 +125,7 @@ class _ProductosPageState extends State<ProductosPage> {
         return SingleChildScrollView(
           child: SizedBox(
             height: MediaQuery.of(context).size.height * 0.87,
-            child:  DetailsPage(productosSeleccionados: productosSeleccionados),
+            child:  DetailsPage(productosSeleccionados: productosSeleccionados, estado: estado),
           ),
         );
       },
