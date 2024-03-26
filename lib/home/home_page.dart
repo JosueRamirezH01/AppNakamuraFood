@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
 const List<Widget> options = <Widget>[
   Text('Listado de pedidos'),
@@ -12,23 +13,33 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-enum Calendar { day, week, month, year }
+
+enum SubOptTypes {
+  local,
+  llevar,
+  delivery,
+}
 
 class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
+
   late TabController _tabController;
   int _selectedIndex = 0;
-
-  Calendar calendarView = Calendar.week;
+  late int _listSize;
+  late SubOptTypes _subOptType;
+  
   static const List<Tab> myTabs = <Tab>[
     Tab(text: 'PISO 1'),
     Tab(text: 'PISO 2'),
-
   ];
+
+
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     _tabController.addListener(_handleTabSelection);
+    _listSize = 10;
+    _subOptType = SubOptTypes.local;
   }
 
   @override
@@ -36,23 +47,37 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     _tabController.dispose();
     super.dispose();
   }
+
   void _handleTabSelection() {
     setState(() {
       _selectedIndex = _tabController.index;
     });
   }
 
+  void _updateListSize(int? newValue) {
+    if (newValue != null) {
+      setState(() {
+        _listSize =
+            newValue; // Actualiza el tamaño de la lista con el nuevo valor seleccionado
+      });
+    }
+  }
+
+  void _updateSubOptTypes(SubOptTypes newValue) {
+    setState(() {
+      _subOptType = newValue;
+    });
+  }
 
   static final ButtonStyle elevatedButtonStyle = ElevatedButton.styleFrom(
-    foregroundColor: const Color(0xFF000000),
-    elevation: 5
-  );
+      foregroundColor: const Color(0xFF000000), elevation: 5);
   static final ButtonStyle selectedButtonStyle = ElevatedButton.styleFrom(
-    backgroundColor: const Color(0xFFFF562F), // Cambia el color de fondo cuando está seleccionado
-    foregroundColor: Colors.white, // Cambia el color del texto cuando está seleccionado
-    elevation: 5,
-      animationDuration: Duration(milliseconds: 1000)
-  );
+      backgroundColor: const Color(
+          0xFFFF562F), // Cambia el color de fondo cuando está seleccionado
+      foregroundColor:
+          Colors.white, // Cambia el color del texto cuando está seleccionado
+      elevation: 5,
+      animationDuration: const Duration(milliseconds: 1000));
 
   @override
   Widget build(BuildContext context) {
@@ -71,9 +96,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                       _tabController.animateTo(0);
                     });
                   },
-                  icon: Icon(Icons.list_alt_rounded),
+                  icon: const Icon(Icons.list_alt_rounded),
                   label: const Text('Listado de pedidos'),
-                  style: _selectedIndex == 0 ? selectedButtonStyle : elevatedButtonStyle,
+                  style: _selectedIndex == 0
+                      ? selectedButtonStyle
+                      : elevatedButtonStyle,
                 ),
                 ElevatedButton.icon(
                   onPressed: () {
@@ -82,16 +109,18 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                       _tabController.animateTo(1);
                     });
                   },
-                  icon: Icon(Icons.shopping_cart_outlined),
+                  icon: const Icon(Icons.shopping_cart_outlined),
                   label: const Text('POS'),
-                  style: _selectedIndex == 1 ? selectedButtonStyle : elevatedButtonStyle,
+                  style: _selectedIndex == 1
+                      ? selectedButtonStyle
+                      : elevatedButtonStyle,
                 ),
               ],
             ),
           ),
         ),
         body: Container(
-          margin: EdgeInsets.only(top: 15),
+          margin: const EdgeInsets.only(top: 1),
           child: ClipRRect(
               borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(30), topRight: Radius.circular(30)),
@@ -107,11 +136,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                         child: Column(
                           children: [
                             Container(
-                              child: subopt(),
                               margin: const EdgeInsets.all(15),
+                              child: subopt(),
                             ),
-                           Expanded(
-                              child: pedidosList(),
+                            Expanded(
+                              child: mainListado(),
                             ),
                           ],
                         ),
@@ -140,7 +169,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                             dividerColor: Colors.orange,
                                             indicatorColor: Colors.orange,
                                             labelColor: Colors.orange,
-                                            labelPadding: EdgeInsets.only(left: 12),
+                                            labelPadding:
+                                                EdgeInsets.only(left: 12),
                                             labelStyle: TextStyle(fontSize: 16),
                                           ),
                                         ),
@@ -152,8 +182,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                       child: TabBarView(
                                         children: myTabs.map((Tab tab) {
                                           return GridView.builder(
-                                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 10, vertical: 10),
+                                            gridDelegate:
+                                                const SliverGridDelegateWithFixedCrossAxisCount(
                                               crossAxisCount: 2,
                                               childAspectRatio: 0.7,
                                             ),
@@ -175,37 +207,85 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     ),
                   ],
                 ),
-              )
-          ),
-        )
-    );
+              )),
+        ));
   }
 
   Widget _textFieldSearch() {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 10),
-      child: Container(
-        margin: const EdgeInsets.only(top: 20, bottom: 20),
-        child: TextField(
-          decoration: InputDecoration(
-
-              hintText: 'Buscar',
-              suffixIcon: const Icon(Icons.search, color: Color(0xFF000000)),
-              hintStyle: const TextStyle(fontSize: 15, color: Color(0xFF000000)),
-              enabledBorder: OutlineInputBorder(
+      margin: const EdgeInsets.only(top: 20, left: 20, right: 20),
+      child: Row(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+                border: Border.all(width: 2),
+                borderRadius: const BorderRadius.all(Radius.circular(20))),
+            child: Padding(
+              padding: const EdgeInsets.only(right: 10, left: 10),
+              child: DropdownButton<int>(
+                value: _listSize,
+                onChanged: _updateListSize,
+                dropdownColor: const Color(0xFFD9D9D9),
+                borderRadius: const BorderRadius.all(Radius.circular(20)),
+                selectedItemBuilder: (BuildContext context) {
+                  return <int>[10, 20, 50].map<Widget>((int value) {
+                    return Center(
+                      child: Text(
+                        '$value',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          color: Colors.black,
+                        ),
+                      ),
+                    );
+                  }).toList();
+                },
+                items: const <DropdownMenuItem<int>>[
+                  DropdownMenuItem<int>(
+                    value: 10,
+                    child: Text('10'),
+                  ),
+                  DropdownMenuItem<int>(
+                    value: 20,
+                    child: Text('20'),
+                  ),
+                  DropdownMenuItem<int>(
+                    value: 50,
+                    child: Text('50'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: TextField(
+              decoration: InputDecoration(
+                hintText: 'Buscar',
+                suffixIcon: const Icon(Icons.search, color: Color(0xFF000000)),
+                hintStyle:
+                    const TextStyle(fontSize: 15, color: Color(0xFF000000)),
+                enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(20),
-                  borderSide: const BorderSide(color: Color(0xFF000000), width: 1.5)),
-              focusedBorder: OutlineInputBorder(
+                  borderSide:
+                      const BorderSide(color: Color(0xFF000000), width: 2),
+                ),
+                focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(20),
-                  borderSide: const BorderSide(color: Color(0xFF000000), width: 1.5)),
-              contentPadding: const EdgeInsets.all(10)),
-        ),
+                  borderSide:
+                      const BorderSide(color: Color(0xFF000000), width: 2),
+                ),
+                contentPadding: const EdgeInsets.all(10),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
   Widget subopt() {
-    return SegmentedButton<Calendar>(
+    return SegmentedButton<SubOptTypes>(
       style: SegmentedButton.styleFrom(
         backgroundColor: Colors.grey[200],
         foregroundColor: const Color(0xFF000000),
@@ -216,94 +296,160 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           side: const BorderSide(color: Color(0xFF000000), width: 2),
         ),
       ),
-
-      segments: const <ButtonSegment<Calendar>>[
-        ButtonSegment<Calendar>(
-          value: Calendar.day,
+      segments: const <ButtonSegment<SubOptTypes>>[
+        ButtonSegment<SubOptTypes>(
+          value: SubOptTypes.local,
           label: SizedBox(
-          width: 53,
-          child: Center(child: Text('Local')
+            width: 53,
+            child: Center(child: Text('Local')),
           ),
         ),
-        ),
-        ButtonSegment<Calendar>(
-          value: Calendar.week,
+        ButtonSegment<SubOptTypes>(
+          value: SubOptTypes.llevar,
           label: SizedBox(
             width: 53,
             child: Center(child: Text('llevar')),
           ),
         ),
-        ButtonSegment<Calendar>(
-          value: Calendar.month,
+        ButtonSegment<SubOptTypes>(
+          value: SubOptTypes.delivery,
           label: SizedBox(
             width: 53,
             child: Center(child: Text('Delivery')),
           ),
         ),
       ],
-      selected: <Calendar>{calendarView},
-      onSelectionChanged: (Set<Calendar> newSelection) {
+      selected: {_subOptType}, // Corregir _subOptTypes a _subOptType
+      onSelectionChanged: (Set<SubOptTypes> newSelection) { // Acepta un conjunto de valores
         setState(() {
-          calendarView = newSelection.first;
+          _subOptType = newSelection.first;
         });
       },
     );
   }
 
-  Widget pedidosList() {
+  Widget mainListado() {
     return Container(
       decoration: const BoxDecoration(
-        color: const Color(0xFF414141),
-        borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
+        color: Color.fromRGBO(65, 65, 65, 0.5),
+        borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(20), topRight: Radius.circular(20)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
-            color: const Color(0xFFD1D1D1),
+            border: Border.all(width: 2),
+            color: const Color(0xFFD9D9D9),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _textFieldSearch(),
-              const Padding(
-                padding: EdgeInsets.all(10),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('Pedido'),
-                    Text('Cliente'),
-                    Text('Estado'),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: Container(
-                  margin: const EdgeInsets.fromLTRB(8.0, 0, 8.0, 8.0),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: ListView.builder(
-                    itemCount: 10,
-                    itemBuilder: (context, index) {
-                      return ListTile(
-                        title: Text('Pedido ${index + 1}'),
-                        subtitle: Text('Cliente ${index + 1}'),
-                        trailing: const Text('Estado'),
-                        onTap: () {
-                          // Lógica cuando se toca un pedido
-                        },
-                      );
-                    },
-                  ),
-                ),
-              ),
-            ],
+            children: [_textFieldSearch(), pedidosList()],
           ),
         ),
       ),
+    );
+  }
+
+  Widget pedidosList() {
+    String buttonText = 'Cliente';
+
+    if (_subOptType == SubOptTypes.local) {
+      buttonText = 'Mesa'; // Si _subOptType es 'local', el texto cambia a 'Mesa'
+    }
+
+    return Expanded(
+      child: Container(
+        margin: const EdgeInsets.only(top: 20, left: 20, right: 20, bottom: 20),
+        decoration: BoxDecoration(
+          border: Border.all(width: 2),
+          borderRadius: BorderRadius.circular(20),
+          color: const Color(0xFFD1D1D1),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(10),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Container(
+                      alignment: Alignment.center,
+                      child: const Text(
+                        'Pedido',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Container(
+                      alignment: Alignment.center,
+                      decoration: const BoxDecoration(
+                        border: Border(
+                          left: BorderSide(width: 2),
+                          right: BorderSide(width: 2),
+                        ),
+                      ),
+                      child:  Text(
+                        buttonText,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Container(
+                      alignment: Alignment.center,
+                      child:  const Text(
+                        'Estado',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: Container(
+                decoration: const BoxDecoration(),
+                child: ListView.builder(
+                  itemCount: _listSize,
+                  itemBuilder: (context, index) {
+                    return ListTile(
+                      title: Text('PD-${index + 1}'),
+                      subtitle: Text('Cliente ${index + 1}'),
+                      trailing: const Text('Estado'),
+                      onTap: () {
+                        pedido();
+                      },
+                    );
+                  },
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future pedido(){
+    return showCupertinoModalBottomSheet(
+      barrierColor: Colors.transparent,
+      context: context,
+      builder: (BuildContext context) {
+        return SingleChildScrollView(
+          child: SizedBox(
+            height: MediaQuery.of(context).size.height * 0.6,
+            child:  Text('hola'),
+          ),
+        );
+      },
     );
   }
 
@@ -317,32 +463,31 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           margin: const EdgeInsets.all(10),
           color: const Color(0xFF8EFF72),
           elevation: 3.0,
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(15)
-          ),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
           child: Stack(
             children: [
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 10,),
+                  const SizedBox(
+                    height: 10,
+                  ),
                   Container(
                     margin: const EdgeInsets.only(left: 10),
                     height: 40,
-                    child:  const Text(
+                    child: const Text(
                       'MESA 1',
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold
-                      ),
+                      style:
+                          TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                     ),
                   ),
                   Container(
                     height: MediaQuery.of(context).size.height * 0.18,
                     width: MediaQuery.of(context).size.width,
                     padding: const EdgeInsets.only(left: 10, right: 10),
-                    child:  const Padding(
+                    child: const Padding(
                       padding: EdgeInsets.all(15.0),
                       child: FadeInImage(
                         image: AssetImage('assets/img/Vector.png'),
@@ -354,12 +499,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     ),
                   ),
                   const Center(
-                    child:  Text(
+                    child: Text(
                       'Disponible',
-                      style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold
-                      ),
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ],
@@ -380,5 +523,4 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       ),
     );
   }
-
 }
