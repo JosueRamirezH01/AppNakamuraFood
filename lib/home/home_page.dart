@@ -96,7 +96,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(30), topRight: Radius.circular(30)),
               child: Container(
-                color: const Color(0xFFD9D9D9), // Fondo de color D9D9D9
+                color: Colors.white, // Fondo de color D9D9D9
                 child: TabBarView(
                   controller: _tabController,
                   children: [

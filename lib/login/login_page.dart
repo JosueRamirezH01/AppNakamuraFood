@@ -112,9 +112,11 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   Padding(
                     padding: const EdgeInsets.all(40.0),
-                    child: ElevatedButton(onPressed: _getCustomer, child: const Text('Iniciar Sesion', style: TextStyle(color: Colors.white, fontSize: 20),), style: const ButtonStyle(
+                    child: ElevatedButton(onPressed: (){
+                      Navigator.pushNamed(context, 'home');
+                    }, style: const ButtonStyle(
                       backgroundColor: MaterialStatePropertyAll(Colors.deepOrange),
-                    ),),
+                    ), child: const Text('Iniciar Sesion', style: TextStyle(color: Colors.white, fontSize: 20),),),
                   ),
                 ],
               ),
