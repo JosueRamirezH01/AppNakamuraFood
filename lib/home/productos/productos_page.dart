@@ -42,6 +42,7 @@ class _ProductosPageState extends State<ProductosPage> {
                           child: ElevatedButton.icon(
                             style: const ButtonStyle(backgroundColor: MaterialStatePropertyAll(Colors.deepOrange)),
                               onPressed: (){
+                              Navigator.pushNamed(context, 'home');
                               },
                               icon: const Icon(Icons.arrow_back_ios_outlined, color: Colors.white,),
                               label: const Text("SALIR", style: TextStyle(fontSize: 18, color: Colors.white),)),
