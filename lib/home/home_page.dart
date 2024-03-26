@@ -134,12 +134,17 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                               children: [
                                     const Row(
                                       children: [
-                                        SizedBox(width: 20),
-                                        Icon(Icons.table_bar_sharp, size: 30),
+                                        SizedBox(width: 20 ),
+                                        Padding(
+                                          padding: EdgeInsets.only(top: 15),
+                                          child: Icon(Icons.table_bar_sharp, size: 30),
+                                        ),
                                         SizedBox(width: 20),
                                         Expanded(
                                           child: TabBar(
                                             tabs: myTabs,
+                                            labelStyle: TextStyle(fontSize: 16),
+                                            labelPadding: EdgeInsets.only(left: 5),
                                             dividerColor: Colors.orange,
                                             indicatorColor: Colors.orange,
                                             labelColor: Colors.orange,
@@ -153,7 +158,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                   child: TabBarView(
                                     children: myTabs.map((Tab tab) {
                                       return GridView.builder(
-                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                                         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                                           crossAxisCount: 2,
                                           childAspectRatio: 0.7,
