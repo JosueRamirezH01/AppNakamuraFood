@@ -16,8 +16,8 @@ enum Calendar { day, week, month, year }
 
 class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   late TabController _tabController;
-  late TabController _tabControllerToSubMenu;
-  late List<bool> _isSelected;
+  int _selectedIndex = 0;
+
   Calendar calendarView = Calendar.week;
   static const List<Tab> myTabs = <Tab>[
     Tab(text: 'PISO 1'),
@@ -28,38 +28,23 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _tabControllerToSubMenu = TabController(length: 3, vsync: this);
-    _isSelected = List.generate(3, (_) => false);
   }
 
   @override
   void dispose() {
     _tabController.dispose();
-    _tabControllerToSubMenu.dispose();
     super.dispose();
   }
 
-  void _updateSelection(int index) {
-    setState(() {
-      for (int buttonIndex = 0;
-          buttonIndex < _isSelected.length;
-          buttonIndex++) {
-        if (buttonIndex == index) {
-          _isSelected[buttonIndex] = true;
-        } else {
-          _isSelected[buttonIndex] = false;
-        }
-      }
-    });
-  }
 
   static final ButtonStyle elevatedButtonStyle = ElevatedButton.styleFrom(
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.all(Radius.circular(40)),
-    ),
-    //backgroundColor: Colors.transparent,
-    elevation: 5,
     foregroundColor: const Color(0xFF000000),
+    elevation: 5
+  );
+  static final ButtonStyle selectedButtonStyle = ElevatedButton.styleFrom(
+    backgroundColor: const Color(0xFFFF562F), // Cambia el color de fondo cuando está seleccionado
+    foregroundColor: Colors.white, // Cambia el color del texto cuando está seleccionado
+    elevation: 5
   );
 
   @override
@@ -67,137 +52,139 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     return Scaffold(
         appBar: AppBar(
           automaticallyImplyLeading: false,
-          backgroundColor: const Color(0xFFFFA726),
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(48.0),
             child: ButtonBar(
               alignment: MainAxisAlignment.center,
               children: [
-                ElevatedButton(
+                ElevatedButton.icon(
                   onPressed: () {
-                    _tabController.animateTo(0);
+                    setState(() {
+                      _selectedIndex = 0;
+                      _tabController.animateTo(0);
+                    });
                   },
-                  style: elevatedButtonStyle,
-                  child: const Row(
-                    children: [
-                      Icon(Icons.list_alt),
-                       SizedBox(width: 5),
-                       Text('Listado de pedidos'),
-                    ],
-                  ),
+                  icon: Icon(Icons.list_alt_rounded),
+                  label: const Text('Listado de pedidos'),
+                  style: _selectedIndex == 0 ? selectedButtonStyle : elevatedButtonStyle,
                 ),
-                ElevatedButton(
+                ElevatedButton.icon(
                   onPressed: () {
-                    _tabController.animateTo(1);
+                    setState(() {
+                      _selectedIndex = 1;
+                      _tabController.animateTo(1);
+                    });
                   },
-                  style: elevatedButtonStyle,
-                  child: Row(
-                    children: [
-                      Image.asset('assets/img/cart.png', ),
-                      SizedBox(width: 5),
-                      Text('POS'),
-                    ],
-                  ),
+                  icon: Icon(Icons.shopping_cart_outlined),
+                  label: const Text('POS'),
+                  style: _selectedIndex == 1 ? selectedButtonStyle : elevatedButtonStyle,
                 ),
               ],
             ),
           ),
         ),
-        body: ClipRRect(
-            child: Container(
-              color: Colors.white, // Fondo de color D9D9D9
-              child: TabBarView(
-                controller: _tabController,
-                children: [
-                  // Vista para 'Listado de pedidos'
-                  Center(
-                    child: Column(
-                      children: [
-                        Container(
-                          margin: const EdgeInsets.all(15),
-                          child: subopt(),
-                        ),
-                        _textFieldSearch(),
-                        //pedidosList()
-                      ],
+        body: Container(
+          margin: EdgeInsets.only(top: 15),
+          child: ClipRRect(
+              borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(30), topRight: Radius.circular(30)),
+              child: Container(
+                color: const Color(0xFFD9D9D9), // Fondo de color D9D9D9
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    // Vista para 'Listado de pedidos'
+                    Center(
+                      child: Column(
+                        children: [
+                          Container(
+                            child: subopt(),
+                            margin: const EdgeInsets.all(15),
+                          ),
+                         Expanded(
+                            child: pedidosList(),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  // Vista para 'POS'
-                  Center(
-                    child: Column(
-                      children: [
-                        // Otros widgets...
-                        DefaultTabController(
-                          length: myTabs.length,
-                          child: Expanded(
-                            child: Column(
-                              children: [
-                                    const Row(
-                                      children: [
-                                        SizedBox(width: 20 ),
-                                        Padding(
-                                          padding: EdgeInsets.only(top: 15),
-                                          child: Icon(Icons.table_bar_sharp, size: 30),
+                    // Vista para 'POS'
+                    Center(
+                      child: Column(
+                        children: [
+                          // Otros widgets...
+                          DefaultTabController(
+                            length: myTabs.length,
+                            child: Expanded(
+                              child: Column(
+                                children: [
+                                  const Row(
+                                    children: [
+                                      SizedBox(width: 20),
+                                      Icon(Icons.table_bar_sharp, size: 30),
+                                      SizedBox(width: 20),
+                                      Expanded(
+                                        child: TabBar(
+                                          tabs: myTabs,
+                                          dividerColor: Colors.orange,
+                                          indicatorColor: Colors.orange,
+                                          labelColor: Colors.orange,
                                         ),
-                                        SizedBox(width: 20),
-                                        Expanded(
-                                          child: TabBar(
-                                            tabs: myTabs,
-                                            labelStyle: TextStyle(fontSize: 16),
-                                            labelPadding: EdgeInsets.only(left: 5),
-                                            dividerColor: Colors.orange,
-                                            indicatorColor: Colors.orange,
-                                            labelColor: Colors.orange,
-                                             ),
-                                        ),
-                                        Spacer()
-                                      ],
-                                    ),
-                                const SizedBox(height: 10),
-                                Expanded(
-                                  child: TabBarView(
-                                    children: myTabs.map((Tab tab) {
-                                      return GridView.builder(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                          crossAxisCount: 2,
-                                          childAspectRatio: 0.7,
-                                        ),
-                                        itemCount: 8,
-                                        itemBuilder: (_, index) {
-                                          return _cardProduct();
-                                        },
-                                      );
-                                    }).toList(),
+                                      ),
+                                      Spacer()
+                                    ],
                                   ),
-                                ),
-                              ],
+                                  const SizedBox(height: 10),
+                                  Expanded(
+                                    child: TabBarView(
+                                      children: myTabs.map((Tab tab) {
+                                        return GridView.builder(
+                                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                            crossAxisCount: 2,
+                                            childAspectRatio: 0.7,
+                                          ),
+                                          itemCount: 8,
+                                          itemBuilder: (_, index) {
+                                            return _cardProduct();
+                                          },
+                                        );
+                                      }).toList(),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  )
-                ],
-              ),
-            )));
+                  ],
+                ),
+              )
+          ),
+        )
+    );
   }
 
   Widget _textFieldSearch() {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 35),
-      child: TextField(
-        decoration: InputDecoration(
-            hintText: 'Buscar',
-            suffixIcon: const Icon(Icons.search, color: Color(0xFF000000)),
-            hintStyle: const TextStyle(fontSize: 15, color: Color(0xFF000000)),
-            enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: Colors.grey)),
-            focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: Colors.grey)),
-            contentPadding: const EdgeInsets.all(10)),
+      margin: const EdgeInsets.symmetric(horizontal: 10),
+      child: Container(
+        margin: const EdgeInsets.only(top: 20, bottom: 20),
+        child: TextField(
+          decoration: InputDecoration(
+
+              hintText: 'Buscar',
+              suffixIcon: const Icon(Icons.search, color: Color(0xFF000000)),
+              hintStyle: const TextStyle(fontSize: 15, color: Color(0xFF000000)),
+              enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  borderSide: const BorderSide(color: Color(0xFF000000), width: 1.5)),
+              focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  borderSide: const BorderSide(color: Color(0xFF000000), width: 1.5)),
+              contentPadding: const EdgeInsets.all(10)),
+        ),
       ),
     );
   }
@@ -209,26 +196,32 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         foregroundColor: const Color(0xFF000000),
         selectedForegroundColor: Colors.white,
         selectedBackgroundColor: const Color(0xFFFF562F),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20.0),
+          side: const BorderSide(color: Color(0xFF000000), width: 2),
+        ),
       ),
 
       segments: const <ButtonSegment<Calendar>>[
         ButtonSegment<Calendar>(
           value: Calendar.day,
           label: SizedBox(
-          width: 53, // Ancho fijo deseado
-          child: Center(child: Text('Local')),
-        ),),
+          width: 53,
+          child: Center(child: Text('Local')
+          ),
+        ),
+        ),
         ButtonSegment<Calendar>(
           value: Calendar.week,
           label: SizedBox(
-            width: 53, // Ancho fijo deseado
+            width: 53,
             child: Center(child: Text('llevar')),
           ),
         ),
         ButtonSegment<Calendar>(
           value: Calendar.month,
           label: SizedBox(
-            width: 53, // Ancho fijo deseado
+            width: 53,
             child: Center(child: Text('Delivery')),
           ),
         ),
@@ -243,15 +236,59 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   }
 
   Widget pedidosList() {
-    return Column(
-      children: [
-        _textFieldSearch(),
-        Expanded(
-          child: Container(
-            child: const Text('Aquí empezaremos de cero'),
+    return Container(
+      decoration: const BoxDecoration(
+        color: const Color(0xFF414141),
+        borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            color: const Color(0xFFD1D1D1),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _textFieldSearch(),
+              const Padding(
+                padding: EdgeInsets.all(10),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Pedido'),
+                    Text('Cliente'),
+                    Text('Estado'),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: Container(
+                  margin: const EdgeInsets.fromLTRB(8.0, 0, 8.0, 8.0),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: ListView.builder(
+                    itemCount: 10,
+                    itemBuilder: (context, index) {
+                      return ListTile(
+                        title: Text('Pedido ${index + 1}'),
+                        subtitle: Text('Cliente ${index + 1}'),
+                        trailing: const Text('Estado'),
+                        onTap: () {
+                          // Lógica cuando se toca un pedido
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
-      ],
+      ),
     );
   }
 
@@ -302,14 +339,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     ),
                   ),
                   const Center(
-                      child:  Text(
-                        'Disponible',
-                        style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold
-                        ),
+                    child:  Text(
+                      'Disponible',
+                      style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold
                       ),
                     ),
+                  ),
                 ],
               )
             ],
