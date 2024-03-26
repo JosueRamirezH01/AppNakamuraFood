@@ -218,6 +218,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                   margin: const EdgeInsets.fromLTRB(8.0, 0, 8.0, 8.0),
                   decoration: BoxDecoration(
                     color: Colors.grey[300],
+
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: ListView.builder(
