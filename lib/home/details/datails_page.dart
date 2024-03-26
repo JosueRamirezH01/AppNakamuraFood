@@ -1,11 +1,14 @@
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 
 class DetailsPage extends StatefulWidget {
   final List<String> productosSeleccionados;
-
-  const DetailsPage({Key? key, required this.productosSeleccionados}) : super(key: key);
+  final int estado;
+  const DetailsPage({super.key, required this.productosSeleccionados, required this.estado});
 
   @override
   State<DetailsPage> createState() => _DetailsPageState();
@@ -18,6 +21,14 @@ class _DetailsPageState extends State<DetailsPage> {
   int contador = 0;
   List<String> mesa = ['Mesa 1', 'Mesa 2', 'Mesa 3', 'Mesa 4'];
   String? selectedMesa;
+  late int estado;
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    print('ESTADO INICIANDO ${widget.estado}');
+    estado = widget.estado;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,6 +36,7 @@ class _DetailsPageState extends State<DetailsPage> {
       body: SingleChildScrollView(
         child: Column(
           children: [
+            if(estado != 1)
             cabecera(),
             const SizedBox(height: 10),
             contenido(),
@@ -255,6 +267,35 @@ class _DetailsPageState extends State<DetailsPage> {
       ),
     );
   }
+  Widget _pedido(){
+    return ElevatedButton(
+        style:  ButtonStyle(
+            elevation: MaterialStateProperty.all(2), backgroundColor: MaterialStateProperty.all(Colors.blue)),
+        onPressed: () {
+            setState(() {
+              estado = 2;
+            });
+         print('ESTADO $estado');
+          _pdf();
+        },
+        child: const Text(
+          'Pedido',
+          style: TextStyle(color: Colors.white, fontSize: 16),
+        ));
+  }
+
+  Widget _preCuenta(){
+    return ElevatedButton(
+        style:  ButtonStyle(
+            elevation: MaterialStateProperty.all(2), backgroundColor: MaterialStateProperty.all(const Color(0xFFFFB500))),
+        onPressed: () {
+          _pdf();
+        },
+        child: const Text(
+          'Pre Cuenta',
+          style: TextStyle(color: Colors.white, fontSize: 16),
+        ));
+  }
 
   Widget debajo() {
     return Center(
@@ -268,14 +309,7 @@ class _DetailsPageState extends State<DetailsPage> {
           children: [
             const SizedBox(width: 5),
             Expanded(
-              child: ElevatedButton(
-                  style:  ButtonStyle(
-                      elevation: MaterialStateProperty.all(2), backgroundColor: MaterialStateProperty.all(const Color(0xFFFFB500))),
-                  onPressed: () {},
-                  child: const Text(
-                    'Pre Cuenta',
-                    style: TextStyle(color: Colors.white, fontSize: 16),
-                  )),
+              child: estado == 1 ? _pedido() : _preCuenta(),
             ),
             const SizedBox(width: 10),
             const Expanded(
@@ -344,6 +378,83 @@ class _DetailsPageState extends State<DetailsPage> {
           ),
         ),
       ],
+    );
+  }
+
+
+  Future<void> _pdf() async {
+    final pdf = pw.Document();
+    // Tamaño del papel de la etiqueta
+    final PdfPageFormat labelSize =  PdfPageFormat(
+      80.0 * PdfPageFormat.mm,
+      80.0 * PdfPageFormat.mm,
+    );// Para 80x80 mm
+    // final PdfPageFormat labelSize = PdfPageFormat.custom(
+    //   width: 100.0 * PdfPageFormat.mm,
+    //   height: 100.0 * PdfPageFormat.mm,
+    // ); // Para 100x100 mm
+
+    pdf.addPage(
+      pw.Page(
+        pageFormat: PdfPageFormat.roll80,
+        build: (pw.Context context) {
+          return pw.Container(
+            padding: const pw.EdgeInsets.all(10),
+            child: pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Center(
+                  child: pw.Column(
+                    children: [
+                      pw.Text( 'PRE-CUENTA',
+                    style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
+                  ),
+                  pw.Text( 'MESA 2',
+                      style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
+                  )]
+                ),
+                ),
+                pw.Divider(),
+                pw.Text('Piso: PISO 1', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),),
+                pw.Text('Mesero(a): mozo',style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),),
+                pw.Text('Hora: 14:20:26',style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),),
+                pw.Text('Fecha: 2024-03-26',style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),),
+                pw.Divider(),
+                pw.Row(
+                  children: [
+                    pw.Text('CANTIDAD',style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
+                    pw.SizedBox(width: 5),
+                    pw.Text('PRODUCTO', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
+                    pw.SizedBox(width: 5),
+                    pw.Text('P.UNIT', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
+                    pw.SizedBox(width: 5),
+                    pw.Text('TOTAL', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
+                  ]
+                ),
+                pw.Divider(),
+                pw.ListView.builder(
+                  itemCount: widget.productosSeleccionados.length,
+                  itemBuilder: (_, int index) {
+                    return pw.Column(
+                      children: [
+                        pw.Text(
+                          widget.productosSeleccionados[index],
+                        ),
+                        if (index != widget.productosSeleccionados.length - 1) pw.Divider(height: 1, thickness: 2),
+                      ],
+                    );
+                  },
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+
+    // Mostrar el PDF en un widget utilizando PdfPreview
+    await Printing.layoutPdf(
+      onLayout: (PdfPageFormat format) async => pdf.save(),
     );
   }
 }
