@@ -1,10 +1,20 @@
+ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
 const List<Widget> options = <Widget>[
   Text('Listado de pedidos'),
   Text('POS'),
 ];
+
+class Product {
+  final String name;
+  final int quantity;
+  final double price;
+
+  Product(this.name, this.quantity, this.price);
+}
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -63,11 +73,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     }
   }
 
-  void _updateSubOptTypes(SubOptTypes newValue) {
-    setState(() {
-      _subOptType = newValue;
-    });
-  }
+
 
   static final ButtonStyle elevatedButtonStyle = ElevatedButton.styleFrom(
       foregroundColor: const Color(0xFF000000), elevation: 5);
@@ -397,7 +403,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                       child:  Text(
                         buttonText,
                         textAlign: TextAlign.center,
-                        style: TextStyle(fontWeight: FontWeight.w600),
+                        style: const TextStyle(fontWeight: FontWeight.w600),
                       ),
                     ),
                   ),
@@ -420,12 +426,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 child: ListView.builder(
                   itemCount: _listSize,
                   itemBuilder: (context, index) {
+                    String npedido = 'PD-${index + 1}';
                     return ListTile(
                       title: Text('PD-${index + 1}'),
                       subtitle: Text('Cliente ${index + 1}'),
                       trailing: const Text('Estado'),
                       onTap: () {
-                        pedido();
+                        pedido(npedido);
                       },
                     );
                   },
@@ -438,19 +445,344 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     );
   }
 
-  Future pedido(){
+  Future pedido(String numeroPedido) {
     return showCupertinoModalBottomSheet(
       barrierColor: Colors.transparent,
       context: context,
       builder: (BuildContext context) {
         return SingleChildScrollView(
-          child: SizedBox(
-            height: MediaQuery.of(context).size.height * 0.6,
-            child:  Text('hola'),
+          child: Container(
+            decoration: const BoxDecoration(
+              color: Color.fromRGBO(217, 217, 217, 0.8),
+            ),
+            child: SizedBox(
+              height: MediaQuery.of(context).size.height * 0.6,
+              child: Container(
+                decoration: const BoxDecoration(
+                  borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(20),
+                      topRight: Radius.circular(20)),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    children: [
+                      Expanded(
+                          child: Container(
+                            margin: const EdgeInsets.only(top: 20),
+                            alignment: Alignment.topLeft,
+                            decoration: BoxDecoration(
+                                color: const Color(0xFFf1f1f1),
+                                border: Border.all(width: 2),
+                                borderRadius: const BorderRadius.all(Radius.circular(20))
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.only(bottom: 15),
+                              child: Column(
+                                children: [
+                                  Container(
+                                    alignment: Alignment.center,
+                                    child:  Padding(
+                                      padding: const EdgeInsets.only(
+                                          top: 10,
+                                          bottom: 10
+                                      ),
+                                      child: Text(
+                                        'n° pedido: $numeroPedido',
+                                        style: const TextStyle(
+                                            color: Color(0xFF111111),
+                                            decoration: TextDecoration.none,
+                                            fontSize : 30,
+                                            fontWeight: FontWeight.w600
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(
+                                          top: 10,
+                                          left: 20,
+                                          bottom: 10,
+                                          right: 20
+                                      ),
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                            color: const Color(0xFFD9D9D9),
+                                            border: Border.all(width: 2),
+                                            borderRadius: const BorderRadius.all(Radius.circular(20))
+                                        ),
+                                        child: Column(
+                                          children: [
+                                            Container(
+                                              margin: const EdgeInsets.all(5),
+                                              decoration: BoxDecoration(border: Border(bottom: BorderSide(width: 2))),
+                                              child:  Padding(
+                                                padding: EdgeInsets.all(5),
+                                                child: Row(
+                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                  children: [
+                                                    //Text(
+                                                    //  'Cantidad',
+                                                    //  style: TextStyle(
+                                                    //      color: Color(0xFF111111),
+                                                    //      decoration: TextDecoration.none,
+                                                    //      fontSize : 16,
+                                                    //      fontWeight: FontWeight.w500
+                                                    //  ),
+                                                    //),
+                                                    //Text(
+                                                    //  'Producto',
+                                                    //  style: TextStyle(
+                                                    //      color: Color(0xFF111111),
+                                                    //      decoration: TextDecoration.none,
+                                                    //      fontSize : 16,
+                                                    //      fontWeight: FontWeight.w500
+                                                    //  ),
+                                                    //),
+                                                    //Text(
+                                                    //  'Precio',
+                                                    //  style: TextStyle(
+                                                    //      color: Color(0xFF111111),
+                                                    //      decoration: TextDecoration.none,
+                                                    //      fontSize : 16,
+                                                    //      fontWeight: FontWeight.w500
+                                                    //  ),
+                                                    //),
+                                                    Expanded(
+                                                      child: Container(
+                                                        alignment: Alignment.center,
+                                                        child: Text(
+                                                          'Cantidad',
+                                                          style: TextStyle(
+                                                              color: Color(0xFF111111),
+                                                              decoration: TextDecoration.none,
+                                                              fontSize: 16,
+                                                              fontWeight: FontWeight.w500),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    Expanded(
+                                                      child: Container(
+                                                        alignment: Alignment.center,
+                                                        child: Text(
+                                                          'Producto',
+                                                          style: TextStyle(
+                                                              color: Color(0xFF111111),
+                                                              decoration: TextDecoration.none,
+                                                              fontSize: 16,
+                                                              fontWeight: FontWeight.w500),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    Expanded(
+                                                      child: Container(
+                                                        alignment: Alignment.center,
+                                                        child: Text(
+                                                          'Precio',
+                                                          style: TextStyle(
+                                                              color: Color(0xFF111111),
+                                                              decoration: TextDecoration.none,
+                                                              fontSize: 16,
+                                                              fontWeight: FontWeight.w500),
+                                                        ),
+                                                      ),
+                                                    ),
+
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                            _producList([
+                                              Product('Chaufa de pollo', 2, 14.50),
+                                              Product('Arroz chaufa', 1, 10),
+                                              Product('Tallarín saltado', 3, 18.50),
+                                              Product('Arroz chaufa', 1, 10),
+                                              Product('Tallarín saltado combo familiar', 3, 18.50),
+                                              Product('Arroz chaufa', 1, 10),
+                                              Product('Tallarín saltado', 3, 18.50),
+                                            ])
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          )
+                      ),
+                      Container(
+                        margin: const EdgeInsets.only(top: 20),
+                        alignment: Alignment.centerRight,
+                        decoration: BoxDecoration(
+                            color: const Color(0xFF99CFB5),
+                            border: Border.all(width: 2),
+                            borderRadius: const BorderRadius.all(Radius.circular(20))
+                        ),
+
+                        child:  Padding(
+                          padding: EdgeInsets.only(
+                              top: 10,
+                              right: 20,
+                              bottom: 10
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              ElevatedButton(onPressed: () {
+                                
+                              }, child: Text('imprimir')),
+                              Text(
+                                ' Total S/50',
+                                style: TextStyle(
+                                    color: Color(0xFF111111),
+                                    decoration: TextDecoration.none,
+                                    fontSize : 20,
+                                    fontWeight: FontWeight.w600
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           ),
         );
       },
     );
+  }
+
+  Widget _producList(List<Product> productList) {
+    List<Widget> rows = [];
+
+    for (int i = 0; i < productList.length; i++) {
+      Product product = productList[i];
+      rows.add(
+        Container(
+          margin: const EdgeInsets.all(5),
+          child: Padding(
+            padding: EdgeInsets.all(5),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                Expanded(
+                  child: Container(
+                    alignment: Alignment.center,
+                    child: Text(
+                      '${product.quantity}',
+                      style: TextStyle(
+                          color: Color(0xFF111111),
+                          decoration: TextDecoration.none,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Container(
+                    alignment: Alignment.center,
+                    child: Text(
+                      product.name,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                          color: Color(0xFF111111),
+                          decoration: TextDecoration.none,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Container(
+                    alignment: Alignment.center,
+                    child: Text(
+                      '${product.price}',
+                      style: TextStyle(
+                          color: Color(0xFF111111),
+                          decoration: TextDecoration.none,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Expanded(
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: rows,
+        ),
+      ),
+    );
+
+
+    //return Expanded(
+    //  child: SingleChildScrollView(
+    //    child: Column(
+    //      crossAxisAlignment: CrossAxisAlignment.stretch,
+    //      children: [
+    //        Container(
+    //          margin: const EdgeInsets.all(5),
+    //          child:  Padding(
+    //            padding: EdgeInsets.all(5),
+    //            child: Row(
+    //              mainAxisAlignment: MainAxisAlignment.spaceAround,
+    //              children: [
+    //                Container(
+    //                  alignment: Alignment.center,
+    //                  child: Text(
+    //                    '1',
+    //                    style: TextStyle(
+    //                        color: Color(0xFF111111),
+    //                        decoration: TextDecoration.none,
+    //                        fontSize : 16,
+    //                        fontWeight: FontWeight.w500
+    //                    ),
+    //                  ),
+    //                ),
+    //                Container(
+    //                  alignment: Alignment.center,
+    //                  child: Text(
+    //                    'chaufa',
+    //                    style: TextStyle(
+    //                        color: Color(0xFF111111),
+    //                        decoration: TextDecoration.none,
+    //                        fontSize : 16,
+    //                        fontWeight: FontWeight.w500
+    //                    ),
+    //                  ),
+    //                ),
+    //                Container(
+    //                  alignment: Alignment.center,
+    //                  child: Text(
+    //                    's/ 14',
+    //                    style: TextStyle(
+    //                        color: Color(0xFF111111),
+    //                        decoration: TextDecoration.none,
+    //                        fontSize : 16,
+    //                        fontWeight: FontWeight.w500
+    //                    ),
+    //                  ),
+    //                ),
+    //              ],
+    //            ),
+    //          ),
+    //        ),
+    //      ],
+    //    ),
+    //  ),
+    //);
   }
 
   Widget _cardProduct() {
