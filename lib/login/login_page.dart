@@ -123,8 +123,8 @@ class _LoginPageState extends State<LoginPage> {
                     padding: const EdgeInsets.all(40.0),
                     child: ElevatedButton(onPressed: () async {
                       print(email);
-                      //dbSQL.consultarUsuarios(email,context);
-                      await bd.getConnection();
+                      await dbSQL.consultarUsuarios(email,context);
+                      //await bd.getConnection();
                     }, style: const ButtonStyle(
                       backgroundColor: MaterialStatePropertyAll(Colors.deepOrange),
                     ), child: const Text('Iniciar Sesion', style: TextStyle(color: Colors.white, fontSize: 20),),),
