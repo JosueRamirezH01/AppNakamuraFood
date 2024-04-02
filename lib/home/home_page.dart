@@ -195,7 +195,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                               crossAxisCount: 2,
                                               childAspectRatio: 0.7,
                                             ),
-                                            itemCount: 8,
+                                            itemCount: 4,
                                             itemBuilder: (_, index) {
                                               return _cardProduct();
                                             },
@@ -337,7 +337,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   Widget mainListado() {
     return Container(
       decoration: const BoxDecoration(
-        color: Color.fromRGBO(65, 65, 65, 0.5),
+        color: Color.fromRGBO(65, 65, 65, 0.3),
         borderRadius: BorderRadius.only(
             topLeft: Radius.circular(20), topRight: Radius.circular(20)),
       ),
@@ -347,7 +347,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
             border: Border.all(width: 2),
-            color: const Color(0xFFD9D9D9),
+            color: const Color(0xFFF9F9F9),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -371,7 +371,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         decoration: BoxDecoration(
           border: Border.all(width: 2),
           borderRadius: BorderRadius.circular(20),
-          color: const Color(0xFFD1D1D1),
+          color: const Color(0xFFF1F1F1),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -456,12 +456,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               color: Color.fromRGBO(217, 217, 217, 0.8),
             ),
             child: SizedBox(
-              height: MediaQuery.of(context).size.height * 0.6,
+              height: MediaQuery.of(context).size.height * 0.62,
               child: Container(
                 decoration: const BoxDecoration(
                   borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(20),
-                      topRight: Radius.circular(20)),
+                      topLeft: Radius.circular(30),
+                      topRight: Radius.circular(30)
+                  ),
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(20),
@@ -469,7 +470,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     children: [
                       Expanded(
                           child: Container(
-                            margin: const EdgeInsets.only(top: 20),
                             alignment: Alignment.topLeft,
                             decoration: BoxDecoration(
                                 color: const Color(0xFFf1f1f1),
@@ -516,43 +516,16 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                           children: [
                                             Container(
                                               margin: const EdgeInsets.all(5),
-                                              decoration: BoxDecoration(border: Border(bottom: BorderSide(width: 2))),
+                                              decoration: const BoxDecoration(border: Border(bottom: BorderSide(width: 2))),
                                               child:  Padding(
-                                                padding: EdgeInsets.all(5),
+                                                padding: const EdgeInsets.all(5),
                                                 child: Row(
                                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                                   children: [
-                                                    //Text(
-                                                    //  'Cantidad',
-                                                    //  style: TextStyle(
-                                                    //      color: Color(0xFF111111),
-                                                    //      decoration: TextDecoration.none,
-                                                    //      fontSize : 16,
-                                                    //      fontWeight: FontWeight.w500
-                                                    //  ),
-                                                    //),
-                                                    //Text(
-                                                    //  'Producto',
-                                                    //  style: TextStyle(
-                                                    //      color: Color(0xFF111111),
-                                                    //      decoration: TextDecoration.none,
-                                                    //      fontSize : 16,
-                                                    //      fontWeight: FontWeight.w500
-                                                    //  ),
-                                                    //),
-                                                    //Text(
-                                                    //  'Precio',
-                                                    //  style: TextStyle(
-                                                    //      color: Color(0xFF111111),
-                                                    //      decoration: TextDecoration.none,
-                                                    //      fontSize : 16,
-                                                    //      fontWeight: FontWeight.w500
-                                                    //  ),
-                                                    //),
                                                     Expanded(
                                                       child: Container(
                                                         alignment: Alignment.center,
-                                                        child: Text(
+                                                        child: const Text(
                                                           'Cantidad',
                                                           style: TextStyle(
                                                               color: Color(0xFF111111),
@@ -565,7 +538,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                                     Expanded(
                                                       child: Container(
                                                         alignment: Alignment.center,
-                                                        child: Text(
+                                                        child: const Text(
                                                           'Producto',
                                                           style: TextStyle(
                                                               color: Color(0xFF111111),
@@ -578,7 +551,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                                     Expanded(
                                                       child: Container(
                                                         alignment: Alignment.center,
-                                                        child: Text(
+                                                        child: const Text(
                                                           'Precio',
                                                           style: TextStyle(
                                                               color: Color(0xFF111111),
@@ -622,18 +595,48 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                         ),
 
                         child:  Padding(
-                          padding: EdgeInsets.only(
+                          padding: const EdgeInsets.only(
                               top: 10,
-                              right: 20,
                               bottom: 10
                           ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
-                              ElevatedButton(onPressed: () {
-                                
-                              }, child: Text('imprimir')),
-                              Text(
+                              Row(
+                                children: [
+                                  Container(
+                                    decoration: const BoxDecoration(
+                                        color: Colors.blueAccent,
+                                        shape: BoxShape.circle
+                                    ),
+                                    margin: EdgeInsets.only(right: 10),
+                                    child: IconButton(
+                                      onPressed: () {
+                                        print('Botón presionado');
+                                      },
+                                      icon: Icon(Icons.print),
+                                      tooltip: 'Imprimir',
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  Container(
+                                    decoration: const BoxDecoration(
+                                      color: Colors.redAccent,
+                                      shape: BoxShape.circle
+                                    ),
+                                    child: IconButton(
+                                      onPressed: () {
+                                        print('Botón presionado');
+                                      },
+                                      icon: Icon(Icons.cancel_outlined),
+                                      tooltip: 'Anular',
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ],
+                              ),
+
+                              const Text(
                                 ' Total S/50',
                                 style: TextStyle(
                                     color: Color(0xFF111111),
@@ -666,7 +669,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         Container(
           margin: const EdgeInsets.all(5),
           child: Padding(
-            padding: EdgeInsets.all(5),
+            padding: const EdgeInsets.all(5),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
@@ -675,7 +678,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     alignment: Alignment.center,
                     child: Text(
                       '${product.quantity}',
-                      style: TextStyle(
+                      style: const TextStyle(
                           color: Color(0xFF111111),
                           decoration: TextDecoration.none,
                           fontSize: 16,
@@ -689,7 +692,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     child: Text(
                       product.name,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
+                      style: const TextStyle(
                           color: Color(0xFF111111),
                           decoration: TextDecoration.none,
                           fontSize: 16,
@@ -702,7 +705,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     alignment: Alignment.center,
                     child: Text(
                       '${product.price}',
-                      style: TextStyle(
+                      style: const TextStyle(
                           color: Color(0xFF111111),
                           decoration: TextDecoration.none,
                           fontSize: 16,
