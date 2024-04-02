@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 const List<Widget> options = <Widget>[
   Text('Listado de pedidos'),
@@ -51,19 +52,24 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     backgroundColor: const Color(0xFFFF562F), // Cambia el color de fondo cuando está seleccionado
     foregroundColor: Colors.white, // Cambia el color del texto cuando está seleccionado
     elevation: 5,
-      animationDuration: Duration(milliseconds: 1000)
+      animationDuration: const Duration(milliseconds: 1000)
   );
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          automaticallyImplyLeading: false,
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(10),
             child: ButtonBar(
               alignment: MainAxisAlignment.center,
               children: [
+                ElevatedButton.icon(onPressed: () async {
+                  final prefs = await SharedPreferences.getInstance();
+                  prefs.remove('user_data');
+                  // Redirigir a la nueva pantalla
+                  Navigator.pushReplacementNamed(context, 'login');
+                }, icon: const Icon(Icons.backspace_rounded), label: Text('')),
                 ElevatedButton.icon(
                   onPressed: () {
                     setState(() {
@@ -71,7 +77,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                       _tabController.animateTo(0);
                     });
                   },
-                  icon: Icon(Icons.list_alt_rounded),
+                  icon: const Icon(Icons.list_alt_rounded),
                   label: const Text('Listado de pedidos'),
                   style: _selectedIndex == 0 ? selectedButtonStyle : elevatedButtonStyle,
                 ),
@@ -82,7 +88,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                       _tabController.animateTo(1);
                     });
                   },
-                  icon: Icon(Icons.shopping_cart_outlined),
+                  icon: const Icon(Icons.shopping_cart_outlined),
                   label: const Text('POS'),
                   style: _selectedIndex == 1 ? selectedButtonStyle : elevatedButtonStyle,
                 ),
@@ -91,7 +97,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           ),
         ),
         body: Container(
-          margin: EdgeInsets.only(top: 15),
+          margin: const EdgeInsets.only(top: 15),
           child: ClipRRect(
               borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(30), topRight: Radius.circular(30)),
@@ -107,8 +113,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                         child: Column(
                           children: [
                             Container(
-                              child: subopt(),
                               margin: const EdgeInsets.all(15),
+                              child: subopt(),
                             ),
                            Expanded(
                               child: pedidosList(),
@@ -253,7 +259,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   Widget pedidosList() {
     return Container(
       decoration: const BoxDecoration(
-        color: const Color(0xFF414141),
+        color: Color(0xFF414141),
         borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
       ),
       child: Padding(

@@ -1,6 +1,12 @@
 
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
+import 'package:mysql1/mysql1.dart';
 import 'package:restauflutter/bd/conexion.dart';
+import 'package:restauflutter/bd/conexionSQL.dart';
+import 'package:restauflutter/login/login_controller.dart';
+import 'package:restauflutter/services/login_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 
 class LoginPage extends StatefulWidget {
@@ -11,40 +17,58 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-
+  final TextEditingController _emailController = TextEditingController();
   final FocusNode _emailFocus = FocusNode();
   final FocusNode _passwordFocus = FocusNode();
-  var db = Connection();
-  var email = '';
+  final LoginController _con = LoginController();
+  var dbSQL = LoginService();
+  var bd = Connection();
+  String email = '';
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
+      _con.init(context, refresh);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    return  Scaffold(
-          backgroundColor: const Color.fromARGB( 255, 19, 19, 19),
-          body: GestureDetector(
-            onTap: () {
-              _emailFocus.unfocus();
-              _passwordFocus.unfocus();
-            },
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  const Padding(
-                    padding: EdgeInsets.only(left: 30, top:80 ),
-                    child: Image(image: AssetImage('assets/img/Background.png')),
-                  ),
-                  const SizedBox(height: 30),
-                  _centro(),
-                  const SizedBox(height: 60),
-                  const Text('970 333 599/946 285 690', style: TextStyle(color: Colors.white ,  fontSize: 16),),
-                  const Text('Calle las camelias 657 San Isidro, Lima', style: TextStyle(color: Colors.white ,  fontSize: 16),),
-
-                ],
+    return Scaffold(
+      backgroundColor: const Color.fromARGB(255, 19, 19, 19),
+      body: GestureDetector(
+        onTap: () {
+          _emailFocus.unfocus();
+          _passwordFocus.unfocus();
+        },
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              const Padding(
+                padding: EdgeInsets.only(left: 30, top: 80),
+                child: Image(image: AssetImage('assets/img/Background.png')),
               ),
-            ),
+              const SizedBox(height: 30),
+              _centro(),
+              const SizedBox(height: 60),
+              const Text('970 333 599/946 285 690',
+                  style: TextStyle(color: Colors.white, fontSize: 16)),
+              const Text('Calle las camelias 657 San Isidro, Lima',
+                  style: TextStyle(color: Colors.white, fontSize: 16)),
+            ],
           ),
+        ),
+      ),
     );
   }
+
+  Future<String> getUserEmail() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('user_email') ?? ''; // Devuelve el valor del correo electrónico guardado, o una cadena vacía si no se encuentra
+  }
+
   Widget _centro(){
     return SizedBox(
         width:  MediaQuery.of(context).size.width * 0.9,
@@ -60,6 +84,7 @@ class _LoginPageState extends State<LoginPage> {
                   Container(
                     margin: const EdgeInsets.only(left: 20, right: 20, top: 30),
                     child: TextFormField(
+                      controller: _emailController,
                       focusNode: _emailFocus,
                       decoration: const InputDecoration(
                         icon: Icon(Icons.person),
@@ -67,6 +92,9 @@ class _LoginPageState extends State<LoginPage> {
                         labelText: 'Usuario',
                         border: UnderlineInputBorder(borderSide: BorderSide(width: 20))
                       ),
+                      onChanged: (value) {
+                        email = value; // Actualiza el valor de email cada vez que cambia el texto
+                      },
                       onSaved: (String? value) {
                       },
                       validator: (String? value) {
@@ -93,9 +121,10 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   Padding(
                     padding: const EdgeInsets.all(40.0),
-                    child: ElevatedButton(onPressed: (){
-                      db.getConnection();
-
+                    child: ElevatedButton(onPressed: () async {
+                      print(email);
+                      //dbSQL.consultarUsuarios(email,context);
+                      await bd.getConnection();
                     }, style: const ButtonStyle(
                       backgroundColor: MaterialStatePropertyAll(Colors.deepOrange),
                     ), child: const Text('Iniciar Sesion', style: TextStyle(color: Colors.white, fontSize: 20),),),
@@ -106,5 +135,10 @@ class _LoginPageState extends State<LoginPage> {
           ),
       ),
     );
+  }
+  void refresh(){
+    setState(() {
+
+    });
   }
 }
