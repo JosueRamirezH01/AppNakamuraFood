@@ -1,7 +1,7 @@
- import 'package:flutter/cupertino.dart';
+
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 const List<Widget> options = <Widget>[
   Text('Listado de pedidos'),
@@ -23,7 +23,6 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-
 enum SubOptTypes {
   local,
   llevar,
@@ -31,17 +30,15 @@ enum SubOptTypes {
 }
 
 class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
-
   late TabController _tabController;
   int _selectedIndex = 0;
   late int _listSize;
   late SubOptTypes _subOptType;
-  
+
   static const List<Tab> myTabs = <Tab>[
     Tab(text: 'PISO 1'),
     Tab(text: 'PISO 2'),
   ];
-
 
   @override
   void initState() {
@@ -68,20 +65,18 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     if (newValue != null) {
       setState(() {
         _listSize =
-            newValue; // Actualiza el tamaño de la lista con el nuevo valor seleccionado
+            newValue;
       });
     }
   }
-
-
 
   static final ButtonStyle elevatedButtonStyle = ElevatedButton.styleFrom(
       foregroundColor: const Color(0xFF000000), elevation: 5);
   static final ButtonStyle selectedButtonStyle = ElevatedButton.styleFrom(
       backgroundColor: const Color(
-          0xFFFF562F), // Cambia el color de fondo cuando está seleccionado
+          0xFFFF562F),
       foregroundColor:
-          Colors.white, // Cambia el color del texto cuando está seleccionado
+      Colors.white,
       elevation: 5,
       animationDuration: const Duration(milliseconds: 1000));
 
@@ -89,37 +84,59 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          automaticallyImplyLeading: false,
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(10),
             child: ButtonBar(
               alignment: MainAxisAlignment.center,
               children: [
-                ElevatedButton.icon(
-                  onPressed: () {
-                    setState(() {
-                      _selectedIndex = 0;
-                      _tabController.animateTo(0);
-                    });
-                  },
-                  icon: const Icon(Icons.list_alt_rounded),
-                  label: const Text('Listado de pedidos'),
-                  style: _selectedIndex == 0
-                      ? selectedButtonStyle
-                      : elevatedButtonStyle,
-                ),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    setState(() {
-                      _selectedIndex = 1;
-                      _tabController.animateTo(1);
-                    });
-                  },
-                  icon: const Icon(Icons.shopping_cart_outlined),
-                  label: const Text('POS'),
-                  style: _selectedIndex == 1
-                      ? selectedButtonStyle
-                      : elevatedButtonStyle,
+                Row(
+                  children: [
+                    Container(
+                      decoration: const BoxDecoration(
+                          color: Colors.redAccent,
+                          shape: BoxShape.circle),
+                      child: IconButton(
+                        onPressed: () async {
+                          final prefs = await SharedPreferences.getInstance();
+                          prefs.remove('user_data');
+                          // Redirigir a la nueva pantalla
+                          Navigator.pushReplacementNamed(context, 'login');
+                        },
+                        icon: Icon(Icons.logout_outlined),
+                        tooltip: 'Cerrar sesion',
+                        color: Colors.white,
+                      ),
+                    ),
+                    Container(
+                      margin: EdgeInsets.all(5),
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          setState(() {
+                            _selectedIndex = 0;
+                            _tabController.animateTo(0);
+                          });
+                        },
+                        icon: const Icon(Icons.list_alt_rounded),
+                        label: const Text('Listado de pedidos'),
+                        style: _selectedIndex == 0
+                            ? selectedButtonStyle
+                            : elevatedButtonStyle,
+                      ),
+                    ),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        setState(() {
+                          _selectedIndex = 1;
+                          _tabController.animateTo(1);
+                        });
+                      },
+                      icon: const Icon(Icons.shopping_cart_outlined),
+                      label: const Text('POS'),
+                      style: _selectedIndex == 1
+                          ? selectedButtonStyle
+                          : elevatedButtonStyle,
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -176,7 +193,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                             indicatorColor: Colors.orange,
                                             labelColor: Colors.orange,
                                             labelPadding:
-                                                EdgeInsets.only(left: 12),
+                                            EdgeInsets.only(left: 12),
                                             labelStyle: TextStyle(fontSize: 16),
                                           ),
                                         ),
@@ -191,11 +208,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                             padding: const EdgeInsets.symmetric(
                                                 horizontal: 10, vertical: 10),
                                             gridDelegate:
-                                                const SliverGridDelegateWithFixedCrossAxisCount(
+                                            const SliverGridDelegateWithFixedCrossAxisCount(
                                               crossAxisCount: 2,
                                               childAspectRatio: 0.7,
                                             ),
-                                            itemCount: 4,
+                                            itemCount: 8,
                                             itemBuilder: (_, index) {
                                               return _cardProduct();
                                             },
@@ -270,16 +287,16 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 hintText: 'Buscar',
                 suffixIcon: const Icon(Icons.search, color: Color(0xFF000000)),
                 hintStyle:
-                    const TextStyle(fontSize: 15, color: Color(0xFF000000)),
+                const TextStyle(fontSize: 15, color: Color(0xFF000000)),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(20),
                   borderSide:
-                      const BorderSide(color: Color(0xFF000000), width: 2),
+                  const BorderSide(color: Color(0xFF000000), width: 2),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(20),
                   borderSide:
-                      const BorderSide(color: Color(0xFF000000), width: 2),
+                  const BorderSide(color: Color(0xFF000000), width: 2),
                 ),
                 contentPadding: const EdgeInsets.all(10),
               ),
@@ -326,7 +343,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         ),
       ],
       selected: {_subOptType}, // Corregir _subOptTypes a _subOptType
-      onSelectionChanged: (Set<SubOptTypes> newSelection) { // Acepta un conjunto de valores
+      onSelectionChanged: (Set<SubOptTypes> newSelection) {
+        // Acepta un conjunto de valores
         setState(() {
           _subOptType = newSelection.first;
         });
@@ -362,7 +380,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     String buttonText = 'Cliente';
 
     if (_subOptType == SubOptTypes.local) {
-      buttonText = 'Mesa'; // Si _subOptType es 'local', el texto cambia a 'Mesa'
+      buttonText =
+      'Mesa'; // Si _subOptType es 'local', el texto cambia a 'Mesa'
     }
 
     return Expanded(
@@ -371,7 +390,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         decoration: BoxDecoration(
           border: Border.all(width: 2),
           borderRadius: BorderRadius.circular(20),
-          color: const Color(0xFFF1F1F1),
+          color: const Color(0xFFD1D1D1),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -400,7 +419,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                           right: BorderSide(width: 2),
                         ),
                       ),
-                      child:  Text(
+                      child: Text(
                         buttonText,
                         textAlign: TextAlign.center,
                         style: const TextStyle(fontWeight: FontWeight.w600),
@@ -410,7 +429,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                   Expanded(
                     child: Container(
                       alignment: Alignment.center,
-                      child:  const Text(
+                      child: const Text(
                         'Estado',
                         textAlign: TextAlign.center,
                         style: TextStyle(fontWeight: FontWeight.w600),
@@ -621,8 +640,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                   ),
                                   Container(
                                     decoration: const BoxDecoration(
-                                      color: Colors.redAccent,
-                                      shape: BoxShape.circle
+                                        color: Colors.redAccent,
+                                        shape: BoxShape.circle
                                     ),
                                     child: IconButton(
                                       onPressed: () {
@@ -669,7 +688,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         Container(
           margin: const EdgeInsets.all(5),
           child: Padding(
-            padding: const EdgeInsets.all(5),
+            padding: EdgeInsets.all(5),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
@@ -678,7 +697,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     alignment: Alignment.center,
                     child: Text(
                       '${product.quantity}',
-                      style: const TextStyle(
+                      style: TextStyle(
                           color: Color(0xFF111111),
                           decoration: TextDecoration.none,
                           fontSize: 16,
@@ -692,7 +711,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     child: Text(
                       product.name,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
+                      style: TextStyle(
                           color: Color(0xFF111111),
                           decoration: TextDecoration.none,
                           fontSize: 16,
@@ -705,7 +724,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     alignment: Alignment.center,
                     child: Text(
                       '${product.price}',
-                      style: const TextStyle(
+                      style: TextStyle(
                           color: Color(0xFF111111),
                           decoration: TextDecoration.none,
                           fontSize: 16,
@@ -728,64 +747,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         ),
       ),
     );
-
-
-    //return Expanded(
-    //  child: SingleChildScrollView(
-    //    child: Column(
-    //      crossAxisAlignment: CrossAxisAlignment.stretch,
-    //      children: [
-    //        Container(
-    //          margin: const EdgeInsets.all(5),
-    //          child:  Padding(
-    //            padding: EdgeInsets.all(5),
-    //            child: Row(
-    //              mainAxisAlignment: MainAxisAlignment.spaceAround,
-    //              children: [
-    //                Container(
-    //                  alignment: Alignment.center,
-    //                  child: Text(
-    //                    '1',
-    //                    style: TextStyle(
-    //                        color: Color(0xFF111111),
-    //                        decoration: TextDecoration.none,
-    //                        fontSize : 16,
-    //                        fontWeight: FontWeight.w500
-    //                    ),
-    //                  ),
-    //                ),
-    //                Container(
-    //                  alignment: Alignment.center,
-    //                  child: Text(
-    //                    'chaufa',
-    //                    style: TextStyle(
-    //                        color: Color(0xFF111111),
-    //                        decoration: TextDecoration.none,
-    //                        fontSize : 16,
-    //                        fontWeight: FontWeight.w500
-    //                    ),
-    //                  ),
-    //                ),
-    //                Container(
-    //                  alignment: Alignment.center,
-    //                  child: Text(
-    //                    's/ 14',
-    //                    style: TextStyle(
-    //                        color: Color(0xFF111111),
-    //                        decoration: TextDecoration.none,
-    //                        fontSize : 16,
-    //                        fontWeight: FontWeight.w500
-    //                    ),
-    //                  ),
-    //                ),
-    //              ],
-    //            ),
-    //          ),
-    //        ),
-    //      ],
-    //    ),
-    //  ),
-    //);
   }
 
   Widget _cardProduct() {
@@ -799,7 +760,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           color: const Color(0xFF8EFF72),
           elevation: 3.0,
           shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
           child: Stack(
             children: [
               Column(
@@ -815,7 +776,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                       'MESA 1',
                       overflow: TextOverflow.ellipsis,
                       style:
-                          TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                      TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                     ),
                   ),
                   Container(
@@ -837,7 +798,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     child: Text(
                       'Disponible',
                       style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ],
@@ -848,7 +809,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       ),
     );
   }
-
   Widget _buildAnimatedContent({required Key key, required Widget child}) {
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 500),
