@@ -1,11 +1,11 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:mysql1/mysql1.dart';
+import 'package:password_hash_plus/password_hash_plus.dart';
 import 'package:restauflutter/bd/conexion.dart';
-import 'package:restauflutter/bd/conexionSQL.dart';
 import 'package:restauflutter/login/login_controller.dart';
 import 'package:restauflutter/services/login_service.dart';
+import 'package:restauflutter/services/producto_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 
@@ -18,12 +18,13 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
   final FocusNode _emailFocus = FocusNode();
   final FocusNode _passwordFocus = FocusNode();
   final LoginController _con = LoginController();
   var dbSQL = LoginService();
-  var bd = Connection();
   String email = '';
+  String password = '';
 
   @override
   void initState() {
@@ -64,10 +65,6 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  Future<String> getUserEmail() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('user_email') ?? ''; // Devuelve el valor del correo electrónico guardado, o una cadena vacía si no se encuentra
-  }
 
   Widget _centro(){
     return SizedBox(
@@ -106,13 +103,18 @@ class _LoginPageState extends State<LoginPage> {
                       margin: const EdgeInsets.only(left: 20, right: 20, top: 10),
                       child: TextFormField(
                         focusNode: _passwordFocus,
+                        obscureText: true,
                         decoration: const InputDecoration(
                             icon: Icon(Icons.lock),
                             hintText: 'Ingresar su password',
                             labelText: 'Password',
                             border: UnderlineInputBorder(borderSide: BorderSide(width: 20))
                         ),
+                        onChanged:(String? value) {
+                          password = value!;
+                        },
                         onSaved: (String? value) {
+
                         },
                         validator: (String? value) {
                           return (value != null && value.contains('@')) ? 'Do not use the @ char.' : null;
@@ -123,8 +125,8 @@ class _LoginPageState extends State<LoginPage> {
                     padding: const EdgeInsets.all(40.0),
                     child: ElevatedButton(onPressed: () async {
                       print(email);
-                      await dbSQL.consultarUsuarios(email,context);
-                      //await bd.getConnection();
+                      print(password);
+                      await dbSQL.consultarUsuarios(email,password,context);
                     }, style: const ButtonStyle(
                       backgroundColor: MaterialStatePropertyAll(Colors.deepOrange),
                     ), child: const Text('Iniciar Sesion', style: TextStyle(color: Colors.white, fontSize: 20),),),

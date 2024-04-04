@@ -16,7 +16,6 @@ class Connection {
             password: password,
             db: db,
         );
-
         try {
             final conn = await MySqlConnection.connect(settings);
             print('Conexión establecida correctamente');

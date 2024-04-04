@@ -1,10 +1,12 @@
 
-import 'package:flutter/cupertino.dart';
+
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:restauflutter/home/details/datails_page.dart';
+import 'package:restauflutter/home/productos/producto_controller.dart';
+import 'package:restauflutter/model/producto.dart';
 
 class ProductosPage extends StatefulWidget {
   const ProductosPage({super.key});
@@ -13,23 +15,29 @@ class ProductosPage extends StatefulWidget {
   State<ProductosPage> createState() => _ProductosPageState();
 }
 
+
+
 class _ProductosPageState extends State<ProductosPage> {
   int estado = 1;
- static const List<Tab> myTabs = <Tab>[
-    Tab(text: 'TODOS'),
-    Tab(text: 'CHAUFAS'),
-   Tab(text: 'SOPAS'),
-   Tab(text: 'PASTAS'),
-   Tab(text: 'SOPAS'),
-   Tab(text: 'PASTAS'),
-   Tab(text: 'SOPAS'),
-   Tab(text: 'PASTAS'),
- ];
- List<String> productosSeleccionados = [];
+
+ List<Producto>? productosSeleccionados = [];
+
+  final ProductoController _con = ProductoController();
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
+      _con.init(context, refresh);
+    });
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-          length: myTabs.length,
+          length: _con.categorias.length,
           child: Scaffold(
           appBar: AppBar(
             elevation: 3,
@@ -61,9 +69,19 @@ class _ProductosPageState extends State<ProductosPage> {
               ),
               const SizedBox(width: 5)
             ],
-            bottom: const TabBar(
+            bottom: TabBar(
               isScrollable: true,
-              tabs: myTabs,
+              tabs: List<Widget>.generate(_con.categorias.length, (index) {
+                return Tab(
+                  child: Text(_con.categorias[index].nombre ?? ''),
+                );
+              }),
+              onTap: (index) async {
+                List<Producto> productosCategoria = await _con.getProductosPorCategoria(_con.categorias[index].id);
+                setState(() {
+                  _con.productos = productosCategoria;
+                });
+              },
             ),
           ),
           body:  Column(
@@ -73,16 +91,21 @@ class _ProductosPageState extends State<ProductosPage> {
               const SizedBox(height: 10),
               Expanded(
                 child: TabBarView(
-                  children: myTabs.map((Tab tab) {
+                  children: _con.categorias.map((categoria)  {
                     return  GridView.builder(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: 2,
                             childAspectRatio: 0.7
                         ),
-                        itemCount: 8,
+                        itemCount: _con.productos.length,
                         itemBuilder: (_, index) {
-                          return _cardProduct();
+                          if (index < _con.productos.length) {
+                            Producto producto = _con.productos[index];
+                            return _cardProduct(producto);
+                          } else {
+                            return const SizedBox(); // Otra opción es devolver un widget vacío si el índice está fuera de rango
+                          }
                         }
                     );
                   }).toList(),
@@ -98,7 +121,7 @@ class _ProductosPageState extends State<ProductosPage> {
                 height: 50,
                 child: ElevatedButton(
                   onPressed: () {
-                    pedido();
+                    pedido(productosSeleccionados);
                   },
                   child: const Row(
                     children: [
@@ -117,7 +140,8 @@ class _ProductosPageState extends State<ProductosPage> {
   }
 
 
-  Future pedido(){
+
+  Future pedido(Producto producto){
     return showCupertinoModalBottomSheet(
       barrierColor: Colors.transparent,
       context: context,
@@ -125,17 +149,17 @@ class _ProductosPageState extends State<ProductosPage> {
         return SingleChildScrollView(
           child: SizedBox(
             height: MediaQuery.of(context).size.height * 0.87,
-            child:  DetailsPage(productosSeleccionados: productosSeleccionados, estado: estado),
+            child:  DetailsPage(productosSeleccionados: producto, estado: estado),
           ),
         );
       },
     );
   }
- Widget _cardProduct() {
+ Widget _cardProduct(Producto producto) {
    return GestureDetector(
      onTap: () {
        setState(() {
-         productosSeleccionados.add('arroz con pollo mas tallarin rojo y ver jasjsajdahdad');
+         productosSeleccionados?.add(producto);
        });
        agregarMsj();
      },
@@ -180,11 +204,11 @@ class _ProductosPageState extends State<ProductosPage> {
                  Container(
                    margin: const EdgeInsets.symmetric(horizontal: 20),
                    height: 40,
-                   child:  const Text(
-                    'arroz con pollo',
+                   child:  Text(
+                     producto.nombreproducto ?? 'Nombre no disponible',
                      maxLines: 2,
                      overflow: TextOverflow.ellipsis,
-                     style: TextStyle(
+                     style: const TextStyle(
                          fontSize: 15,
                          fontFamily: 'NimbusSans'
                      ),
@@ -193,9 +217,9 @@ class _ProductosPageState extends State<ProductosPage> {
                  const SizedBox(height: 10),
                  Container(
                    margin: const EdgeInsets.symmetric(horizontal: 20),
-                   child: const Text(
-                     'S/ 12.30',
-                     style: TextStyle(
+                   child: Text(
+                     'S/ ${producto.precioproducto ?? 'Precio no disponible'} ' ,
+                     style: const TextStyle(
                          fontSize: 15,
                          fontWeight: FontWeight.bold,
                          fontFamily: 'NimbusSans'
@@ -216,7 +240,7 @@ class _ProductosPageState extends State<ProductosPage> {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20),
       child: TextField(
-        //onChanged: _con.onChangeText,
+        onChanged: _con.onChangeText,
         decoration: InputDecoration(
             hintText: 'Buscar',
             suffixIcon: const Icon(
@@ -255,5 +279,7 @@ class _ProductosPageState extends State<ProductosPage> {
         fontSize: 16.0
     );
   }
-
+  void refresh(){
+    setState(() {});
+  }
 }

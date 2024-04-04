@@ -1,4 +1,5 @@
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -89,54 +90,59 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             child: ButtonBar(
               alignment: MainAxisAlignment.center,
               children: [
-                Row(
-                  children: [
-                    Container(
-                      decoration: const BoxDecoration(
-                          color: Colors.redAccent,
-                          shape: BoxShape.circle),
-                      child: IconButton(
-                        onPressed: () async {
-                          final prefs = await SharedPreferences.getInstance();
-                          prefs.remove('user_data');
-                          // Redirigir a la nueva pantalla
-                          Navigator.pushReplacementNamed(context, 'login');
-                        },
-                        icon: Icon(Icons.logout_outlined),
-                        tooltip: 'Cerrar sesion',
-                        color: Colors.white,
+                SizedBox(
+                  height: MediaQuery.of(context).size.height / 17.5,
+                  child: Row(
+                    children: [
+                      Container(
+                        decoration: const BoxDecoration(
+                            color: Colors.redAccent,
+                            shape: BoxShape.circle),
+                        child: IconButton(
+                          onPressed: () async {
+                            final prefs = await SharedPreferences.getInstance();
+                            prefs.remove('user_data');
+                            prefs.remove('categorias');
+                            prefs.remove('productos');
+                            // Redirigir a la nueva pantalla
+                            Navigator.pushReplacementNamed(context, 'login');
+                          },
+                          icon: Icon(Icons.logout_outlined),
+                          tooltip: 'Cerrar sesion',
+                          color: Colors.white,
+                        ),
                       ),
-                    ),
-                    Container(
-                      margin: EdgeInsets.all(5),
-                      child: ElevatedButton.icon(
+                      Container(
+                        margin: EdgeInsets.all(5),
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            setState(() {
+                              _selectedIndex = 0;
+                              _tabController.animateTo(0);
+                            });
+                          },
+                          icon: const Icon(Icons.list_alt_rounded),
+                          label: const Text('Listado de pedidos'),
+                          style: _selectedIndex == 0
+                              ? selectedButtonStyle
+                              : elevatedButtonStyle,
+                        ),
+                      ),
+                      ElevatedButton.icon(
                         onPressed: () {
                           setState(() {
-                            _selectedIndex = 0;
-                            _tabController.animateTo(0);
+                            _selectedIndex = 1;
+                            _tabController.animateTo(1);
                           });
                         },
-                        icon: const Icon(Icons.list_alt_rounded),
-                        label: const Text('Listado de pedidos'),
-                        style: _selectedIndex == 0
+                        icon: const Icon(Icons.shopping_cart_outlined),
+                        label: const Text('POS'),
+                        style: _selectedIndex == 1
                             ? selectedButtonStyle
                             : elevatedButtonStyle,
                       ),
-                    ),
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        setState(() {
-                          _selectedIndex = 1;
-                          _tabController.animateTo(1);
-                        });
-                      },
-                      icon: const Icon(Icons.shopping_cart_outlined),
-                      label: const Text('POS'),
-                      style: _selectedIndex == 1
-                          ? selectedButtonStyle
-                          : elevatedButtonStyle,
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -159,7 +165,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                         child: Column(
                           children: [
                             Container(
-                              margin: const EdgeInsets.all(15),
+                              margin: const EdgeInsets.all(10),
                               child: subopt(),
                             ),
                             Expanded(
