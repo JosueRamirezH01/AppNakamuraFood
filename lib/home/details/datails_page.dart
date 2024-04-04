@@ -4,11 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+import 'package:restauflutter/model/producto.dart';
 
 class DetailsPage extends StatefulWidget {
-  final List<String> productosSeleccionados;
+  final List<Producto>? productosSeleccionados;
   final int estado;
-  const DetailsPage({super.key, required this.productosSeleccionados, required this.estado});
+  final void Function(List<Producto>?)? onProductosActualizados; // Función de devolución de llamada
+
+  const DetailsPage({super.key, required this.productosSeleccionados, required this.estado, this.onProductosActualizados});
 
   @override
   State<DetailsPage> createState() => _DetailsPageState();
@@ -22,6 +25,7 @@ class _DetailsPageState extends State<DetailsPage> {
   List<String> mesa = ['Mesa 1', 'Mesa 2', 'Mesa 3', 'Mesa 4'];
   String? selectedMesa;
   late int estado;
+
   @override
   void initState() {
     // TODO: implement initState
@@ -54,7 +58,7 @@ class _DetailsPageState extends State<DetailsPage> {
         width: MediaQuery.of(context).size.height * 0.45,
         decoration: BoxDecoration(borderRadius: const BorderRadius.all(Radius.circular(15)), border: Border.all(width: 2),),
         child: ListView.builder(
-          itemCount: widget.productosSeleccionados.length,
+          itemCount: widget.productosSeleccionados?.length,
           itemBuilder: (_, int index) {
             return Column(
               children: [
@@ -63,12 +67,12 @@ class _DetailsPageState extends State<DetailsPage> {
                     children: [
                       Expanded(
                         child: Text(
-                          widget.productosSeleccionados[index],
+                          '${widget.productosSeleccionados?[index].nombreproducto}',
                           maxLines: 3,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      _addOrRemoveItem(),
+                      _addOrRemoveItem(index),
                       const SizedBox(width: 5),
                       _iconDelete(),
                       const SizedBox(width: 5),
@@ -76,7 +80,7 @@ class _DetailsPageState extends State<DetailsPage> {
                     ],
                   ),
                 ),
-                if (index != widget.productosSeleccionados.length - 1) const Divider(
+                if (index != widget.productosSeleccionados!.length - 1) const Divider(
                   height: 1,
             thickness: 2,
             indent: 10,
@@ -89,6 +93,7 @@ class _DetailsPageState extends State<DetailsPage> {
       ),
     );
   }
+
 
   Widget _iconDelete() {
     return GestureDetector(
@@ -296,8 +301,17 @@ class _DetailsPageState extends State<DetailsPage> {
           style: TextStyle(color: Colors.white, fontSize: 16),
         ));
   }
-
+  double calcularTotal() {
+    double total = 0;
+    if (widget.productosSeleccionados != null) {
+      for (Producto producto in widget.productosSeleccionados!) {
+        total += (producto.precioproducto ?? 0) * (producto.stock ?? 0);
+      }
+    }
+    return total;
+  }
   Widget debajo() {
+    double total = calcularTotal();
     return Center(
       child: Container(
         margin: const EdgeInsets.only(top: 20),
@@ -312,12 +326,12 @@ class _DetailsPageState extends State<DetailsPage> {
               child: estado == 1 ? _pedido() : _preCuenta(),
             ),
             const SizedBox(width: 10),
-            const Expanded(
+             Expanded(
               child: SizedBox(
                 child: Row(
                   children: [
-                    Text('TOTAL : ', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                    Text('S/ 8457.00', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))
+                    const Text('TOTAL : ', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    Text('S/ ${total.toStringAsFixed(2)}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold))
                   ],
                 ),
               ),
@@ -329,25 +343,34 @@ class _DetailsPageState extends State<DetailsPage> {
     );
   }
 
-  Widget _addOrRemoveItem() {
+  void _actualizarProductosSeleccionados() {
+    if (widget.onProductosActualizados != null) {
+      widget.onProductosActualizados!(widget.productosSeleccionados);
+    }
+  }
+  Widget _addOrRemoveItem(int index) {
     return Row(
       children: [
         GestureDetector(
           onTap: () {
-            if (contador > 0) {
+            final productoSeleccionado = widget.productosSeleccionados?[index];
+            if (productoSeleccionado != null && productoSeleccionado.stock != null && productoSeleccionado.stock! > 1) {
               setState(() {
-                contador--; // Restar al contador
+                productoSeleccionado.stock = productoSeleccionado.stock! - 1; // Restar al stock
               });
+            } else if (productoSeleccionado != null && productoSeleccionado.stock != null && productoSeleccionado.stock! == 1) {
+              // Aquí puedes mostrar un mensaje o tomar alguna acción adicional si el stock ya es 1
             }
+            _actualizarProductosSeleccionados(); // Llama a la función para actualizar los productos seleccionados
           },
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
             decoration: BoxDecoration(
-                borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(8),
-                    bottomLeft: Radius.circular(8)
-                ),
-                color: Colors.grey[200]
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(8),
+                bottomLeft: Radius.circular(8),
+              ),
+              color: Colors.grey[200],
             ),
             child: const Text('-'),
           ),
@@ -355,24 +378,28 @@ class _DetailsPageState extends State<DetailsPage> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
           color: Colors.grey[200],
-          child:  Text(
-            contador.toString(),
-          )
+          child: Text(
+            '${widget.productosSeleccionados?[index].stock ?? ""}',
+          ),
         ),
         GestureDetector(
           onTap: () {
-            setState(() {
-              contador++; // Aumentar el contador
-            });
+            final productoSeleccionado = widget.productosSeleccionados?[index];
+            if (productoSeleccionado != null && productoSeleccionado.stock != null) {
+              setState(() {
+                productoSeleccionado.stock = productoSeleccionado.stock! + 1; // Aumentar el stock
+              });
+            }
+            _actualizarProductosSeleccionados(); // Llama a la función para actualizar los productos seleccionados
           },
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
             decoration: BoxDecoration(
-                borderRadius: const BorderRadius.only(
-                    topRight: Radius.circular(8),
-                    bottomRight: Radius.circular(8)
-                ),
-                color: Colors.grey[200]
+              borderRadius: const BorderRadius.only(
+                topRight: Radius.circular(8),
+                bottomRight: Radius.circular(8),
+              ),
+              color: Colors.grey[200],
             ),
             child: const Text('+'),
           ),
@@ -380,6 +407,9 @@ class _DetailsPageState extends State<DetailsPage> {
       ],
     );
   }
+
+
+
 
 
   Future<void> _pdf() async {
@@ -433,14 +463,14 @@ class _DetailsPageState extends State<DetailsPage> {
                 ),
                 pw.Divider(),
                 pw.ListView.builder(
-                  itemCount: widget.productosSeleccionados.length,
+                  itemCount: widget.productosSeleccionados!.length,
                   itemBuilder: (_, int index) {
                     return pw.Column(
                       children: [
                         pw.Text(
-                          widget.productosSeleccionados[index],
+                          '${widget.productosSeleccionados![index].nombreproducto}',
                         ),
-                        if (index != widget.productosSeleccionados.length - 1) pw.Divider(height: 1, thickness: 2),
+                        if (index != widget.productosSeleccionados!.length - 1) pw.Divider(height: 1, thickness: 2),
                       ],
                     );
                   },
