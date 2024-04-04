@@ -148,7 +148,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     return Scaffold(
         appBar: AppBar(
           bottom: PreferredSize(
-            preferredSize: const Size.fromHeight(10),
+            preferredSize: const Size.fromHeight(18),
             child: ButtonBar(
               alignment: MainAxisAlignment.center,
               children: [
@@ -207,95 +207,92 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             ),
           ),
         ),
-        body: Container(
-          margin: const EdgeInsets.only(top: 1),
-          child: ClipRRect(
-              borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(30), topRight: Radius.circular(30)),
-              child: Container(
-                color: Colors.white, // Fondo de color D9D9D9
-                child: TabBarView(
-                  controller: _tabController,
-                  children: [
-                    // Vista para 'Listado de pedidos'
-                    _buildAnimatedContent(
-                      key: const Key('Listado de pedidos'),
-                      child: Center(
-                        child: Column(
-                          children: [
-                            Container(
-                              margin: const EdgeInsets.all(10),
-                              child: subopt(),
-                            ),
-                            Expanded(
-                              child: mainListado(),
-                            ),
-                          ],
-                        ),
+        body: ClipRRect(
+            borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(30), topRight: Radius.circular(30)),
+            child: Container(
+              color: Colors.white, // Fondo de color D9D9D9
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  // Vista para 'Listado de pedidos'
+                  _buildAnimatedContent(
+                    key: const Key('Listado de pedidos'),
+                    child: Center(
+                      child: Column(
+                        children: [
+                          Container(
+                            margin: const EdgeInsets.all(8),
+                            child: subopt(),
+                          ),
+                          Expanded(
+                            child: mainListado(),
+                          ),
+                        ],
                       ),
                     ),
-                    // Vista para 'POS'
-                    _buildAnimatedContent(
-                      key: const Key('POS'),
-                      child: Center(
-                        child: Column(
-                          children: [
-                            // Otros widgets...
-                            DefaultTabController(
-                              length: myTabs.length,
-                              child: Expanded(
-                                child: Column(
-                                  children: [
-                                    const Row(
-                                      children: [
-                                        SizedBox(width: 20),
-                                        Icon(Icons.table_bar_sharp, size: 30),
-                                        SizedBox(width: 20),
-                                        Expanded(
-                                          child: TabBar(
-                                            tabs: myTabs,
-                                            indicatorColor: Color( 0xFFFF562F),
-                                            labelColor: Color( 0xFFFF562F),
-                                            labelPadding:
-                                            EdgeInsets.only(left: 12),
-                                            labelStyle: TextStyle(fontSize: 16),
-                                          ),
+                  ),
+                  // Vista para 'POS'
+                  _buildAnimatedContent(
+                    key: const Key('POS'),
+                    child: Center(
+                      child: Column(
+                        children: [
+                          // Otros widgets...
+                          DefaultTabController(
+                            length: myTabs.length,
+                            child: Expanded(
+                              child: Column(
+                                children: [
+                                  const Row(
+                                    children: [
+                                      SizedBox(width: 20),
+                                      Icon(Icons.table_bar_sharp, size: 30),
+                                      SizedBox(width: 20),
+                                      Expanded(
+                                        child: TabBar(
+                                          tabs: myTabs,
+                                          indicatorColor: Color( 0xFFFF562F),
+                                          labelColor: Color( 0xFFFF562F),
+                                          labelPadding:
+                                          EdgeInsets.only(left: 12),
+                                          labelStyle: TextStyle(fontSize: 16),
                                         ),
-                                        Spacer()
-                                      ],
-                                    ),
-                                    const SizedBox(height: 10),
-                                    Expanded(
-                                      child: TabBarView(
-                                        children: myTabs.map((Tab tab) {
-                                          return GridView.builder(
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 10, vertical: 10),
-                                            gridDelegate:
-                                            const SliverGridDelegateWithFixedCrossAxisCount(
-                                              crossAxisCount: 2,
-                                              childAspectRatio: 0.7,
-                                            ),
-                                            itemCount:mesas.length,
-                                            itemBuilder: (_, index) {
-                                              return _cardProduct(mesas[index]);
-                                            },
-                                          );
-                                        }).toList(),
                                       ),
+                                      Spacer()
+                                    ],
+                                  ),
+                                  const SizedBox(height: 10),
+                                  Expanded(
+                                    child: TabBarView(
+                                      children: myTabs.map((Tab tab) {
+                                        return GridView.builder(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 10, vertical: 10),
+                                          gridDelegate:
+                                          const SliverGridDelegateWithFixedCrossAxisCount(
+                                            crossAxisCount: 2,
+                                            childAspectRatio: 0.7,
+                                          ),
+                                          itemCount:mesas.length,
+                                          itemBuilder: (_, index) {
+                                            return _cardProduct(mesas[index]);
+                                          },
+                                        );
+                                      }).toList(),
                                     ),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
-                ),
-              )),
-        ));
+                  ),
+                ],
+              ),
+            )));
   }
 
   Widget _textFieldSearch() {
