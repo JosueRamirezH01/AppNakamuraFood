@@ -3,23 +3,26 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:mysql1/mysql1.dart';
 import 'package:restauflutter/bd/conexion.dart';
-import 'package:restauflutter/model/piso.dart';
+import 'package:restauflutter/model/mesa.dart';
 import 'package:restauflutter/utils/shared_pref.dart';
 
-class PisoServicio {
+
+//SELECT * FROM `mesas` WHERE piso_id = 14
+
+class MesaServicio {
   final Connection _connectionSQL = Connection();
   final SharedPref _sharedPref = SharedPref();
 
-  Future<List<Piso>> consultarPisos( int idEstablecimiento, BuildContext context) async {
+  Future<List<Mesa>> consultarMesas( int idPiso, BuildContext context) async {
     MySqlConnection? conn;
     try {
       conn = await _connectionSQL.getConnection();
 
-      const query = 'SELECT * FROM pisos WHERE id_establecimiento = ?';
-      final results = await conn.query(query, [idEstablecimiento]);
+      const query = 'SELECT * FROM mesas WHERE piso_id = ?';
+      final results = await conn.query(query, [idPiso]);
       if (results.isEmpty) {
         Fluttertoast.showToast(
-          msg: "No se encontraron datos en las tablas.",
+          msg: "No hay datos en las tablas.",
           toastLength: Toast.LENGTH_SHORT,
           gravity: ToastGravity.CENTER,
           timeInSecForIosWeb: 1,
@@ -30,12 +33,11 @@ class PisoServicio {
         print('No se encontraron datos en las tablas.');
         return [];
       } else {
-        List<Piso> pisos =
-            results.map((row) => Piso.fromJson(row.fields)).toList();
-        final jsonPisosData = json.encode(pisos);
+        List<Mesa> mesas = results.map((row) => Mesa.fromJson(row.fields)).toList();
+        final jsonMesasData = json.encode(mesas);
         //_sharedPref.save('pisos', jsonPisosData);
-        print('Lista de pisos guardada en SharedPreferences: $jsonPisosData');
-        return pisos;
+        print('Lista de pisos guardada en SharedPreferences: $jsonMesasData');
+        return mesas;
       }
     } catch (e) {
       print('Error al realizar la consulta: $e');

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:restauflutter/model/mesa.dart';
 import 'package:restauflutter/model/piso.dart';
+import 'package:restauflutter/services/mesas_service.dart';
 import 'package:restauflutter/services/piso_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -78,15 +79,18 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       pisoId: 1,
     ),
   ];
-  var dbSQL = PisoServicio();
+  var dbPisos = PisoServicio();
+  var dbMesas = MesaServicio();
+
 
   int idEstablecimiento = 27 ; // seatear al el moso hacer login
 
   // mesas
-  static  List<Tab> myTabs = <Tab>[
-    //Tab(text: 'PISO 1'),
-  ];
-  //Tab(text: 'PISO 1'),
+  static  List<Tab> myTabs = <Tab>[];
+  late int pisoSelect = 0;
+  late List<Piso> ListadoPisos = [];
+  late List<Mesa> ListadoMesas = [];
+
 
 
   @override
@@ -95,10 +99,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     _tabController = TabController(length: 2, vsync: this);
     _tabController.addListener(_handleTabSelection);
     _listSize = 10;
-    _subOptType = SubOptTypes.local;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      consultarPisos(idEstablecimiento, context);
-    });
+    _subOptType = SubOptTypes.local; 
+    consultarPisos(idEstablecimiento, context);
+    consultarMesas(pisoSelect, context);
+    refresh();
   }
 
   @override
@@ -123,13 +127,28 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   }
 
   Future<void> consultarPisos(int idEstablecimiento, BuildContext context) async {
-    List<Piso> listaPisos = await dbSQL.consultarPisos(idEstablecimiento, context);
+    List<Piso> listaPisos = await dbPisos.consultarPisos(idEstablecimiento, context);
     print(listaPisos);
     setState(() {
       myTabs.clear();
       for (int i = 0; i < listaPisos.length; i++) {
         myTabs.add(Tab(text: listaPisos[i].nombrePiso));
-        print(listaPisos[i].nombrePiso);
+        ListadoPisos.add(listaPisos[i]);
+        print(' pisos: $listaPisos[i]');
+      }
+      pisoSelect = listaPisos[0].id!;
+      consultarMesas(pisoSelect,context);
+    });
+  }
+  Future<void> consultarMesas(int idPiso, BuildContext context) async {
+    print(' piso enviado: $idPiso');
+    List<Mesa> listaMesas = await dbMesas.consultarMesas(idPiso, context);
+    print('mesas recividas $listaMesas');
+    setState(() {
+      ListadoMesas.clear();
+      for (int i = 0; i < listaMesas.length; i++) {
+        ListadoMesas.add(listaMesas[i]);
+        print('Consutlar mesas: ${listaMesas[1].nombreMesa}');
       }
     });
   }
@@ -252,6 +271,17 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                       Expanded(
                                         child: TabBar(
                                           tabs: myTabs,
+                                          onTap: (index) {
+                                            String selectedTabName = myTabs[index].text!;
+                                            print('Selected tab name: $selectedTabName');
+                                            for (int i = 0; i < ListadoPisos.length; i++) {
+                                              if (ListadoPisos[i].nombrePiso == selectedTabName) {
+                                                pisoSelect = ListadoPisos[i].id!;
+                                                consultarMesas(pisoSelect,context);
+                                                print('Mesas: $ListadoMesas');
+                                              }
+                                            }
+                                          },
                                           indicatorColor: Color( 0xFFFF562F),
                                           labelColor: Color( 0xFFFF562F),
                                           labelPadding:
@@ -274,9 +304,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                             crossAxisCount: 2,
                                             childAspectRatio: 0.7,
                                           ),
-                                          itemCount:mesas.length,
+                                          itemCount:ListadoMesas.length,
                                           itemBuilder: (_, index) {
-                                            return _cardProduct(mesas[index]);
+                                            return _cardProduct(ListadoMesas[index]);
                                           },
                                         );
                                       }).toList(),
@@ -292,7 +322,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                   ),
                 ],
               ),
-            )));
+            )
+        )
+    );
   }
 
   Widget _textFieldSearch() {
@@ -820,7 +852,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           margin: const EdgeInsets.all(10),
           // aca seleto el color
           //color: const Color(0xFF8EFF72),
-          color: colores[mesa.estadoMesa],
+          color: colores[int.parse('${mesa.estadoMesa}')-1],
           elevation: 3.0,
           shape:
           RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
@@ -836,7 +868,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     margin: const EdgeInsets.only(left: 10),
                     height: 40,
                     child: Text(
-                      mesa.nombreMesa,
+                      '${mesa.nombreMesa}',
                       overflow: TextOverflow.ellipsis,
                       style:
                       TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
@@ -849,7 +881,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     child:  Padding(
                       padding: EdgeInsets.all(15.0),
                       child: FadeInImage(
-                        image: mesa.estadoMesa > 0 ? AssetImage('assets/img/pre-cuenta.png')  : AssetImage('assets/img/Vector.png'),
+                        image: int.parse('${mesa.estadoMesa}') > 0 ? AssetImage('assets/img/pre-cuenta.png')  : AssetImage('assets/img/Vector.png'),
                         fit: BoxFit.contain,
                         color: Colors.black,
                         fadeInDuration: Duration(milliseconds: 50),
@@ -859,7 +891,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                   ),
                    Center(
                     child: Text(
-                      mesa.estDisMesa,
+                      '${mesa.estDisMesa}',
                       style:
                       TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
@@ -881,5 +913,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         child: child,
       ),
     );
+  }
+
+  void refresh(){
+    setState(() {
+
+    });
   }
 }
