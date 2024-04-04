@@ -1,7 +1,9 @@
 
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/widgets.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:restauflutter/home/details/datails_page.dart';
@@ -117,17 +119,17 @@ class _ProductosPageState extends State<ProductosPage> {
               width: MediaQuery.of(context).size.width,
               alignment: Alignment.bottomCenter,
               child: SizedBox(
-                width: 200,
+                width: 250,
                 height: 50,
                 child: ElevatedButton(
                   onPressed: () {
-                    pedido(productosSeleccionados);
+                    pedido();
                   },
-                  child: const Row(
+                  child:  Row(
                     children: [
-                      Text('CANTIDAD'),
-                      SizedBox(width: 30),
-                      Text('PRECIO')
+                      Expanded(child: cantidad()),
+                      const SizedBox(width: 10),
+                      Expanded(child: precio()),
                     ],
                   ),
                 ),
@@ -138,10 +140,44 @@ class _ProductosPageState extends State<ProductosPage> {
 
     );
   }
+  Widget precio(){
+    double total = calcularTotal();
+    return Text('S/ ${total.toStringAsFixed(2)}');
+  }
+
+  Widget cantidad(){
+    int cantidadProductos = calcularCantidadProductosSeleccionados();
+    return Text('CANTIDAD: $cantidadProductos' );
+  }
+
+  double calcularTotal() {
+    double total = 0;
+    if (productosSeleccionados != null) {
+      for (Producto producto in productosSeleccionados!) {
+        total += (producto.precioproducto ?? 0) * (producto.stock ?? 0);
+      }
+    }
+    return total;
+  }
+  int calcularCantidadProductosSeleccionados() {
+    int cantidad = 0;
+    if (productosSeleccionados != null) {
+      for (Producto producto in productosSeleccionados!) {
+        cantidad += producto.stock ?? 0;
+      }
+    }
+    return cantidad;
+  }
+
+  void _actualizarProductosSeleccionados(List<Producto>? nuevosProductosSeleccionados) {
+    setState(() {
+      productosSeleccionados = nuevosProductosSeleccionados;
+    });
+  }
 
 
 
-  Future pedido(Producto producto){
+  Future pedido(){
     return showCupertinoModalBottomSheet(
       barrierColor: Colors.transparent,
       context: context,
@@ -149,19 +185,34 @@ class _ProductosPageState extends State<ProductosPage> {
         return SingleChildScrollView(
           child: SizedBox(
             height: MediaQuery.of(context).size.height * 0.87,
-            child:  DetailsPage(productosSeleccionados: producto, estado: estado),
+            child:  DetailsPage(
+                productosSeleccionados: productosSeleccionados,
+                estado: estado,
+                onProductosActualizados: _actualizarProductosSeleccionados,
+            ),
           ),
         );
       },
     );
   }
- Widget _cardProduct(Producto producto) {
+
+
+  Widget _cardProduct(Producto producto) {
    return GestureDetector(
      onTap: () {
        setState(() {
-         productosSeleccionados?.add(producto);
+         if (productosSeleccionados?.contains(producto) ?? false) {
+           // El producto ya está seleccionado, muestra un mensaje de confirmación
+           _con.mostrarMensaje('El producto ya ha sido seleccionado.');
+         } else {
+           // El producto no está seleccionado, agrégalo a la lista de productos seleccionados
+           setState(() {
+             productosSeleccionados?.add(producto);
+           });
+           // Muestra un mensaje de confirmación
+          _con.agregarMsj('El producto se ha añadido a la lista.');
+         }
        });
-       agregarMsj();
      },
      child: SizedBox(
        child: Card(
@@ -268,17 +319,7 @@ class _ProductosPageState extends State<ProductosPage> {
       ),
     );
   }
-  void agregarMsj(){
-    Fluttertoast.showToast(
-        msg: "Se Guardo correctamente a Pre-cuenta",
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.BOTTOM,
-        timeInSecForIosWeb: 1,
-        backgroundColor: Colors.green,
-        textColor: Colors.white,
-        fontSize: 16.0
-    );
-  }
+
   void refresh(){
     setState(() {});
   }
