@@ -13,12 +13,12 @@ class PisoServicio {
   final Connection _connectionSQL = Connection();
   final SharedPref _sharedPref = SharedPref();
 
-  Future<List<Piso>> consultarPisos( int idEstablecimiento, BuildContext context ) async {
+  Future<List<Piso>> consultarPisos(int idEstablecimiento, BuildContext context ) async {
     MySqlConnection? conn;
     try {
       conn = await _connectionSQL.getConnection();
 
-      const query = 'SELECT * FROM pisos where id_establecimiento = ? ';
+      const query = 'SELECT * FROM pisos WHERE id_establecimiento = ?';
       final results = await conn.query(query, [idEstablecimiento]);
       if (results.isEmpty) {
         Fluttertoast.showToast(
@@ -35,9 +35,8 @@ class PisoServicio {
       } else {
         List<Piso> pisos = results.map((row) => Piso.fromJson(row.fields)).toList();
         final jsonPisosData = json.encode(pisos);
-        _sharedPref.save('pisos', jsonPisosData);
-        print('Lista de pisos guardada en SharedPreferences:');
-        print(pisos);
+        //_sharedPref.save('pisos', jsonPisosData);
+        print('Lista de pisos guardada en SharedPreferences: $jsonPisosData');
         return pisos;
       }
     } catch (e) {

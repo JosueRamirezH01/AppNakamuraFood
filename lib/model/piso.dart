@@ -5,33 +5,33 @@ String responseApiToJson(Piso data) => json.encode(data.toJson());
 
 
 class Piso {
-  int id;
-  int idEstablecimiento;
-  String nombrePiso;
-  bool estado;
+  int? id;
+  int? idEstablecimiento;
+  String? nombrePiso;
+  int? estado;
 
   Piso({
-    required this.id,
-    required this.nombrePiso,
-    required this.estado,
-    this.idEstablecimiento = 0,
+     this.id,
+     this.nombrePiso,
+     this.estado,
+    this.idEstablecimiento,
   });
 
   factory Piso.fromJson(Map<String, dynamic> json) {
     return Piso(
-      id: json['idPrimaria'],
+      id: json['id'],
       idEstablecimiento: json['id_establecimiento'],
       nombrePiso: json['nombre_piso'],
-      estado: json['estado'] == 1,
+      estado: json['estado'],
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'idPrimaria': id,
+      'id': id,
       'id_establecimiento': idEstablecimiento,
       'nombre_piso': nombrePiso,
-      'estado': estado ? 1 : 0,
+      'estado': estado,
     };
   }
 }

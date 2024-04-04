@@ -83,8 +83,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   int idEstablecimiento = 27 ; // seatear al el moso hacer login
 
   // mesas
-  static const List<Tab> myTabs = <Tab>[
-    Tab(text: 'PISO 1'),
+  static  List<Tab> myTabs = <Tab>[
+    //Tab(text: 'PISO 1'),
   ];
   //Tab(text: 'PISO 1'),
 
@@ -96,7 +96,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     _tabController.addListener(_handleTabSelection);
     _listSize = 10;
     _subOptType = SubOptTypes.local;
-    WidgetsBinding.instance?.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       consultarPisos(idEstablecimiento, context);
     });
   }
@@ -124,7 +124,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
   Future<void> consultarPisos(int idEstablecimiento, BuildContext context) async {
     List<Piso> listaPisos = await dbSQL.consultarPisos(idEstablecimiento, context);
-
+    print(listaPisos);
     setState(() {
       myTabs.clear();
       for (int i = 0; i < listaPisos.length; i++) {
@@ -234,7 +234,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                   ),
                   // Vista para 'POS'
                   _buildAnimatedContent(
-                    key: const Key('POS'),
+                    key:  const Key('POS'),
                     child: Center(
                       child: Column(
                         children: [
@@ -244,7 +244,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                             child: Expanded(
                               child: Column(
                                 children: [
-                                  const Row(
+                                   Row(
                                     children: [
                                       SizedBox(width: 20),
                                       Icon(Icons.table_bar_sharp, size: 30),

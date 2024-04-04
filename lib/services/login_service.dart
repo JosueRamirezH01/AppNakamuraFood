@@ -6,6 +6,8 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:mysql1/mysql1.dart';
 import 'package:password_hash_plus/password_hash_plus.dart';
 import 'package:restauflutter/bd/conexion.dart';
+import 'package:restauflutter/model/piso.dart';
+import 'package:restauflutter/services/piso_service.dart';
 import 'package:restauflutter/services/producto_service.dart';
 import 'package:restauflutter/utils/shared_pref.dart';
 
@@ -14,6 +16,7 @@ class LoginService {
   final Connection _connectionSQL = Connection();
   var generator = PBKDF2();
   var prod = ProductoServicio();
+  var pisos = PisoServicio();
   Future<void> consultarUsuarios(String email, String password,
       BuildContext context) async {
     MySqlConnection? conn;
