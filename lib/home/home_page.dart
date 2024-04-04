@@ -2,7 +2,16 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
+import 'package:restauflutter/model/mesa.dart';
+import 'package:restauflutter/model/piso.dart';
+import 'package:restauflutter/services/piso_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+List<Color> colores = [
+  const Color(0xFF8EFF72), // verde
+  const Color(0xFFF35B5B), // rojo
+  const Color(0xFFF2D32A), // amarrillo
+];
 
 const List<Widget> options = <Widget>[
   Text('Listado de pedidos'),
@@ -35,11 +44,50 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   int _selectedIndex = 0;
   late int _listSize;
   late SubOptTypes _subOptType;
+  List<Mesa> mesas = [
+    Mesa(
+      id: 1,
+      nombreMesa: 'Mesa 1',
+      estDisMesa: 'Disponible',
+      estadoMesa: 0,
+      tiempoMesa: TimeOfDay.now(),
+      pisoId: 1,
+    ),
+    Mesa(
+      id: 2,
+      nombreMesa: 'Mesa 2',
+      estDisMesa: 'Ocupado',
+      estadoMesa: 1,
+      tiempoMesa: TimeOfDay.now(),
+      pisoId: 1,
+    ),
+    Mesa(
+      id: 2,
+      nombreMesa: 'Mesa 3',
+      estDisMesa: 'Pre Cuenta',
+      estadoMesa: 2,
+      tiempoMesa: TimeOfDay.now(),
+      pisoId: 1,
+    ),
+    Mesa(
+      id: 2,
+      nombreMesa: 'Mesa 3',
+      estDisMesa: 'Pre Cuenta',
+      estadoMesa: 2,
+      tiempoMesa: TimeOfDay.now(),
+      pisoId: 1,
+    ),
+  ];
+  var dbSQL = PisoServicio();
 
+  int idEstablecimiento = 27 ; // seatear al el moso hacer login
+
+  // mesas
   static const List<Tab> myTabs = <Tab>[
     Tab(text: 'PISO 1'),
-    Tab(text: 'PISO 2'),
   ];
+  //Tab(text: 'PISO 1'),
+
 
   @override
   void initState() {
@@ -48,6 +96,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     _tabController.addListener(_handleTabSelection);
     _listSize = 10;
     _subOptType = SubOptTypes.local;
+    WidgetsBinding.instance?.addPostFrameCallback((_) {
+      consultarPisos(idEstablecimiento, context);
+    });
   }
 
   @override
@@ -71,11 +122,22 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     }
   }
 
+  Future<void> consultarPisos(int idEstablecimiento, BuildContext context) async {
+    List<Piso> listaPisos = await dbSQL.consultarPisos(idEstablecimiento, context);
+
+    setState(() {
+      myTabs.clear();
+      for (int i = 0; i < listaPisos.length; i++) {
+        myTabs.add(Tab(text: listaPisos[i].nombrePiso));
+        print(listaPisos[i].nombrePiso);
+      }
+    });
+  }
+
   static final ButtonStyle elevatedButtonStyle = ElevatedButton.styleFrom(
       foregroundColor: const Color(0xFF000000), elevation: 5);
   static final ButtonStyle selectedButtonStyle = ElevatedButton.styleFrom(
-      backgroundColor: const Color(
-          0xFFFF562F),
+      backgroundColor: const Color( 0xFFFF562F),
       foregroundColor:
       Colors.white,
       elevation: 5,
@@ -90,59 +152,56 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             child: ButtonBar(
               alignment: MainAxisAlignment.center,
               children: [
-                SizedBox(
-                  height: MediaQuery.of(context).size.height / 17.5,
-                  child: Row(
-                    children: [
-                      Container(
-                        decoration: const BoxDecoration(
-                            color: Colors.redAccent,
-                            shape: BoxShape.circle),
-                        child: IconButton(
-                          onPressed: () async {
-                            final prefs = await SharedPreferences.getInstance();
-                            prefs.remove('user_data');
-                            prefs.remove('categorias');
-                            prefs.remove('productos');
-                            // Redirigir a la nueva pantalla
-                            Navigator.pushReplacementNamed(context, 'login');
-                          },
-                          icon: Icon(Icons.logout_outlined),
-                          tooltip: 'Cerrar sesion',
-                          color: Colors.white,
-                        ),
+                Row(
+                  children: [
+                    Container(
+                      decoration: const BoxDecoration(
+                          color: Colors.redAccent,
+                          shape: BoxShape.circle),
+                      child: IconButton(
+                        onPressed: () async {
+                          final prefs = await SharedPreferences.getInstance();
+                          prefs.remove('user_data');
+                          prefs.remove('categorias');
+                          prefs.remove('productos');
+                          // Redirigir a la nueva pantalla
+                          Navigator.pushReplacementNamed(context, 'login');
+                        },
+                        icon: Icon(Icons.logout_outlined),
+                        tooltip: 'Cerrar sesion',
+                        color: Colors.white,
                       ),
-                      Container(
-                        margin: EdgeInsets.all(5),
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            setState(() {
-                              _selectedIndex = 0;
-                              _tabController.animateTo(0);
-                            });
-                          },
-                          icon: const Icon(Icons.list_alt_rounded),
-                          label: const Text('Listado de pedidos'),
-                          style: _selectedIndex == 0
-                              ? selectedButtonStyle
-                              : elevatedButtonStyle,
-                        ),
-                      ),
-                      ElevatedButton.icon(
+                    ),
+                    Container(
+                      margin: EdgeInsets.all(5),
+                      child: ElevatedButton.icon(
                         onPressed: () {
                           setState(() {
-                            _selectedIndex = 1;
-                            _tabController.animateTo(1);
+                            _selectedIndex = 0;
+                            _tabController.animateTo(0);
                           });
                         },
-                        icon: const Icon(Icons.shopping_cart_outlined),
-                        label: const Text('POS'),
-                        style: _selectedIndex == 1
+                        icon: const Icon(Icons.list_alt_rounded),
+                        label: const Text('Listado de pedidos'),
+                        style: _selectedIndex == 0
                             ? selectedButtonStyle
                             : elevatedButtonStyle,
                       ),
-                    ],
-                  ),
+                    ),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        setState(() {
+                          _selectedIndex = 1;
+                          _tabController.animateTo(1);
+                        });
+                      },
+                      icon: const Icon(Icons.shopping_cart_outlined),
+                      label: const Text('POS'),
+                      style: _selectedIndex == 1
+                          ? selectedButtonStyle
+                          : elevatedButtonStyle,
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -195,9 +254,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                         Expanded(
                                           child: TabBar(
                                             tabs: myTabs,
-                                            dividerColor: Colors.orange,
-                                            indicatorColor: Colors.orange,
-                                            labelColor: Colors.orange,
+                                            indicatorColor: Color( 0xFFFF562F),
+                                            labelColor: Color( 0xFFFF562F),
                                             labelPadding:
                                             EdgeInsets.only(left: 12),
                                             labelStyle: TextStyle(fontSize: 16),
@@ -218,9 +276,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                               crossAxisCount: 2,
                                               childAspectRatio: 0.7,
                                             ),
-                                            itemCount: 8,
+                                            itemCount:mesas.length,
                                             itemBuilder: (_, index) {
-                                              return _cardProduct();
+                                              return _cardProduct(mesas[index]);
                                             },
                                           );
                                         }).toList(),
@@ -755,7 +813,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     );
   }
 
-  Widget _cardProduct() {
+  Widget _cardProduct(Mesa mesa) {
     return GestureDetector(
       onTap: () {
         Navigator.pushNamed(context, 'home/productos');
@@ -763,7 +821,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       child: SizedBox(
         child: Card(
           margin: const EdgeInsets.all(10),
-          color: const Color(0xFF8EFF72),
+          // aca seleto el color
+          //color: const Color(0xFF8EFF72),
+          color: colores[mesa.estadoMesa],
           elevation: 3.0,
           shape:
           RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
@@ -778,8 +838,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                   Container(
                     margin: const EdgeInsets.only(left: 10),
                     height: 40,
-                    child: const Text(
-                      'MESA 1',
+                    child: Text(
+                      mesa.nombreMesa,
                       overflow: TextOverflow.ellipsis,
                       style:
                       TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
@@ -789,10 +849,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     height: MediaQuery.of(context).size.height * 0.18,
                     width: MediaQuery.of(context).size.width,
                     padding: const EdgeInsets.only(left: 10, right: 10),
-                    child: const Padding(
+                    child:  Padding(
                       padding: EdgeInsets.all(15.0),
                       child: FadeInImage(
-                        image: AssetImage('assets/img/Vector.png'),
+                        image: mesa.estadoMesa > 0 ? AssetImage('assets/img/pre-cuenta.png')  : AssetImage('assets/img/Vector.png'),
                         fit: BoxFit.contain,
                         color: Colors.black,
                         fadeInDuration: Duration(milliseconds: 50),
@@ -800,9 +860,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                       ),
                     ),
                   ),
-                  const Center(
+                   Center(
                     child: Text(
-                      'Disponible',
+                      mesa.estDisMesa,
                       style:
                       TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
@@ -815,6 +875,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       ),
     );
   }
+
   Widget _buildAnimatedContent({required Key key, required Widget child}) {
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 500),
