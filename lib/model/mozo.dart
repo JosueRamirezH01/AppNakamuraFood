@@ -6,29 +6,32 @@ Mozo responseApiFromJson(String str) => Mozo.fromJson(json.decode(str));
 String responseApiToJson(Mozo data) => json.encode(data.toJson());
 
 class Mozo {
-  String? id_usuario;
+  int? id;
   String? email;
-  bool? activo;
+  int? id_establecimiento;
+  int? idperfil;
 
 
   Mozo({
-    this.id_usuario,
-    this.activo,
+    this.id,
+    this.id_establecimiento,
     this.email,
+    this.idperfil
 
   });
 
   factory Mozo.fromJson(Map<String, dynamic> json) => Mozo(
-    activo: json["activo"],
-      id_usuario: json["id_usuario"],
+    id_establecimiento: json["id_establecimiento"],
+    id: json["id"],
       email: json["email"],
-
+      idperfil:json["idperfil"]
   );
 
   Map<String, dynamic> toJson() => {
-    "activo": activo,
-    "id_usuario": id_usuario,
+    "id_establecimiento": id_establecimiento,
+    "id": id,
     "email": email,
+    "idperfil": idperfil
 
   };
 }

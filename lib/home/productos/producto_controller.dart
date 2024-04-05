@@ -9,6 +9,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:restauflutter/model/categoria.dart';
 import 'package:restauflutter/utils/shared_pref.dart';
 
+import '../../model/mesa.dart';
 import '../../model/producto.dart';
 class ProductoController {
   late BuildContext context;
@@ -18,12 +19,14 @@ class ProductoController {
   List<Producto> productos = [];
   late Timer searchOnStoppedTyping = Timer(Duration.zero, () {});
   String productName = '';
-
+  late  Mesa mesa =  Mesa();
   Future init(BuildContext context, Function refresh) async {
     this.context = context;
     this.refresh = refresh;
     _getProductos();
     _getCategorias();
+     mesa = ModalRoute.of(context)?.settings.arguments as Mesa;
+     print('ESTADO DE MESA ${mesa.estadoMesa}');
     refresh();
   }
 

@@ -70,6 +70,9 @@ class LoginService {
               // Serializa los datos en formato JSON
               final userData = {
                 'email': row['email'],
+                'id':row['id'],
+                'id_establecimiento':row['id_establecimiento'],
+                'idperfil':row["idperfil"]
               };
               final jsonUserData = json.encode(userData);
 

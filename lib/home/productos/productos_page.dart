@@ -4,7 +4,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:restauflutter/home/details/datails_page.dart';
 import 'package:restauflutter/home/productos/producto_controller.dart';
@@ -66,7 +65,7 @@ class _ProductosPageState extends State<ProductosPage> {
                   child: ElevatedButton(
                     onPressed: (){
                     },
-                    child: const Text('MESA 4', style: TextStyle(fontSize: 18)),),
+                    child:  Text('${_con.mesa.nombreMesa}', style: TextStyle(fontSize: 18)),),
                 ),
               ),
               const SizedBox(width: 5)
