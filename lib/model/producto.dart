@@ -13,7 +13,7 @@ class Producto {
   double? precioproducto;
   int? stock;
   int? categoria_id;
-
+  String? comentario;
   List<Producto> productos = [];
 
 
@@ -23,7 +23,8 @@ class Producto {
     this.foto,
     this.precioproducto,
     this.stock,
-    this.categoria_id
+    this.categoria_id,
+    this.comentario
 
 
   });
@@ -35,6 +36,7 @@ class Producto {
     stock: json["stock"],
     categoria_id: json["categoria_id"],
     precioproducto: double.tryParse(json["precioproducto"]?.toString() ?? "0.0"),
+    comentario: json["comentario"],
 
   );
   Producto.fromJsonList(List<dynamic> jsonList) {
@@ -54,6 +56,7 @@ class Producto {
     "precioproducto": precioproducto,
     "stock": stock,
     "categoria_id": categoria_id,
+    "comentario": comentario
 
 
   };

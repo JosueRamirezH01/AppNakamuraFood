@@ -18,6 +18,9 @@ class DetailsPage extends StatefulWidget {
 }
 
 class _DetailsPageState extends State<DetailsPage> {
+
+  TextEditingController notaController = TextEditingController();
+
   List<String> items = [
     '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20'
   ];
@@ -74,9 +77,9 @@ class _DetailsPageState extends State<DetailsPage> {
                       ),
                       _addOrRemoveItem(index),
                       const SizedBox(width: 5),
-                      _iconDelete(),
+                      _iconDelete(index),
                       const SizedBox(width: 5),
-                       _iconNota(),
+                       _iconNota(index),
                     ],
                   ),
                 ),
@@ -95,20 +98,20 @@ class _DetailsPageState extends State<DetailsPage> {
   }
 
 
-  Widget _iconDelete() {
+  Widget _iconDelete(int index) {
     return GestureDetector(
         onTap: (){
-            _eliminar();
+            _eliminar(index);
         },
        child: const Icon(Icons.delete, color: Colors.red),
 
     );
   }
 
-  Widget _iconNota() {
+  Widget _iconNota(int index) {
     return GestureDetector(
         onTap: () {
-            _nota();
+            _nota(index);
         },
       child: const Icon(Icons.edit, color: Colors.amber),
     );
@@ -170,7 +173,7 @@ class _DetailsPageState extends State<DetailsPage> {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20),
       child: TextField(
-        //onChanged: _con.onChangeText,
+        controller: notaController,
         decoration: InputDecoration(
             hintText: 'Observacion',
             suffixIcon: const Icon(
@@ -198,7 +201,8 @@ class _DetailsPageState extends State<DetailsPage> {
       ),
     );
   }
-  Future<String?> _nota(){
+  Future<String?> _nota(int index){
+    notaController.text = widget.productosSeleccionados?[index].comentario ?? '';
     return showDialog<String>(
       context: context,
       builder: (BuildContext context) => AlertDialog(
@@ -210,7 +214,12 @@ class _DetailsPageState extends State<DetailsPage> {
             child: const Text('Cancel'),
           ),
           TextButton(
-            onPressed: () => Navigator.pop(context, 'OK'),
+            onPressed: () {
+              setState(() {
+               widget.productosSeleccionados?[index].comentario = notaController.text;
+              });
+               Navigator.pop(context, 'OK');
+               } ,
             child: const Text('OK'),
           ),
         ],
@@ -218,7 +227,7 @@ class _DetailsPageState extends State<DetailsPage> {
     );
   }
 
-  Future<String?> _eliminar(){
+  Future<String?> _eliminar(int index){
     return showDialog<String>(
       context: context,
       builder: (BuildContext context) => AlertDialog(
@@ -230,7 +239,18 @@ class _DetailsPageState extends State<DetailsPage> {
             child: const Text('Cancel'),
           ),
           TextButton(
-            onPressed: () => Navigator.pop(context, 'OK'),
+            onPressed: () {
+               index = widget.productosSeleccionados!.indexWhere((producto) => producto == widget.productosSeleccionados![index]);
+              if (index != -1) {
+                // Eliminar el producto de la lista
+                setState(() {
+                  widget.productosSeleccionados!.removeAt(index);
+                });
+                // Actualizar los productos seleccionados en el widget padre si es necesario
+                _actualizarProductosSeleccionados();
+              }
+              Navigator.pop(context, 'OK');
+            },
             child: const Text('OK'),
           ),
         ],
@@ -414,67 +434,35 @@ class _DetailsPageState extends State<DetailsPage> {
 
   Future<void> _pdf() async {
     final pdf = pw.Document();
+
     // Tamaño del papel de la etiqueta
     final PdfPageFormat labelSize =  PdfPageFormat(
       80.0 * PdfPageFormat.mm,
       80.0 * PdfPageFormat.mm,
-    );// Para 80x80 mm
-    // final PdfPageFormat labelSize = PdfPageFormat.custom(
-    //   width: 100.0 * PdfPageFormat.mm,
-    //   height: 100.0 * PdfPageFormat.mm,
-    // ); // Para 100x100 mm
+    ); // Para 80x80 mm
 
     pdf.addPage(
       pw.Page(
         pageFormat: PdfPageFormat.roll80,
         build: (pw.Context context) {
           return pw.Container(
-            padding: const pw.EdgeInsets.all(10),
+            padding: const pw.EdgeInsets.all(4),
             child: pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
+                // Título de la mesa
                 pw.Center(
-                  child: pw.Column(
-                    children: [
-                      pw.Text( 'PRE-CUENTA',
+                  child: pw.Text(
+                    'MESA 2',
                     style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
                   ),
-                  pw.Text( 'MESA 2',
-                      style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
-                  )]
-                ),
                 ),
                 pw.Divider(),
-                pw.Text('Piso: PISO 1', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),),
-                pw.Text('Mesero(a): mozo',style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),),
-                pw.Text('Hora: 14:20:26',style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),),
-                pw.Text('Fecha: 2024-03-26',style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),),
+                _buildDetails(),
                 pw.Divider(),
-                pw.Row(
-                  children: [
-                    pw.Text('CANTIDAD',style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
-                    pw.SizedBox(width: 5),
-                    pw.Text('PRODUCTO', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
-                    pw.SizedBox(width: 5),
-                    pw.Text('P.UNIT', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
-                    pw.SizedBox(width: 5),
-                    pw.Text('TOTAL', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
-                  ]
-                ),
+                _buildTableHeader(),
                 pw.Divider(),
-                pw.ListView.builder(
-                  itemCount: widget.productosSeleccionados!.length,
-                  itemBuilder: (_, int index) {
-                    return pw.Column(
-                      children: [
-                        pw.Text(
-                          '${widget.productosSeleccionados![index].nombreproducto}',
-                        ),
-                        if (index != widget.productosSeleccionados!.length - 1) pw.Divider(height: 1, thickness: 2),
-                      ],
-                    );
-                  },
-                ),
+                _buildTableContent(),
               ],
             ),
           );
@@ -482,9 +470,88 @@ class _DetailsPageState extends State<DetailsPage> {
       ),
     );
 
-    // Mostrar el PDF en un widget utilizando PdfPreview
     await Printing.layoutPdf(
       onLayout: (PdfPageFormat format) async => pdf.save(),
     );
   }
+
+
+
+  pw.Widget _buildDetails() {
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        pw.Text('Piso: PISO 1', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
+        pw.Text('Mesero(a): mozo', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
+        pw.Text('Hora: 14:20:26', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
+        pw.Text('Fecha: 2024-03-26', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
+      ],
+    );
+  }
+
+  pw.Widget _buildTableHeader() {
+    return pw.Row(
+      children: [
+        pw.SizedBox(width: 5),
+        pw.Text('CANTIDAD', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
+        pw.SizedBox(width: 20),
+        pw.Text('PRODUCTO', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
+        pw.SizedBox(width: 20),
+        pw.Text('NOTA', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
+      ],
+    );
+  }
+
+  pw.Widget _buildTableContent() {
+    return pw.ListView.builder(
+      itemCount: widget.productosSeleccionados!.length,
+      itemBuilder: (_, int index) {
+        return pw.Column(
+          children: [
+            pw.Row(
+              children: [
+                pw.Container(
+                  padding: pw.EdgeInsets.only(left: 25, right: 30),
+                  child: pw.Center(
+                    child: pw.Text(
+                      '${widget.productosSeleccionados![index].stock}',
+                      style: const pw.TextStyle(fontSize: 8),
+                    ),
+                  ),
+                ),
+                pw.Container(
+                  constraints: pw.BoxConstraints(maxWidth: 80),
+                  padding: pw.EdgeInsets.only(right: 5),
+                  child: pw.Center(
+                    child: pw.Text(
+                      '${widget.productosSeleccionados![index].nombreproducto}',
+                      style: const pw.TextStyle(fontSize: 8),
+                      maxLines: 3,
+                      textAlign: pw.TextAlign.center,
+                    ),
+                  ),
+                ),
+                pw.Container(
+                  constraints: pw.BoxConstraints(maxWidth: 70),
+                  padding: pw.EdgeInsets.only(right: 20),
+                  child: pw.Center(
+                    child: pw.Text(
+                      '${widget.productosSeleccionados![index].comentario}',
+                      style: const pw.TextStyle(fontSize: 8),
+                      maxLines: 3,
+                      textAlign: pw.TextAlign.center,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            if (index != widget.productosSeleccionados!.length - 1)
+              pw.Divider(),
+          ],
+        );
+      },
+    );
+  }
+
+
 }

@@ -167,13 +167,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                           // Redirigir a la nueva pantalla
                           Navigator.pushReplacementNamed(context, 'login');
                         },
-                        icon: Icon(Icons.logout_outlined),
+                        icon: const Icon(Icons.logout_outlined),
                         tooltip: 'Cerrar sesion',
                         color: Colors.white,
                       ),
                     ),
                     Container(
-                      margin: EdgeInsets.all(5),
+                      margin: const EdgeInsets.all(5),
                       child: ElevatedButton.icon(
                         onPressed: () {
                           setState(() {
@@ -246,20 +246,20 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                 children: [
                                    Row(
                                     children: [
-                                      SizedBox(width: 20),
-                                      Icon(Icons.table_bar_sharp, size: 30),
-                                      SizedBox(width: 20),
+                                      const SizedBox(width: 20),
+                                      const Icon(Icons.table_bar_sharp, size: 30),
+                                      const SizedBox(width: 20),
                                       Expanded(
                                         child: TabBar(
                                           tabs: myTabs,
-                                          indicatorColor: Color( 0xFFFF562F),
-                                          labelColor: Color( 0xFFFF562F),
+                                          indicatorColor: const Color( 0xFFFF562F),
+                                          labelColor: const Color( 0xFFFF562F),
                                           labelPadding:
-                                          EdgeInsets.only(left: 12),
-                                          labelStyle: TextStyle(fontSize: 16),
+                                          const EdgeInsets.only(left: 12),
+                                          labelStyle: const TextStyle(fontSize: 16),
                                         ),
                                       ),
-                                      Spacer()
+                                      const Spacer()
                                     ],
                                   ),
                                   const SizedBox(height: 10),
@@ -689,12 +689,12 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                         color: Colors.blueAccent,
                                         shape: BoxShape.circle
                                     ),
-                                    margin: EdgeInsets.only(right: 10),
+                                    margin: const EdgeInsets.only(right: 10),
                                     child: IconButton(
                                       onPressed: () {
                                         print('Botón presionado');
                                       },
-                                      icon: Icon(Icons.print),
+                                      icon: const Icon(Icons.print),
                                       tooltip: 'Imprimir',
                                       color: Colors.white,
                                     ),
@@ -708,7 +708,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                       onPressed: () {
                                         print('Botón presionado');
                                       },
-                                      icon: Icon(Icons.cancel_outlined),
+                                      icon: const Icon(Icons.cancel_outlined),
                                       tooltip: 'Anular',
                                       color: Colors.white,
                                     ),
@@ -749,7 +749,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         Container(
           margin: const EdgeInsets.all(5),
           child: Padding(
-            padding: EdgeInsets.all(5),
+            padding: const EdgeInsets.all(5),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
@@ -758,7 +758,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     alignment: Alignment.center,
                     child: Text(
                       '${product.quantity}',
-                      style: TextStyle(
+                      style: const TextStyle(
                           color: Color(0xFF111111),
                           decoration: TextDecoration.none,
                           fontSize: 16,
@@ -772,7 +772,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     child: Text(
                       product.name,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
+                      style: const TextStyle(
                           color: Color(0xFF111111),
                           decoration: TextDecoration.none,
                           fontSize: 16,
@@ -785,7 +785,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     alignment: Alignment.center,
                     child: Text(
                       '${product.price}',
-                      style: TextStyle(
+                      style: const TextStyle(
                           color: Color(0xFF111111),
                           decoration: TextDecoration.none,
                           fontSize: 16,
@@ -839,7 +839,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                       mesa.nombreMesa,
                       overflow: TextOverflow.ellipsis,
                       style:
-                      TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                      const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                     ),
                   ),
                   Container(
@@ -847,13 +847,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     width: MediaQuery.of(context).size.width,
                     padding: const EdgeInsets.only(left: 10, right: 10),
                     child:  Padding(
-                      padding: EdgeInsets.all(15.0),
+                      padding: const EdgeInsets.all(15.0),
                       child: FadeInImage(
-                        image: mesa.estadoMesa > 0 ? AssetImage('assets/img/pre-cuenta.png')  : AssetImage('assets/img/Vector.png'),
+                        image: mesa.estadoMesa > 0 ? const AssetImage('assets/img/pre-cuenta.png')  : const AssetImage('assets/img/Vector.png'),
                         fit: BoxFit.contain,
                         color: Colors.black,
-                        fadeInDuration: Duration(milliseconds: 50),
-                        placeholder: AssetImage('assets/img/no-image.png'),
+                        fadeInDuration: const Duration(milliseconds: 50),
+                        placeholder: const AssetImage('assets/img/no-image.png'),
                       ),
                     ),
                   ),
@@ -861,7 +861,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     child: Text(
                       mesa.estDisMesa,
                       style:
-                      TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ],
