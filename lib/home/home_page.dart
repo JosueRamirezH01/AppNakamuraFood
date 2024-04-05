@@ -60,43 +60,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
        mozo = Mozo.fromJson(userDataMap);
     }
   }
-  List<Mesa> mesas = [
-    Mesa(
-      id: 1,
-      nombreMesa: 'Mesa 1',
-      estDisMesa: 'Disponible',
-      estadoMesa: 0,
-      tiempoMesa: TimeOfDay.now(),
-      pisoId: 1,
-    ),
-    Mesa(
-      id: 2,
-      nombreMesa: 'Mesa 2',
-      estDisMesa: 'Ocupado',
-      estadoMesa: 1,
-      tiempoMesa: TimeOfDay.now(),
-      pisoId: 1,
-    ),
-    Mesa(
-      id: 2,
-      nombreMesa: 'Mesa 3',
-      estDisMesa: 'Pre Cuenta',
-      estadoMesa: 2,
-      tiempoMesa: TimeOfDay.now(),
-      pisoId: 1,
-    ),
-    Mesa(
-      id: 2,
-      nombreMesa: 'Mesa 3',
-      estDisMesa: 'Pre Cuenta',
-      estadoMesa: 2,
-      tiempoMesa: TimeOfDay.now(),
-      pisoId: 1,
-    ),
-  ];
   var dbPisos = PisoServicio();
   var dbMesas = MesaServicio();
   var dbPedido = PedidoServicio();
+
 
   int idEstablecimiento = 22 ; // seatear al el moso hacer login
 
@@ -150,7 +117,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       for (int i = 0; i < listaPisos.length; i++) {
         myTabs.add(Tab(text: listaPisos[i].nombrePiso));
         ListadoPisos.add(listaPisos[i]);
-        print(' pisos: $listaPisos[i]');
+        print(' pisos: ${listaPisos[i]}');
       }
       pisoSelect = listaPisos[0].id!;
       consultarMesas(pisoSelect,context);
@@ -164,7 +131,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       ListadoMesas.clear();
       for (int i = 0; i < listaMesas.length; i++) {
         ListadoMesas.add(listaMesas[i]);
-        print('Consutlar mesas: ${listaMesas[1].nombreMesa}');
       }
     });
   }
@@ -208,7 +174,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                       ),
                     ),
                     Container(
-                      margin: const EdgeInsets.all(5),
+                      margin: EdgeInsets.only(
+                        left: 2,
+                        right: 1.5
+                      ),
                       child: ElevatedButton.icon(
                         onPressed: () {
                           setState(() {
@@ -931,11 +900,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                       ),
                     ),
                   ),
-                  Center(
+                   Center(
                     child: Text(
                       '${mesa.estDisMesa}',
                       style:
-                      const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ],
