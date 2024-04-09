@@ -188,6 +188,7 @@ class _ProductosPageState extends State<ProductosPage> {
                 productosSeleccionados: productosSeleccionados,
                 estado: estado,
                 onProductosActualizados: _actualizarProductosSeleccionados,
+              mesa: _con.mesa ,
             ),
           ),
         );
