@@ -14,7 +14,7 @@ class Pedido {
   String? motivo;
   String? anuladoPor;
   String? nombreCliente;
-
+  
   Pedido({
     this.idPedido,
     this.idEntorno,

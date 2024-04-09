@@ -8,13 +8,13 @@ class PedidoServicio {
   final Connection _connectionSQL = Connection();
   final SharedPref _sharedPref = SharedPref();
 
-  Future<int?> consultarMesasDisponibilidad( int? idUsuario, BuildContext context) async {
+  Future<int?> consultarMesasDisponibilidad( int? idUsuario, int? idMesa ,BuildContext context) async {
     MySqlConnection? conn;
     try {
       conn = await _connectionSQL.getConnection();
 
-      const query = 'SELECT id_pedido FROM `pedidos` WHERE id_usuario = ?';
-      final results = await conn.query(query, [idUsuario]);
+      const query = 'SELECT id_pedido FROM `pedidos` WHERE id_usuario = ?   AND id_mesa = ?';
+      final results = await conn.query(query, [idUsuario, idMesa]);
       if (results.isEmpty) {
         print('No se encontraron datos en las tablas.');
         return null;
@@ -58,6 +58,30 @@ class PedidoServicio {
     }
   }
 
+  Future<int?> actualizarPedido(int? idPedido, int? idMesa, BuildContext context) async {
+    MySqlConnection? conn;
+    try {
+      conn = await _connectionSQL.getConnection();
 
+      const query = 'UPDATE pedidos SET id_mesa = ? WHERE id_pedido = ?';
+      final results = await conn.query(query, [idMesa, idPedido]);
+      if (results.affectedRows == 1) {
+        print('Pedido actualizado correctamente.');
+        return idPedido;
+      } else {
+        print('No se pudo actualizar el pedido.');
+        return null;
+      }
+    } catch (e) {
+      print('Error al realizar la consulta de actualización: $e');
+      return null;
+    } finally {
+      if (conn != null) {
+        await conn.close();
+      }
+    }
+  }
+
+//UPDATE pedidos  SET  id_pedido = 57 WHERE   p.id_pedido = 818;
 
 }

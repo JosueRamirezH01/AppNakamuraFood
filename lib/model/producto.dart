@@ -7,6 +7,7 @@ Producto responseApiFromJson(String str) => Producto.fromJson(json.decode(str));
 String responseApiToJson(Producto data) => json.encode(data.toJson());
 
 class Producto {
+  int? idPedido;
   int? id;
   String? nombreproducto;
   String? foto;
@@ -18,6 +19,7 @@ class Producto {
 
 
   Producto({
+    this.idPedido,
     this.id,
     this.nombreproducto,
     this.foto,
@@ -29,7 +31,27 @@ class Producto {
 
   });
 
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+          other is Producto &&
+              runtimeType == other.runtimeType &&
+              nombreproducto == other.nombreproducto &&
+              precioproducto == other.precioproducto &&
+              stock == other.stock &&
+              comentario == other.comentario &&
+              idPedido == other.idPedido;
+
+  @override
+  int get hashCode =>
+      nombreproducto.hashCode ^
+      precioproducto.hashCode ^
+      stock.hashCode ^
+      comentario.hashCode ^
+      idPedido.hashCode;
+
   factory Producto.fromJson(Map<String, dynamic> json) => Producto(
+    idPedido: json["idPedido"],
     id: json["id"],
     nombreproducto: json["nombreproducto"],
     foto: json["foto"],
@@ -50,6 +72,7 @@ class Producto {
     }}
 
   Map<String, dynamic> toJson() => {
+    "idPedido": idPedido,
     "id": id,
     "nombreproducto": nombreproducto,
     "foto": foto,
