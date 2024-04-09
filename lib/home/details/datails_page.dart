@@ -16,8 +16,6 @@ import 'package:restauflutter/model/producto.dart';
 import 'package:restauflutter/services/mesas_service.dart';
 import 'package:restauflutter/services/pedido_service.dart';
 import 'package:restauflutter/services/detalle_pedido_service.dart';
-import 'package:restauflutter/services/mesas_service.dart';
-import 'package:restauflutter/services/pedido_service.dart';
 import 'package:restauflutter/utils/shared_pref.dart';
 import 'package:intl/intl.dart';
 
@@ -44,6 +42,7 @@ class _DetailsPageState extends State<DetailsPage> {
 
   final SharedPref _pref = SharedPref();
   late  Mozo? mozo = Mozo();
+  late int? IDPEDIDOPRUEBA = 0;
 
   Future<void> UserShared() async {
     final dynamic userData = await _pref.read('user_data');
@@ -81,6 +80,7 @@ class _DetailsPageState extends State<DetailsPage> {
     print('ESTADO INICIANDO ${widget.mesa?.estadoMesa}');
     estado = widget.mesa!.estadoMesa!;
     selectObjmesa = widget.mesa!;
+    //IDPEDIDOPRUEBA = widget.productosSeleccionadosOtenidos![0].id!;
     UserShared();
   }
 
@@ -361,11 +361,13 @@ class _DetailsPageState extends State<DetailsPage> {
             ),
             TextButton(
               onPressed: () {
-                bdPedido.actualizarPedido(widget.productosSeleccionados![0].idPedido!, nuevaMesaId!, context);
-                bdMesas.actualizarMesa(nuevaMesaId!, 2, context);
-                bdMesas.actualizarMesa(widget.mesa!.id, 1, context);
-                Navigator.pop(context); // Confirmar y pasar el valor seleccionado
-                Navigator.pop(context, nomMesa);// Confirmar y pasar el valor seleccionado
+                int? idPedido = IDPEDIDOPRUEBA == 0 ? widget.productosSeleccionados![0].idPedido : IDPEDIDOPRUEBA;
+                bdPedido.actualizarPedido(idPedido, nuevaMesaId!, context).then((_) {
+                  bdMesas.actualizarMesa(nuevaMesaId!, 2, context);
+                  bdMesas.actualizarMesa(widget.mesa!.id, 1, context);
+                  Navigator.pop(context); // Confirmar y pasar el valor seleccionado
+                  Navigator.pop(context, nomMesa); // Confirmar y pasar el valor seleccionado
+                });
               },
               child: const Text('Confirmar'),
             ),
@@ -404,7 +406,7 @@ class _DetailsPageState extends State<DetailsPage> {
             // Ya crea el pedido
 
              int newPedidoId = await pedidoServicio.crearPedidoPrueba(newpedido, context);
-
+            IDPEDIDOPRUEBA = newPedidoId;
             print('ID del pedido creado: ${newPedidoId}');
             // Actualiza la mesa
             Mesa? retornoMesa = await mesaServicio.actualizarMesa( selectObjmesa.id , 2, context);

@@ -46,6 +46,7 @@ class ProductoController {
         // Busca el producto correspondiente al detalle
         Producto? producto = await _getProductoPorId(detalle.id_producto);
         Producto? setproducto = Producto(
+          id: producto?.id,
           nombreproducto: producto?.nombreproducto,
           precioproducto: producto?.precioproducto,
           stock: detalle.cantidad_producto,
