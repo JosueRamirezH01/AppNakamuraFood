@@ -26,7 +26,8 @@ class ProductoController {
     _getProductos();
     _getCategorias();
      mesa = ModalRoute.of(context)?.settings.arguments as Mesa;
-     print('ESTADO DE MESA ${mesa.estadoMesa}');
+     print('---> Producto controller');
+     print('ESTADO Id DE MESA : ${mesa.estadoMesa} \n Estado : ${mesa.estDisMesa}');
     refresh();
   }
 
