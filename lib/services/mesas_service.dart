@@ -100,5 +100,40 @@ class MesaServicio {
       }
     }
   }
+  Future<Mesa?> actualizarMesa(int? idMesa, int estadoMesa, BuildContext context) async {
+    MySqlConnection? conn;
+    String estDisMesa = 'Disponible';
+
+    try {
+      conn = await _connectionSQL.getConnection();
+      if (estadoMesa == 2){
+        estDisMesa = 'Ocupado';
+      }
+      if(estadoMesa == 3){
+        estDisMesa = 'Precuenta';
+      }
+      const query = 'UPDATE mesas SET est_dis_mesa=?, estado_mesa=? WHERE id = ?';
+      final results = await conn.query(query, [estDisMesa, estadoMesa, idMesa]);
+      if (results.affectedRows == 0) {
+        print('No se encontró ninguna mesa con el ID proporcionado.');
+        return null;
+      } else {
+        print('Mesa actualizada correctamente.');
+        return Mesa(
+          id: idMesa,
+          estDisMesa: estDisMesa,
+          estadoMesa: estadoMesa,
+        );
+      }
+    } catch (e) {
+      print('Error al realizar la consulta: $e');
+      return null;
+    } finally {
+      if (conn != null) {
+        await conn.close();
+      }
+    }
+  }
+
 
 }
