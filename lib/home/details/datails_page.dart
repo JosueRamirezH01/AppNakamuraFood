@@ -1,17 +1,23 @@
 
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+import 'package:restauflutter/model/mesa.dart';
 import 'package:restauflutter/model/producto.dart';
+import 'package:restauflutter/services/mesas_service.dart';
+import 'package:restauflutter/services/pedido_service.dart';
 
 class DetailsPage extends StatefulWidget {
   final List<Producto>? productosSeleccionados;
-  final int estado;
+  final List<Producto>? productosSeleccionadosOtenidos;
+
+  final Mesa? mesa;
   final void Function(List<Producto>?)? onProductosActualizados; // Función de devolución de llamada
 
-  const DetailsPage({super.key, required this.productosSeleccionados, required this.estado, this.onProductosActualizados});
+  const DetailsPage({super.key, required this.productosSeleccionados, required this.productosSeleccionadosOtenidos, required this.mesa, this.onProductosActualizados});
 
   @override
   State<DetailsPage> createState() => _DetailsPageState();
@@ -20,21 +26,22 @@ class DetailsPage extends StatefulWidget {
 class _DetailsPageState extends State<DetailsPage> {
 
   TextEditingController notaController = TextEditingController();
-
+  var bdMesas = MesaServicio();
+  var bdPedido = PedidoServicio();
   List<String> items = [
     '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20'
   ];
   int contador = 0;
   List<String> mesa = ['Mesa 1', 'Mesa 2', 'Mesa 3', 'Mesa 4'];
   String? selectedMesa;
-  late int estado;
-
+  late int? estado;
+  List<Mesa> mesasDisponibles = [];
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    print('ESTADO INICIANDO ${widget.estado}');
-    estado = widget.estado;
+    print('ESTADO INICIANDO ${widget.mesa?.estadoMesa}');
+    estado = widget.mesa?.estadoMesa;
   }
 
   @override
@@ -144,8 +151,10 @@ class _DetailsPageState extends State<DetailsPage> {
                   child: ElevatedButton(
                       style:  ButtonStyle(
                           elevation: MaterialStateProperty.all(2), backgroundColor: MaterialStateProperty.all(const Color(0xFF4C95DD))),
-                      onPressed: () {
-                        mostrarMesa();
+                      onPressed: () async {
+                        print('CODIGO DE PISO ${widget.mesa?.pisoId}');
+                        mesasDisponibles = await bdMesas.consultarMesasDisponibles(widget.mesa?.pisoId, context);
+                        mostrarMesa(mesasDisponibles);
                       },
                       child: const Text(
                         'Cambiar Mesa',
@@ -157,7 +166,25 @@ class _DetailsPageState extends State<DetailsPage> {
                   child: ElevatedButton(
                       style:  ButtonStyle(
                           elevation: MaterialStateProperty.all(2), backgroundColor: MaterialStateProperty.all(const Color(0xFF634FD2))),
-                      onPressed: () {},
+                      onPressed: () {
+                        // Verifica si las dos listas tienen la misma longitud
+                        if (widget.productosSeleccionados!.length != widget.productosSeleccionadosOtenidos!.length) {
+                          mostrarMensaje('Hay productos seleccionados');
+                          return;
+                        }
+
+                        // Itera sobre los elementos de las dos listas y compara cada par de elementos
+                        for (int i = 0; i < widget.productosSeleccionados!.length; i++) {
+                          // Compara los objetos Producto utilizando el método == sobrescrito
+                          if (widget.productosSeleccionados![i] != widget.productosSeleccionadosOtenidos![i]) {
+                            mostrarMensaje('Hay productos seleccionados');
+                            return;
+                          }
+                        }
+
+                        // Si no se encontraron diferencias, muestra el mensaje correspondiente
+                        mostrarMensaje('No hay productos seleccionados');
+                      },
                       child: const Text('Actualizar', style: TextStyle(color: Colors.white, fontSize: 16))),
                 ),
                 const SizedBox(width: 5),
@@ -258,40 +285,60 @@ class _DetailsPageState extends State<DetailsPage> {
     );
   }
 
-  Future<String?> mostrarMesa() {
-    return showDialog<String>(
+  Future<String?> mostrarMesa(List<Mesa> mesas) async {
+    int? nuevaMesaId;
+    String? nomMesa;
+    nomMesa = await showDialog<String>(
       context: context,
-      builder: (BuildContext context) => AlertDialog(
-        title: const Text('Cambiar Mesa'),
-        content: DropdownButtonFormField<String>(
-          value: selectedMesa,
-          onChanged: (String? newValue) {
-            setState(() {
-              selectedMesa = newValue;
-            });
-          },
-          items: mesa
-              .map<DropdownMenuItem<String>>(
-                (String value) => DropdownMenuItem<String>(
-              value: value,
-              child: Text(value),
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Cambiar Mesa'),
+          content: StatefulBuilder(
+            builder: (BuildContext context, StateSetter setState) {
+              return DropdownButtonFormField<Mesa>(
+                hint: const Text("Seleccione una mesa disponible"),
+                onChanged: (Mesa? newValue) {
+                  setState(() {
+                    nuevaMesaId = newValue?.id;
+                    nomMesa = newValue?.nombreMesa;
+                  });
+                },
+                items: mesas.map<DropdownMenuItem<Mesa>>(
+                      (Mesa mesa) => DropdownMenuItem<Mesa>(
+                    value: mesa,
+                    child: Text('${mesa.nombreMesa}'),
+                  ),
+                ).toList(),
+              );
+            },
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // Cancelar: Cierra el diálogo y la página
+              },
+              child: const Text('Cancelar'),
             ),
-          )
-              .toList(),
-        ),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.pop(context, 'Cancel'),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, 'Ok'),
-            child: const Text('Confimar'),
-          ),
-        ],
-      ),
+            TextButton(
+              onPressed: () {
+                bdPedido.actualizarPedido(widget.productosSeleccionados![0].idPedido!, nuevaMesaId!, context);
+                bdMesas.actualizarMesa(nuevaMesaId!, 2, context);
+                bdMesas.actualizarMesa(widget.mesa!.id, 1, context);
+                Navigator.pop(context); // Confirmar y pasar el valor seleccionado
+                Navigator.pop(context, nomMesa);// Confirmar y pasar el valor seleccionado
+              },
+              child: const Text('Confirmar'),
+            ),
+          ],
+        );
+      },
     );
+
+    // Regresa el valor de nomMesa
+    return nomMesa;
   }
+
+
   Widget _pedido(){
     return ElevatedButton(
         style:  ButtonStyle(
@@ -427,7 +474,17 @@ class _DetailsPageState extends State<DetailsPage> {
       ],
     );
   }
-
+  void mostrarMensaje(String mensaje) {
+    Fluttertoast.showToast(
+      msg: mensaje,
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+      timeInSecForIosWeb: 1,
+      backgroundColor: Colors.red,
+      textColor: Colors.white,
+      fontSize: 16.0,
+    );
+  }
 
 
 
@@ -436,7 +493,7 @@ class _DetailsPageState extends State<DetailsPage> {
     final pdf = pw.Document();
 
     // Tamaño del papel de la etiqueta
-    final PdfPageFormat labelSize =  PdfPageFormat(
+    final PdfPageFormat labelSize =  const PdfPageFormat(
       80.0 * PdfPageFormat.mm,
       80.0 * PdfPageFormat.mm,
     ); // Para 80x80 mm
@@ -511,7 +568,7 @@ class _DetailsPageState extends State<DetailsPage> {
             pw.Row(
               children: [
                 pw.Container(
-                  padding: pw.EdgeInsets.only(left: 25, right: 30),
+                  padding: const pw.EdgeInsets.only(left: 25, right: 30),
                   child: pw.Center(
                     child: pw.Text(
                       '${widget.productosSeleccionados![index].stock}',
@@ -520,8 +577,8 @@ class _DetailsPageState extends State<DetailsPage> {
                   ),
                 ),
                 pw.Container(
-                  constraints: pw.BoxConstraints(maxWidth: 80),
-                  padding: pw.EdgeInsets.only(right: 5),
+                  constraints: const pw.BoxConstraints(maxWidth: 80),
+                  padding: const pw.EdgeInsets.only(right: 5),
                   child: pw.Center(
                     child: pw.Text(
                       '${widget.productosSeleccionados![index].nombreproducto}',
@@ -532,8 +589,8 @@ class _DetailsPageState extends State<DetailsPage> {
                   ),
                 ),
                 pw.Container(
-                  constraints: pw.BoxConstraints(maxWidth: 70),
-                  padding: pw.EdgeInsets.only(right: 20),
+                  constraints: const pw.BoxConstraints(maxWidth: 70),
+                  padding: const pw.EdgeInsets.only(right: 20),
                   child: pw.Center(
                     child: pw.Text(
                       '${widget.productosSeleccionados![index].comentario}',
