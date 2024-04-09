@@ -21,6 +21,7 @@ class ProductosPage extends StatefulWidget {
 class _ProductosPageState extends State<ProductosPage> {
   int estado = 1;
   String? nomMesa;
+ List<Producto>? productosSeleccionados = [];
 
   final ProductoController _con = ProductoController();
 
@@ -31,111 +32,110 @@ class _ProductosPageState extends State<ProductosPage> {
     SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
       _con.init(context, refresh);
     });
-
   }
 
 
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: _con.categorias.length,
-      child: Scaffold(
-        appBar: AppBar(
-          elevation: 3,
-          toolbarHeight: 100,
-          backgroundColor: const Color(0xFF99CFB5),
-          actions: [
-            const SizedBox(width: 5),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.only(top: 10),
-                child: ElevatedButton.icon(
-                    style: const ButtonStyle(backgroundColor: MaterialStatePropertyAll(Colors.deepOrange)),
+          length: _con.categorias.length,
+          child: Scaffold(
+          appBar: AppBar(
+            elevation: 3,
+            toolbarHeight: 100,
+            backgroundColor: const Color(0xFF99CFB5),
+            actions: [
+              const SizedBox(width: 5),
+              Expanded(
+                child: Padding(
+                          padding: const EdgeInsets.only(top: 10),
+                          child: ElevatedButton.icon(
+                            style: const ButtonStyle(backgroundColor: MaterialStatePropertyAll(Colors.deepOrange)),
+                              onPressed: (){
+                              Navigator.pushNamed(context, 'home');
+                              },
+                              icon: const Icon(Icons.arrow_back_ios_outlined, color: Colors.white,),
+                              label: const Text("SALIR", style: TextStyle(fontSize: 18, color: Colors.white),)),
+                        ),
+              ),
+              const SizedBox(width: 50),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 10),
+                  child: ElevatedButton(
                     onPressed: (){
-                      Navigator.pushNamed(context, 'home');
                     },
-                    icon: const Icon(Icons.arrow_back_ios_outlined, color: Colors.white,),
-                    label: const Text("SALIR", style: TextStyle(fontSize: 18, color: Colors.white),)),
+                    child:  Text('${nomMesa ?? _con.mesa.nombreMesa}', style: TextStyle(fontSize: 18)),),
+                ),
               ),
-            ),
-            const SizedBox(width: 50),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.only(top: 10),
-                child: ElevatedButton(
-                  onPressed: (){
-                  },
-                  child:  Text('${nomMesa ?? _con.mesa.nombreMesa}', style: TextStyle(fontSize: 18)),),
-              ),
-            ),
-            const SizedBox(width: 5)
-          ],
-          bottom: TabBar(
-            isScrollable: true,
-            tabs: List<Widget>.generate(_con.categorias.length, (index) {
-              return Tab(
-                child: Text(_con.categorias[index].nombre ?? ''),
-              );
-            }),
-            onTap: (index) async {
-              List<Producto> productosCategoria = await _con.getProductosPorCategoria(_con.categorias[index].id);
-              setState(() {
-                _con.productos = productosCategoria;
-              });
-            },
-          ),
-        ),
-        body:  Column(
-          children: [
-            const SizedBox(height: 10),
-            _textFieldSearch(),
-            const SizedBox(height: 10),
-            Expanded(
-              child: TabBarView(
-                children: _con.categorias.map((categoria)  {
-                  return  GridView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          childAspectRatio: 0.7
-                      ),
-                      itemCount: _con.productos.length,
-                      itemBuilder: (_, index) {
-                        if (index < _con.productos.length) {
-                          Producto producto = _con.productos[index];
-                          return _cardProduct(producto);
-                        } else {
-                          return const SizedBox(); // Otra opción es devolver un widget vacío si el índice está fuera de rango
-                        }
-                      }
-                  );
-                }).toList(),
-              ),
-            ),
-          ],
-        ),
-        floatingActionButton: Container(
-          width: MediaQuery.of(context).size.width,
-          alignment: Alignment.bottomCenter,
-          child: SizedBox(
-            width: 250,
-            height: 50,
-            child: ElevatedButton(
-              onPressed: () {
-                pedido();
+              const SizedBox(width: 5)
+            ],
+            bottom: TabBar(
+              isScrollable: true,
+              tabs: List<Widget>.generate(_con.categorias.length, (index) {
+                return Tab(
+                  child: Text(_con.categorias[index].nombre ?? ''),
+                );
+              }),
+              onTap: (index) async {
+                List<Producto> productosCategoria = await _con.getProductosPorCategoria(_con.categorias[index].id);
+                setState(() {
+                  _con.productos = productosCategoria;
+                });
               },
-              child:  Row(
-                children: [
-                  Expanded(child: cantidad()),
-                  const SizedBox(width: 10),
-                  Expanded(child: precio()),
-                ],
-              ),
             ),
           ),
-        ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.miniCenterFloat,
-      ),
+          body:  Column(
+            children: [
+              const SizedBox(height: 10),
+              _textFieldSearch(),
+              const SizedBox(height: 10),
+              Expanded(
+                child: TabBarView(
+                  children: _con.categorias.map((categoria)  {
+                    return  GridView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            childAspectRatio: 0.7
+                        ),
+                        itemCount: _con.productos.length,
+                        itemBuilder: (_, index) {
+                          if (index < _con.productos.length) {
+                            Producto producto = _con.productos[index];
+                            return _cardProduct(producto);
+                          } else {
+                            return const SizedBox(); // Otra opción es devolver un widget vacío si el índice está fuera de rango
+                          }
+                        }
+                    );
+                  }).toList(),
+                ),
+              ),
+            ],
+          ),
+            floatingActionButton: Container(
+              width: MediaQuery.of(context).size.width,
+              alignment: Alignment.bottomCenter,
+              child: SizedBox(
+                width: 250,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: () {
+                    pedido();
+                  },
+                  child:  Row(
+                    children: [
+                      Expanded(child: cantidad()),
+                      const SizedBox(width: 10),
+                      Expanded(child: precio()),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            floatingActionButtonLocation: FloatingActionButtonLocation.miniCenterFloat,
+          ),
 
     );
   }
@@ -188,6 +188,7 @@ class _ProductosPageState extends State<ProductosPage> {
             child: DetailsPage(
               productosSeleccionados: productosSeleccionadosCopy,
               productosSeleccionadosOtenidos: _con.productosSeleccionadosOtenidos,
+              estado: estado,
               mesa: _con.mesa,
               onProductosActualizados: _actualizarProductosSeleccionados,
             ),
