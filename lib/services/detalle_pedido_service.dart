@@ -17,7 +17,7 @@ class DetallePedidoServicio {
       conn = await _connectionSQL.getConnection();
       print('Id de pedido creado${idPedido}');
 
-      for (Producto producto in productos) {
+      for(Producto producto in productos) {
         final results = await conn.query('''
           INSERT INTO pedido_detalles (
             id_pedido,

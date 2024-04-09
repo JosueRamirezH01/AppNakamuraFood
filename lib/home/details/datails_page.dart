@@ -79,7 +79,7 @@ class _DetailsPageState extends State<DetailsPage> {
     // TODO: implement initState
     super.initState();
     print('ESTADO INICIANDO ${widget.mesa?.estadoMesa}');
-    estado = widget.mesa.estadoMesa!;
+    estado = widget.mesa!.estadoMesa!;
     selectObjmesa = widget.mesa!;
     UserShared();
   }

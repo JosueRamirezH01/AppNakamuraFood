@@ -63,9 +63,9 @@ class ProductoController {
       });
     }
     obtenerLista();
-     mesa = ModalRoute.of(context)?.settings.arguments as Mesa;
-     print('---> Producto controller');
-     print('ESTADO Id DE MESA : ${mesa.estadoMesa} \n Estado : ${mesa.estDisMesa}');
+     // mesa = ModalRoute.of(context)?.settings.arguments as Mesa;
+     // print('---> Producto controller');
+     // print('ESTADO Id DE MESA : ${mesa.estadoMesa} \n Estado : ${mesa.estDisMesa}');
     refresh();
   }
 
