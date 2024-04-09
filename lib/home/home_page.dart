@@ -835,7 +835,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           } else {
            int? idPedido = await dbPedido.consultarMesasDisponibilidad(mozo!.id, context);
            if(idPedido != null){
-             await dbPedido.consultaObtenerDetallePedido(818, context);
+             await dbPedido.consultaObtenerDetallePedido(idPedido, context);
              Navigator.pushNamed(context, 'home/productos', arguments: mesa);
            }else {
              showDialog(
