@@ -46,6 +46,7 @@ class MesaServicio {
 
     try {
       conn = await _connectionSQL.getConnection();
+
       if (estadoMesa == 2){
         estDisMesa = 'Ocupado';
       }
@@ -74,6 +75,4 @@ class MesaServicio {
       }
     }
   }
-
-
 }
