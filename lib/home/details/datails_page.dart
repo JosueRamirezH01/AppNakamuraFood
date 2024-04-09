@@ -1,17 +1,30 @@
 
+import 'dart:convert';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+import 'package:restauflutter/model/detalle_pedido.dart';
+import 'package:restauflutter/model/mesa.dart';
+import 'package:restauflutter/model/mozo.dart';
+import 'package:restauflutter/model/pedido.dart';
 import 'package:restauflutter/model/producto.dart';
+import 'package:restauflutter/services/detalle_pedido_service.dart';
+import 'package:restauflutter/services/mesas_service.dart';
+import 'package:restauflutter/services/pedido_service.dart';
+import 'package:restauflutter/utils/shared_pref.dart';
+import 'package:intl/intl.dart';
+
 
 class DetailsPage extends StatefulWidget {
   final List<Producto>? productosSeleccionados;
   final int estado;
+  final Mesa mesa;
   final void Function(List<Producto>?)? onProductosActualizados; // Función de devolución de llamada
 
-  const DetailsPage({super.key, required this.productosSeleccionados, required this.estado, this.onProductosActualizados});
+  const DetailsPage({super.key, required this.productosSeleccionados, required this.estado, required this.mesa, this.onProductosActualizados});
 
   @override
   State<DetailsPage> createState() => _DetailsPageState();
@@ -21,6 +34,23 @@ class _DetailsPageState extends State<DetailsPage> {
 
   TextEditingController notaController = TextEditingController();
 
+  final SharedPref _pref = SharedPref();
+  late  Mozo? mozo = Mozo();
+
+  Future<void> UserShared() async {
+    final dynamic userData = await _pref.read('user_data');
+    if (userData != null) {
+      final Map<String, dynamic> userDataMap = json.decode(userData);
+      mozo = Mozo.fromJson(userDataMap);
+    }
+    DateTime now = DateTime.now();
+    String formattedDate = DateFormat('yyyy-MM-dd HH:mm:ss').format(now);
+    print('formato de Hora: $formattedDate');
+    print('Id del mozo : ${mozo?.id}');
+    print('Id del establecimiento: ${mozo?.id_establecimiento}');
+    print('Id de la mesa : ${selectObjmesa.id}');
+  }
+
   List<String> items = [
     '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20'
   ];
@@ -28,13 +58,22 @@ class _DetailsPageState extends State<DetailsPage> {
   List<String> mesa = ['Mesa 1', 'Mesa 2', 'Mesa 3', 'Mesa 4'];
   String? selectedMesa;
   late int estado;
+  late Mesa selectObjmesa;
+  PedidoServicio pedidoServicio= PedidoServicio();
+  MesaServicio mesaServicio = MesaServicio();
+  DetallePedidoServicio detallePedidoServicio = DetallePedidoServicio();
+  late Pedido newpedido = Pedido();
+  late double pedidoTotal ;
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+    print('---> details page');
     print('ESTADO INICIANDO ${widget.estado}');
     estado = widget.estado;
+    selectObjmesa = widget.mesa;
+    UserShared();
   }
 
   @override
@@ -43,7 +82,7 @@ class _DetailsPageState extends State<DetailsPage> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            if(estado != 1)
+            if(selectObjmesa.estadoMesa != 1)
             cabecera(),
             const SizedBox(height: 10),
             contenido(),
@@ -97,7 +136,6 @@ class _DetailsPageState extends State<DetailsPage> {
     );
   }
 
-
   Widget _iconDelete(int index) {
     return GestureDetector(
         onTap: (){
@@ -116,6 +154,7 @@ class _DetailsPageState extends State<DetailsPage> {
       child: const Icon(Icons.edit, color: Colors.amber),
     );
   }
+
   Widget icono(){
     return const Padding(
       padding: EdgeInsets.only(top: 10.0, bottom: 10),
@@ -201,6 +240,7 @@ class _DetailsPageState extends State<DetailsPage> {
       ),
     );
   }
+
   Future<String?> _nota(int index){
     notaController.text = widget.productosSeleccionados?[index].comentario ?? '';
     return showDialog<String>(
@@ -292,16 +332,61 @@ class _DetailsPageState extends State<DetailsPage> {
       ),
     );
   }
+
+  // BOTON PARA COCINA;
   Widget _pedido(){
     return ElevatedButton(
         style:  ButtonStyle(
             elevation: MaterialStateProperty.all(2), backgroundColor: MaterialStateProperty.all(Colors.blue)),
-        onPressed: () {
-            setState(() {
-              estado = 2;
-            });
-         print('ESTADO $estado');
-          _pdf();
+        onPressed: () async {
+          print('---> Boton pedido');
+          DateTime now = DateTime.now();
+          String formattedDate = DateFormat('yyyy-MM-dd HH:mm:ss').format(now);
+          DateTime parsedDateTime = DateFormat('yyyy-MM-dd HH:mm:ss').parse(formattedDate);
+
+          if (widget.productosSeleccionados!.length > 0) {
+            // crear el pedido
+            newpedido = Pedido(
+              idEntorno: 1, // 1-> demo || 2-> producion
+              idCliente: 60, // 60 clientes varios
+              idUsuario: mozo?.id, // ID DEL MOSO ✔️
+              idTipoPedido: 1, // 1-> local || 2-> llevar || 3->delivery ✖️
+              idMesa: selectObjmesa.id, //✔️
+              idEstablecimiento: mozo?.id_establecimiento, // ✔️
+              idSeriePedido: 1, // nose que es ✖️
+              montoTotal: pedidoTotal, // ✔️
+              fechaPedido: parsedDateTime.toUtc(), // ✔️
+              estadoPedido: 1, // ✔️
+            );
+            // Ya crea el pedido
+
+             int newPedidoId = await pedidoServicio.crearPedidoPrueba(newpedido, context);
+
+            print('ID del pedido creado: ${newPedidoId}');
+            // Actualiza la mesa
+            Mesa? retornoMesa = await mesaServicio.actualizarMesa( selectObjmesa.id , 2, context);
+            print(retornoMesa!.estDisMesa);
+            // genera el detalle de pedido
+            List<Detalle_Pedido> ListPedidosbd =  await detallePedidoServicio.crearDetallePedidoPrueba( newPedidoId, widget.productosSeleccionados!, context);
+
+            // seteo la mesa que ya tengo en el page
+            selectObjmesa.estDisMesa = retornoMesa!.estDisMesa;
+            //selectObjmesa.estDisMesa = retornoMesa.estDisMesa;
+            selectObjmesa.estadoMesa = retornoMesa!.estadoMesa;
+            //selectObjmesa.estadoMesa = retornoMesa.estadoMesa;
+
+            // Actualizar mesa
+            //print(retornoPedido);
+
+            //_pdf();
+
+          }else{
+            print('no puedes mandar una lista vacia');
+
+          }
+          setState(() {
+
+          });
         },
         child: const Text(
           'Pedido',
@@ -332,6 +417,7 @@ class _DetailsPageState extends State<DetailsPage> {
   }
   Widget debajo() {
     double total = calcularTotal();
+    pedidoTotal = total;
     return Center(
       child: Container(
         margin: const EdgeInsets.only(top: 20),
@@ -343,7 +429,7 @@ class _DetailsPageState extends State<DetailsPage> {
           children: [
             const SizedBox(width: 5),
             Expanded(
-              child: estado == 1 ? _pedido() : _preCuenta(),
+              child: selectObjmesa.estadoMesa == 1 ? _pedido() : _preCuenta(),
             ),
             const SizedBox(width: 10),
              Expanded(
@@ -428,10 +514,6 @@ class _DetailsPageState extends State<DetailsPage> {
     );
   }
 
-
-
-
-
   Future<void> _pdf() async {
     final pdf = pw.Document();
 
@@ -453,7 +535,7 @@ class _DetailsPageState extends State<DetailsPage> {
                 // Título de la mesa
                 pw.Center(
                   child: pw.Text(
-                    'MESA 2',
+                    '${selectObjmesa.nombreMesa}',
                     style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
                   ),
                 ),
@@ -474,8 +556,6 @@ class _DetailsPageState extends State<DetailsPage> {
       onLayout: (PdfPageFormat format) async => pdf.save(),
     );
   }
-
-
 
   pw.Widget _buildDetails() {
     return pw.Column(
