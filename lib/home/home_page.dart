@@ -4,7 +4,9 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
+import 'package:restauflutter/model/detalle_pedido.dart';
 import 'package:restauflutter/model/mesa.dart';
+import 'package:restauflutter/model/mesaDetallePedido.dart';
 import 'package:restauflutter/model/mozo.dart';
 import 'package:restauflutter/model/piso.dart';
 import 'package:restauflutter/services/mesas_service.dart';
@@ -174,7 +176,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                       ),
                     ),
                     Container(
-                      margin: EdgeInsets.only(
+                      margin: const EdgeInsets.only(
                         left: 2,
                         right: 1.5
                       ),
@@ -833,10 +835,12 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           if (mesa.estadoMesa == 1) {
             Navigator.pushNamed(context, 'home/productos', arguments: mesa);
           } else {
-           int? idPedido = await dbPedido.consultarMesasDisponibilidad(mozo!.id, context);
+           int? idPedido = await dbPedido.consultarMesasDisponibilidad(mozo!.id, mesa.id,context);
            if(idPedido != null){
-             await dbPedido.consultaObtenerDetallePedido(818, context);
-             Navigator.pushNamed(context, 'home/productos', arguments: mesa);
+             List<Detalle_Pedido> detallePedido =  await dbPedido.consultaObtenerDetallePedido(idPedido, context);
+             print(detallePedido);
+             MesaDetallePedido mesaDetallePedido = MesaDetallePedido(mesa, detallePedido);
+             Navigator.pushNamed(context, 'home/productos', arguments: mesaDetallePedido);
            }else {
              showDialog(
                context: context,
