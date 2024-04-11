@@ -1,7 +1,7 @@
 
 import 'dart:convert';
+import 'dart:core';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:pdf/pdf.dart';
@@ -23,12 +23,12 @@ import 'package:intl/intl.dart';
 class DetailsPage extends StatefulWidget {
   final List<Producto>? productosSeleccionados;
   final List<Producto>? productosSeleccionadosOtenidos;
-
+  final List<Detalle_Pedido> detallePedidoLista;
   final int? estado;
   final Mesa? mesa;
   final void Function(List<Producto>?)? onProductosActualizados; // Función de devolución de llamada
 
-  const DetailsPage({super.key, required this.productosSeleccionados, required this.estado,required this.productosSeleccionadosOtenidos, required this.mesa, this.onProductosActualizados});
+  const DetailsPage({super.key, required this.productosSeleccionados, required this.estado,required this.detallePedidoLista,required this.productosSeleccionadosOtenidos, required this.mesa, this.onProductosActualizados});
 
   @override
   State<DetailsPage> createState() => _DetailsPageState();
@@ -66,6 +66,7 @@ class _DetailsPageState extends State<DetailsPage> {
   String? selectedMesa;
   late int estado;
   List<Mesa> mesasDisponibles = [];
+  late List<Detalle_Pedido> detalles_pedios_tmp;
   late Mesa selectObjmesa;
   PedidoServicio pedidoServicio= PedidoServicio();
   MesaServicio mesaServicio = MesaServicio();
@@ -80,7 +81,8 @@ class _DetailsPageState extends State<DetailsPage> {
     print('ESTADO INICIANDO ${widget.mesa?.estadoMesa}');
     estado = widget.mesa!.estadoMesa!;
     selectObjmesa = widget.mesa!;
-    //IDPEDIDOPRUEBA = widget.productosSeleccionadosOtenidos![0].id!;
+    detalles_pedios_tmp = widget.detallePedidoLista;
+    print(detalles_pedios_tmp);
     UserShared();
   }
 
@@ -91,7 +93,7 @@ class _DetailsPageState extends State<DetailsPage> {
         child: Column(
           children: [
             if(selectObjmesa.estadoMesa != 1)
-            cabecera(),
+              cabecera(),
             const SizedBox(height: 10),
             contenido(),
             debajo()
@@ -126,16 +128,16 @@ class _DetailsPageState extends State<DetailsPage> {
                       const SizedBox(width: 5),
                       _iconDelete(index),
                       const SizedBox(width: 5),
-                       _iconNota(index),
+                      _iconNota(index),
                     ],
                   ),
                 ),
                 if (index != widget.productosSeleccionados!.length - 1) const Divider(
                   height: 1,
-            thickness: 2,
-            indent: 10,
-            endIndent: 10,
-            ),
+                  thickness: 2,
+                  indent: 10,
+                  endIndent: 10,
+                ),
               ],
             );
           },
@@ -147,19 +149,19 @@ class _DetailsPageState extends State<DetailsPage> {
 
   Widget _iconDelete(int index) {
     return GestureDetector(
-        onTap: (){
-            _eliminar(index);
-        },
-       child: const Icon(Icons.delete, color: Colors.red),
+      onTap: (){
+        _eliminar(index);
+      },
+      child: const Icon(Icons.delete, color: Colors.red),
 
     );
   }
 
   Widget _iconNota(int index) {
     return GestureDetector(
-        onTap: () {
-            _nota(index);
-        },
+      onTap: () {
+        _nota(index);
+      },
       child: const Icon(Icons.edit, color: Colors.amber),
     );
   }
@@ -167,7 +169,7 @@ class _DetailsPageState extends State<DetailsPage> {
     return const Padding(
       padding: EdgeInsets.only(top: 10.0, bottom: 10),
       child: Divider(
-          indent: 120,
+        indent: 120,
         endIndent: 120,
         thickness: 5,
       ),
@@ -206,10 +208,13 @@ class _DetailsPageState extends State<DetailsPage> {
                   child: ElevatedButton(
                       style:  ButtonStyle(
                           elevation: MaterialStateProperty.all(2), backgroundColor: MaterialStateProperty.all(const Color(0xFF634FD2))),
-                      onPressed: () {
+                      onPressed: () async {
                         // Verifica si las dos listas tienen la misma longitud
                         if (widget.productosSeleccionados!.length != widget.productosSeleccionadosOtenidos!.length) {
-                          mostrarMensaje('Hay productos seleccionados');
+                          print('IDEPEDIDOPRUEBA RECIBIDO 2222  $IDPEDIDOPRUEBA');
+                          detalles_pedios_tmp = await detallePedidoServicio.actualizarCantidadProductoDetallePedido( IDPEDIDOPRUEBA ,detalles_pedios_tmp, widget.productosSeleccionados!, pedidoTotal, context);
+                          print('DETALLE DE PEDIDO TPM 111$detalles_pedios_tmp');
+                          mostrarMensajeActualizado('Productos actualizados');
                           return;
                         }
 
@@ -217,13 +222,17 @@ class _DetailsPageState extends State<DetailsPage> {
                         for (int i = 0; i < widget.productosSeleccionados!.length; i++) {
                           // Compara los objetos Producto utilizando el método == sobrescrito
                           if (widget.productosSeleccionados![i] != widget.productosSeleccionadosOtenidos![i]) {
-                            mostrarMensaje('Hay productos seleccionados');
+                            print('IDEPEDIDOPRUEBA RECIBIDO  $IDPEDIDOPRUEBA');
+                            detalles_pedios_tmp = await detallePedidoServicio.actualizarCantidadProductoDetallePedido( IDPEDIDOPRUEBA ,detalles_pedios_tmp, widget.productosSeleccionados!, pedidoTotal, context);
+                            print('DETALLE DE PEDIDO TPM 222$detalles_pedios_tmp');
+
+                            mostrarMensajeActualizado('Productos actualizados');
                             return;
                           }
                         }
-
                         // Si no se encontraron diferencias, muestra el mensaje correspondiente
                         mostrarMensaje('No hay productos seleccionados');
+                        refresh();
                       },
                       child: const Text('Actualizar', style: TextStyle(color: Colors.white, fontSize: 16))),
                 ),
@@ -283,10 +292,10 @@ class _DetailsPageState extends State<DetailsPage> {
           TextButton(
             onPressed: () {
               setState(() {
-               widget.productosSeleccionados?[index].comentario = notaController.text;
+                widget.productosSeleccionados?[index].comentario = notaController.text;
               });
-               Navigator.pop(context, 'OK');
-               } ,
+              Navigator.pop(context, 'OK');
+            } ,
             child: const Text('OK'),
           ),
         ],
@@ -307,7 +316,7 @@ class _DetailsPageState extends State<DetailsPage> {
           ),
           TextButton(
             onPressed: () {
-               index = widget.productosSeleccionados!.indexWhere((producto) => producto == widget.productosSeleccionados![index]);
+              index = widget.productosSeleccionados!.indexWhere((producto) => producto == widget.productosSeleccionados![index]);
               if (index != -1) {
                 // Eliminar el producto de la lista
                 setState(() {
@@ -405,20 +414,25 @@ class _DetailsPageState extends State<DetailsPage> {
             );
             // Ya crea el pedido
 
-             int newPedidoId = await pedidoServicio.crearPedidoPrueba(newpedido, context);
-            IDPEDIDOPRUEBA = newPedidoId;
-            print('ID del pedido creado: ${newPedidoId}');
-            // Actualiza la mesa
+            int newPedidoId = await pedidoServicio.crearPedidoPrueba(newpedido, context);
             Mesa? retornoMesa = await mesaServicio.actualizarMesa( selectObjmesa.id , 2, context);
-            print(retornoMesa!.estDisMesa);
-            // genera el detalle de pedido
-            List<Detalle_Pedido> ListPedidosbd =  await detallePedidoServicio.crearDetallePedidoPrueba( newPedidoId, widget.productosSeleccionados!, context);
+            List<Detalle_Pedido> retornoPedidoDetalle = await detallePedidoServicio.crearDetallePedidoPrueba( newPedidoId, widget.productosSeleccionados!, context);
+            print(retornoPedidoDetalle);
+            setState(() {
+              IDPEDIDOPRUEBA = newPedidoId;
+              print('ID del pedido creado: ${IDPEDIDOPRUEBA}');
+              // Actualiza la mesa
+              print(retornoMesa!.estDisMesa);
+              // genera el detalle de pedido
+              detalles_pedios_tmp = retornoPedidoDetalle;
+              print('DETALLA TMP $detalles_pedios_tmp');
+              // seteo la mesa que ya tengo en el page
+              selectObjmesa.estDisMesa = retornoMesa.estDisMesa;
+              //selectObjmesa.estDisMesa = retornoMesa.estDisMesa;
+              selectObjmesa.estadoMesa = retornoMesa.estadoMesa;
+              //selectObjmesa.estadoMesa = retornoMesa.estadoMesa;
+            });
 
-            // seteo la mesa que ya tengo en el page
-            selectObjmesa.estDisMesa = retornoMesa!.estDisMesa;
-            //selectObjmesa.estDisMesa = retornoMesa.estDisMesa;
-            selectObjmesa.estadoMesa = retornoMesa!.estadoMesa;
-            //selectObjmesa.estadoMesa = retornoMesa.estadoMesa;
 
             // Actualizar mesa
             //print(retornoPedido);
@@ -427,11 +441,7 @@ class _DetailsPageState extends State<DetailsPage> {
 
           }else{
             print('no puedes mandar una lista vacia');
-
           }
-          setState(() {
-
-          });
         },
         child: const Text(
           'Pedido',
@@ -477,7 +487,7 @@ class _DetailsPageState extends State<DetailsPage> {
               child: selectObjmesa.estadoMesa == 1 ? _pedido() : _preCuenta(),
             ),
             const SizedBox(width: 10),
-             Expanded(
+            Expanded(
               child: SizedBox(
                 child: Row(
                   children: [
@@ -565,6 +575,17 @@ class _DetailsPageState extends State<DetailsPage> {
       gravity: ToastGravity.BOTTOM,
       timeInSecForIosWeb: 1,
       backgroundColor: Colors.red,
+      textColor: Colors.white,
+      fontSize: 16.0,
+    );
+  }
+  void mostrarMensajeActualizado(String mensaje) {
+    Fluttertoast.showToast(
+      msg: mensaje,
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+      timeInSecForIosWeb: 1,
+      backgroundColor: Colors.green,
       textColor: Colors.white,
       fontSize: 16.0,
     );
@@ -692,6 +713,11 @@ class _DetailsPageState extends State<DetailsPage> {
         );
       },
     );
+  }
+
+  void refresh(){
+    setState(() {
+    });
   }
 
 
