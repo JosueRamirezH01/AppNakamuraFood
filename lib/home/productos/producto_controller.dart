@@ -9,6 +9,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:restauflutter/model/categoria.dart';
 import 'package:restauflutter/model/detalle_pedido.dart';
 import 'package:restauflutter/model/mesaDetallePedido.dart';
+import 'package:restauflutter/services/detalle_pedido_service.dart';
 import 'package:restauflutter/utils/shared_pref.dart';
 
 import '../../model/mesa.dart';
@@ -23,7 +24,7 @@ class ProductoController {
   String productName = '';
   late  Mesa mesa =  Mesa();
   late List<Detalle_Pedido> detalle_pedido = [];
-
+  var dbDetallePedido = DetallePedidoServicio();
   List<Producto>? productosSeleccionadosOtenidos = [];
   List<Producto>? productosSeleccionados = [];
   Future init(BuildContext context, Function refresh) async {
@@ -92,6 +93,14 @@ class ProductoController {
       }
     });
   }
+  Future<int> obtenerIdPedidoLast() async {
+    return await dbDetallePedido.consultaObtenerDetallePedido(mesa.id, context);
+  }
+
+  Future<List<Detalle_Pedido>> obtenerDetallePedidoLastCreate(int idPedido) async {
+    return await dbDetallePedido.obtenerDetallePedidoLastCreate(idPedido, context);
+  }
+
 
   Future<Producto?> _getProductoPorId(int? idProducto) async {
     try {
@@ -166,7 +175,6 @@ class ProductoController {
       print('Error al obtener los productos: $e');
     }
   }
-
 
 
   Future<List<Producto>> getProductosPorCategoria(int? categoriaId) async {

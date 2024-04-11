@@ -206,4 +206,152 @@ class DetallePedidoServicio {
 
 
 
+  Future<List<Detalle_Pedido>> actualizarCantidadProductoDetallePedidoPrueba(int? pedidoid,List<Detalle_Pedido> detalle_pedidos, List<Producto> productos, double pedidoTotal, BuildContext context) async {
+    MySqlConnection? conn;
+    try {
+      int? idpedido = 0;
+
+      conn = await _connectionSQL.getConnection();
+
+      if (pedidoid == 0) {
+        idpedido = detalle_pedidos[0].id_pedido;
+        print('PEDIDO REFERSH$idpedido');
+      } else {
+        idpedido = pedidoid;
+      }
+
+      for (final producto in productos) {
+        var existingDetail = await conn.query(
+            'SELECT id_pedido_detalle FROM pedido_detalles WHERE id_pedido = ? AND id_producto = ?',
+            [idpedido, producto.id]);
+
+        if (existingDetail.isEmpty) {
+          await conn.query(
+              'INSERT INTO pedido_detalles (id_pedido, id_producto, cantidad_producto, cantidad_real, precio_producto, comentario, estado_detalle, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+              [
+                idpedido,
+                producto.id,
+                producto.stock,
+                producto.stock,
+                producto.precioproducto,
+                producto.comentario,
+                1,
+                DateTime.now().toUtc(),
+                DateTime.now().toUtc()
+              ]);
+        } else {
+          double precio = producto.precioproducto! * producto.stock!;
+          await conn.query(
+              'UPDATE pedido_detalles SET cantidad_producto = ?, cantidad_real = ?, precio_producto = ?, comentario = ?, updated_at = ? WHERE id_pedido = ? AND id_producto = ?',
+              [
+                producto.stock,
+                producto.stock,
+                precio,
+                producto.comentario,
+                DateTime.now().toUtc(),
+                idpedido,
+                producto.id
+              ]);
+        }
+      }
+
+      var currentDetails = await conn.query(
+          'SELECT id_pedido_detalle FROM pedido_detalles WHERE id_pedido = ?',
+          [idpedido]);
+      var currentIds = currentDetails.map((
+          row) => row['id_pedido_detalle'] as int?).toSet();
+      for (var detalle in detalle_pedidos) {
+        if (!currentIds.contains(detalle.id_pedido_detalle)) {
+          await conn.query(
+              'DELETE FROM pedido_detalles WHERE id_pedido_detalle = ?',
+              [detalle.id_pedido_detalle]);
+        }
+      }
+
+      await conn.query('UPDATE pedidos SET Monto_total = ? WHERE id_pedido = ?',
+          [pedidoTotal, idpedido]);
+
+      final results = await conn.query('''
+      SELECT * FROM pedido_detalles WHERE id_pedido = ?
+      ''', [idpedido]);
+
+      List<Detalle_Pedido> detalle_pedido_actualizado = results.map((row) =>
+          Detalle_Pedido.fromJson(row.fields)).toList();
+
+      print('Cantidad actualizada correctamente en los detalles de pedido');
+      return detalle_pedido_actualizado;
+    }catch (e) {
+      print('Error al realizar la consulta: $e');
+      return []; // Retorna 0 si ocurre algún error
+    } finally {
+      if (conn != null) {
+        await conn.close();
+      }
+    }
+  }
+
+
+
+
+  Future<int> consultaObtenerDetallePedido(int? idMesa,  BuildContext context) async {
+    MySqlConnection? conn;
+    try {
+      conn = await _connectionSQL.getConnection();
+
+      const query = '''
+      SELECT p.id_pedido 
+      FROM pedidos AS p 
+      JOIN mesas AS m ON p.id_mesa = m.id 
+      WHERE m.id = ?
+      ORDER BY p.fecha_pedido DESC 
+      LIMIT 1
+    ''';
+
+      final results = await conn.query(query, [idMesa]);
+      if (results.isEmpty) {
+        print('No se encontraron datos en las tablas.');
+        return 0; // Retorna 0 si no se encuentra ningún dato
+      } else {
+        // Obtén el valor del campo id_pedido de la primera fila y conviértelo a entero
+        int detallePedido = results.first.fields['id_pedido'] as int;
+        print('ID del pedido recuperado: $detallePedido');
+        return detallePedido;
+      }
+    } catch (e) {
+      print('Error al realizar la consulta: $e');
+      return 0; // Retorna 0 si ocurre algún error
+    } finally {
+      if (conn != null) {
+        await conn.close();
+      }
+    }
+  }
+
+
+
+  Future<List<Detalle_Pedido>> obtenerDetallePedidoLastCreate(int? idPedido,  BuildContext context) async {
+    MySqlConnection? conn;
+    try {
+      conn = await _connectionSQL.getConnection();
+
+      final results = await conn.query('''
+      SELECT * FROM pedido_detalles WHERE id_pedido = ?
+      ''', [idPedido]);
+
+      List<Detalle_Pedido> detallePedidoActualizado = results.map((row) => Detalle_Pedido.fromJson(row.fields)).toList();
+
+      print('Cantidad actualizada correctamente en los detalles de pedido');
+      return detallePedidoActualizado;
+    } catch (e) {
+      print('Error al realizar la consulta: $e');
+      return []; // Retorna 0 si ocurre algún error
+    } finally {
+      if (conn != null) {
+        await conn.close();
+      }
+    }
+  }
+
+
+
 }

@@ -1,12 +1,11 @@
 
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:flutter/widgets.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:restauflutter/home/details/datails_page.dart';
 import 'package:restauflutter/home/productos/producto_controller.dart';
+import 'package:restauflutter/model/detalle_pedido.dart';
 import 'package:restauflutter/model/producto.dart';
 
 class ProductosPage extends StatefulWidget {
@@ -21,8 +20,8 @@ class ProductosPage extends StatefulWidget {
 class _ProductosPageState extends State<ProductosPage> {
   int estado = 1;
   String? nomMesa;
- List<Producto>? productosSeleccionados = [];
-
+  List<Producto>? productosSeleccionados = [];
+  late List<Detalle_Pedido> detallePedidoLastCreat = [];
   final ProductoController _con = ProductoController();
 
   @override
@@ -121,8 +120,11 @@ class _ProductosPageState extends State<ProductosPage> {
                 width: 250,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: () {
-                    pedido();
+                  onPressed: () async {
+                    int id = await _con.obtenerIdPedidoLast();
+                    detallePedidoLastCreat = await _con.obtenerDetallePedidoLastCreate(id);
+                    print(detallePedidoLastCreat);
+                    pedido(id);
                   },
                   child:  Row(
                     children: [
@@ -176,7 +178,8 @@ class _ProductosPageState extends State<ProductosPage> {
 
 
 
-  Future pedido() async {
+
+  Future pedido(int id) async {
     List<Producto>? productosSeleccionadosCopy = List.from(_con.productosSeleccionados ?? []);
     nomMesa = await showCupertinoModalBottomSheet<String?>(
       barrierColor: Colors.transparent,
@@ -190,6 +193,8 @@ class _ProductosPageState extends State<ProductosPage> {
               productosSeleccionadosOtenidos: _con.productosSeleccionadosOtenidos,
               estado: estado,
               mesa: _con.mesa,
+              idPedido: id,
+              detallePedidoLastCreate: detallePedidoLastCreat,
               detallePedidoLista: _con.detalle_pedido,
               onProductosActualizados: _actualizarProductosSeleccionados,
             ),

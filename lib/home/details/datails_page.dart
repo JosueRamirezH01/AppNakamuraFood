@@ -24,11 +24,20 @@ class DetailsPage extends StatefulWidget {
   final List<Producto>? productosSeleccionados;
   final List<Producto>? productosSeleccionadosOtenidos;
   final List<Detalle_Pedido> detallePedidoLista;
+  final List<Detalle_Pedido> detallePedidoLastCreate;
   final int? estado;
+  final int? idPedido;
   final Mesa? mesa;
   final void Function(List<Producto>?)? onProductosActualizados; // Función de devolución de llamada
-
-  const DetailsPage({super.key, required this.productosSeleccionados, required this.estado,required this.detallePedidoLista,required this.productosSeleccionadosOtenidos, required this.mesa, this.onProductosActualizados});
+  const DetailsPage({super.key,
+    required this.idPedido,
+    required this.productosSeleccionados,
+    required this.estado,
+    required this.detallePedidoLastCreate,
+    required this.detallePedidoLista,
+    required this.productosSeleccionadosOtenidos,
+    required this.mesa,
+    this.onProductosActualizados});
 
   @override
   State<DetailsPage> createState() => _DetailsPageState();
@@ -57,16 +66,9 @@ class _DetailsPageState extends State<DetailsPage> {
     print('Id del establecimiento: ${mozo?.id_establecimiento}');
     print('Id de la mesa : ${selectObjmesa.id}');
   }
-
-  List<String> items = [
-    '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20'
-  ];
-  int contador = 0;
-  List<String> mesa = ['Mesa 1', 'Mesa 2', 'Mesa 3', 'Mesa 4'];
-  String? selectedMesa;
   late int estado;
   List<Mesa> mesasDisponibles = [];
-  late List<Detalle_Pedido> detalles_pedios_tmp;
+  List<Detalle_Pedido> detalles_pedios_tmp = [];
   late Mesa selectObjmesa;
   PedidoServicio pedidoServicio= PedidoServicio();
   MesaServicio mesaServicio = MesaServicio();
@@ -81,8 +83,9 @@ class _DetailsPageState extends State<DetailsPage> {
     print('ESTADO INICIANDO ${widget.mesa?.estadoMesa}');
     estado = widget.mesa!.estadoMesa!;
     selectObjmesa = widget.mesa!;
-    detalles_pedios_tmp = widget.detallePedidoLista;
-    print(detalles_pedios_tmp);
+    detalles_pedios_tmp = widget.detallePedidoLista ;
+    print(widget.detallePedidoLastCreate);
+
     UserShared();
   }
 
@@ -209,30 +212,21 @@ class _DetailsPageState extends State<DetailsPage> {
                       style:  ButtonStyle(
                           elevation: MaterialStateProperty.all(2), backgroundColor: MaterialStateProperty.all(const Color(0xFF634FD2))),
                       onPressed: () async {
-                        // Verifica si las dos listas tienen la misma longitud
-                        if (widget.productosSeleccionados!.length != widget.productosSeleccionadosOtenidos!.length) {
-                          print('IDEPEDIDOPRUEBA RECIBIDO 2222  $IDPEDIDOPRUEBA');
-                          detalles_pedios_tmp = await detallePedidoServicio.actualizarCantidadProductoDetallePedido( IDPEDIDOPRUEBA ,detalles_pedios_tmp, widget.productosSeleccionados!, pedidoTotal, context);
-                          print('DETALLE DE PEDIDO TPM 111$detalles_pedios_tmp');
-                          mostrarMensajeActualizado('Productos actualizados');
-                          return;
+                        int? idPedidoRecuperado = IDPEDIDOPRUEBA != 0 ? IDPEDIDOPRUEBA : widget.idPedido;
+
+                        print('ID PRUEBA RECUPERADO  222222 $idPedidoRecuperado');
+                        List<Detalle_Pedido> listDetalleRecuperado = detalles_pedios_tmp.isNotEmpty ? detalles_pedios_tmp : widget.detallePedidoLastCreate;
+
+                        detalles_pedios_tmp = await detallePedidoServicio.actualizarCantidadProductoDetallePedidoPrueba( idPedidoRecuperado ,listDetalleRecuperado, widget.productosSeleccionados!, pedidoTotal, context);
+                        print('DETALLE DE PEDIDO TPM 111$listDetalleRecuperado');
+                        
+                        if(detalles_pedios_tmp != []){
+                          mostrarMensajeActualizado('Productos Actualizados');
+                        }else{
+                          mostrarMensaje('Nada por actualizar');
                         }
 
-                        // Itera sobre los elementos de las dos listas y compara cada par de elementos
-                        for (int i = 0; i < widget.productosSeleccionados!.length; i++) {
-                          // Compara los objetos Producto utilizando el método == sobrescrito
-                          if (widget.productosSeleccionados![i] != widget.productosSeleccionadosOtenidos![i]) {
-                            print('IDEPEDIDOPRUEBA RECIBIDO  $IDPEDIDOPRUEBA');
-                            detalles_pedios_tmp = await detallePedidoServicio.actualizarCantidadProductoDetallePedido( IDPEDIDOPRUEBA ,detalles_pedios_tmp, widget.productosSeleccionados!, pedidoTotal, context);
-                            print('DETALLE DE PEDIDO TPM 222$detalles_pedios_tmp');
-
-                            mostrarMensajeActualizado('Productos actualizados');
-                            return;
-                          }
-                        }
-                        // Si no se encontraron diferencias, muestra el mensaje correspondiente
-                        mostrarMensaje('No hay productos seleccionados');
-                        refresh();
+                       
                       },
                       child: const Text('Actualizar', style: TextStyle(color: Colors.white, fontSize: 16))),
                 ),
@@ -509,6 +503,8 @@ class _DetailsPageState extends State<DetailsPage> {
       widget.onProductosActualizados!(widget.productosSeleccionados);
     }
   }
+
+
   Widget _addOrRemoveItem(int index) {
     return Row(
       children: [
@@ -719,6 +715,7 @@ class _DetailsPageState extends State<DetailsPage> {
     setState(() {
     });
   }
+
 
 
 }
