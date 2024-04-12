@@ -21,6 +21,7 @@ class LoginController {
       final Map<String, dynamic> userDataMap = json.decode(userData);
       final Mozo mozo = Mozo.fromJson(userDataMap);
       if (mozo.email != null) {
+        print('Establecimiento del usuario  ${mozo.id_establecimiento}');
         Navigator.pushNamedAndRemoveUntil(context, 'home', (route) => false);
       }
     }

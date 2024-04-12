@@ -57,12 +57,15 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   late  Mozo? mozo = Mozo();
   bool isLoading = true;
   late List<Pedido> listaPedido = [];
+  late int idEstablecimiento = 0 ;
+
 
   Future<void> UserShared() async {
     final dynamic userData = await _pref.read('user_data');
     if (userData != null) {
       final Map<String, dynamic> userDataMap = json.decode(userData);
-       mozo = Mozo.fromJson(userDataMap);
+      mozo = Mozo.fromJson(userDataMap);
+      idEstablecimiento = mozo!.id_establecimiento ?? 0;
     }
   }
   var dbPisos = PisoServicio();
@@ -70,7 +73,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   var dbPedido = PedidoServicio();
 
 
-  int idEstablecimiento = 22 ; // seatear al el moso hacer login
 
   // mesas
   static  List<Tab> myTabs = <Tab>[];
@@ -87,16 +89,19 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     _tabController.addListener(_handleTabSelection);
     _listSize = 10;
     _subOptType = SubOptTypes.local;
-    consultarPisos(idEstablecimiento, context);
-    consultarMesas(pisoSelect, context).then((value) async {
-      _subOptType = SubOptTypes.local;
-      listaPedido = await dbPedido.obtenerListasPedidos(_subOptType, context);
-      setState(() {
-        isLoading = false;
-      });
-    },);
-    UserShared();
-    refresh();
+
+    UserShared().then((_) {
+      // Una vez que UserShared() haya terminado de ejecutarse y se haya actualizado idEstablecimiento, entonces llamamos a las funciones de consulta.
+      consultarPisos(idEstablecimiento, context);
+      consultarMesas(pisoSelect, context).then((value) async {
+        _subOptType = SubOptTypes.local;
+        listaPedido = await dbPedido.obtenerListasPedidos(_subOptType, context);
+        setState(() {
+          isLoading = false;
+        });
+      },);
+      refresh();
+    });
   }
 
   @override
@@ -924,9 +929,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     width: MediaQuery.of(context).size.width,
                     padding: const EdgeInsets.only(left: 10, right: 10),
                     child:  Padding(
-                      padding: const EdgeInsets.all(15.0),
+                      padding: int.parse('${mesa.estadoMesa}') > 1 ? const EdgeInsets.all(15.0) : const EdgeInsets.only(right: 28, left: 28, top: 30),
                       child: FadeInImage(
-                        image: int.parse('${mesa.estadoMesa}') > 0 ? const AssetImage('assets/img/pre-cuenta.png')  : const AssetImage('assets/img/Vector.png'),
+                        image: int.parse('${mesa.estadoMesa}') > 1 ? const AssetImage('assets/img/pre-cuenta.png')  : const AssetImage('assets/img/Vector.png'),
                         fit: BoxFit.contain,
                         color: Colors.black,
                         fadeInDuration: const Duration(milliseconds: 50),
