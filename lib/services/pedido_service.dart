@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mysql1/mysql1.dart';
 import 'package:restauflutter/bd/conexion.dart';
+import 'package:restauflutter/home/home_page.dart';
 import 'package:restauflutter/model/detalle_pedido.dart';
 import 'package:restauflutter/model/pedido.dart';
 import 'package:restauflutter/utils/shared_pref.dart';
@@ -147,4 +148,34 @@ class PedidoServicio {
     }
   }
 
+
+  Future<List<Pedido>> obtenerListasPedidos( SubOptTypes variable, BuildContext context) async {
+    MySqlConnection? conn;
+    try {
+      conn = await _connectionSQL.getConnection();
+      int id_tipo_ped = 1;
+     if(variable == SubOptTypes.llevar){
+        id_tipo_ped = 2;
+      }else if(variable == SubOptTypes.delivery){
+        id_tipo_ped = 3;
+      }
+      const query = 'SELECT * FROM pedidos where id_tipo_ped = ? ORDER BY correlativo_pedido DESC ';
+      final results = await conn.query(query,[id_tipo_ped] );
+      if (results.isEmpty) {
+        print('No se encontraron datos en las tablas.');
+        return [];
+      } else {
+        List<Pedido> listaPedido = results.map((row) => Pedido.fromJson(row.fields)).toList();
+        print('ID del pedido recuperado: $listaPedido');
+        return listaPedido;
+      }
+    } catch (e) {
+      print('Error al realizar la consulta: $e');
+      return [];
+    } finally {
+      if (conn != null) {
+        await conn.close();
+      }
+    }
+  }
 }

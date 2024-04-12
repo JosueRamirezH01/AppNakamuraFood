@@ -260,7 +260,10 @@ class DetallePedidoServicio {
           [idpedido]);
       var currentIds = currentDetails.map((
           row) => row['id_pedido_detalle'] as int?).toSet();
+      print('ID OBTENIDO DE LA CONSULTA SELECT $currentDetails');
+      print('ID OBTENIDO DE LA CONSULTA SELECT 2222 $currentIds');
       for (var detalle in detalle_pedidos) {
+        print('ID OBTENIDOS PARA ELIMINAR${detalle.id_pedido_detalle}');
         if (!currentIds.contains(detalle.id_pedido_detalle)) {
           await conn.query(
               'DELETE FROM pedido_detalles WHERE id_pedido_detalle = ?',

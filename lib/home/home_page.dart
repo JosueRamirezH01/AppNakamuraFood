@@ -8,6 +8,7 @@ import 'package:restauflutter/model/detalle_pedido.dart';
 import 'package:restauflutter/model/mesa.dart';
 import 'package:restauflutter/model/mesaDetallePedido.dart';
 import 'package:restauflutter/model/mozo.dart';
+import 'package:restauflutter/model/pedido.dart';
 import 'package:restauflutter/model/piso.dart';
 import 'package:restauflutter/services/mesas_service.dart';
 import 'package:restauflutter/services/pedido_service.dart';
@@ -54,6 +55,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   late SubOptTypes _subOptType;
   final SharedPref _pref = SharedPref();
   late  Mozo? mozo = Mozo();
+  bool isLoading = true;
+  late List<Pedido> listaPedido = [];
 
   Future<void> UserShared() async {
     final dynamic userData = await _pref.read('user_data');
@@ -85,7 +88,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     _listSize = 10;
     _subOptType = SubOptTypes.local;
     consultarPisos(idEstablecimiento, context);
-    consultarMesas(pisoSelect, context);
+    consultarMesas(pisoSelect, context).then((value) async {
+      _subOptType = SubOptTypes.local;
+      listaPedido = await dbPedido.obtenerListasPedidos(_subOptType, context);
+      setState(() {
+        isLoading = false;
+      });
+    },);
     UserShared();
     refresh();
   }
@@ -127,14 +136,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   }
   Future<void> consultarMesas(int idPiso, BuildContext context) async {
     print(' piso enviado: $idPiso');
-    List<Mesa> listaMesas = await dbMesas.consultarMesas(idPiso, context);
-    print('mesas recividas $listaMesas');
-    setState(() {
-      ListadoMesas.clear();
-      for (int i = 0; i < listaMesas.length; i++) {
-        ListadoMesas.add(listaMesas[i]);
-      }
-    });
+    ListadoMesas = await dbMesas.consultarMesas(idPiso, context);
+    //print('mesas recividas $listaMesas');
+    // setState(() {
+    //   //ListadoMesas.clear();
+    //   for (int i = 0; i < listaMesas.length; i++) {
+    //     ListadoMesas.add(listaMesas[i]);
+    //   }
+   // });
   }
 
   static final ButtonStyle elevatedButtonStyle = ElevatedButton.styleFrom(
@@ -423,10 +432,17 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         ),
       ],
       selected: {_subOptType}, // Corregir _subOptTypes a _subOptType
-      onSelectionChanged: (Set<SubOptTypes> newSelection) {
+      onSelectionChanged: (Set<SubOptTypes> newSelection) async {
         // Acepta un conjunto de valores
         setState(() {
           _subOptType = newSelection.first;
+          isLoading = true;
+          print(_subOptType);
+        });
+        listaPedido = await dbPedido.obtenerListasPedidos(_subOptType, context);
+        refresh();
+        setState(() {
+          isLoading = false;
         });
       },
     );
@@ -519,32 +535,47 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 ],
               ),
             ),
-            Expanded(
-              child: Container(
-                decoration: const BoxDecoration(),
-                child: ListView.builder(
-                  itemCount: _listSize,
-                  itemBuilder: (context, index) {
-                    String npedido = 'PD-${index + 1}';
-                    return ListTile(
-                      title: Text('PD-${index + 1}'),
-                      subtitle: Text('Cliente ${index + 1}'),
-                      trailing: const Text('Estado'),
-                      onTap: () {
-                        pedido(npedido);
-                      },
-                    );
+      Expanded(
+        child: Container(
+          decoration: const BoxDecoration(),
+          child: isLoading
+              ? Center(
+            child: CircularProgressIndicator(),
+          )
+              : ListView.builder(
+            itemCount: listaPedido.length,
+            itemBuilder: (_, index) {
+              if (index < listaPedido.length) {
+                Pedido listPedido = listaPedido[index];
+                return ListTile(
+                  title: Text('PD-${listPedido.correlativoPedido}'),
+                  subtitle: Row(
+                    children: [
+                      Text('${_subOptType == SubOptTypes.local ? '' : listPedido.idCliente}'),
+                      Spacer(),
+                      Text('${_subOptType == SubOptTypes.local ? (ListadoMesas.isNotEmpty ? ListadoMesas.firstWhere((element) => element.id == listPedido.idMesa, orElse: () => Mesa()).nombreMesa : "") : listPedido.idCliente}'),
+                      Spacer(),
+                    ],
+                  ),
+                  trailing: const Text('Estado'),
+                  onTap: () {
+                    pedido(listPedido);
                   },
-                ),
-              ),
-            ),
+                );
+              } else {
+                return null;
+              }
+            },
+          ),
+        ),
+      )
           ],
         ),
       ),
     );
   }
 
-  Future pedido(String numeroPedido) {
+  Future pedido(Pedido listPedido) {
     return showCupertinoModalBottomSheet(
       barrierColor: Colors.transparent,
       context: context,
@@ -587,7 +618,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                           bottom: 10
                                       ),
                                       child: Text(
-                                        'n° pedido: $numeroPedido',
+                                        'n° pedido: ${listPedido.correlativoPedido}',
                                         style: const TextStyle(
                                             color: Color(0xFF111111),
                                             decoration: TextDecoration.none,
