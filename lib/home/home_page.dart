@@ -544,7 +544,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         child: Container(
           decoration: const BoxDecoration(),
           child: isLoading
-              ? Center(
+              ? const Center(
             child: CircularProgressIndicator(),
           )
               : ListView.builder(
@@ -553,16 +553,20 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               if (index < listaPedido.length) {
                 Pedido listPedido = listaPedido[index];
                 return ListTile(
-                  title: Text('PD-${listPedido.correlativoPedido}'),
-                  subtitle: Row(
+                  title: Row(
                     children: [
-                      Text('${_subOptType == SubOptTypes.local ? '' : listPedido.idCliente}'),
+                      Text('PD-${listPedido.correlativoPedido}'),
                       Spacer(),
                       Text('${_subOptType == SubOptTypes.local ? (ListadoMesas.isNotEmpty ? ListadoMesas.firstWhere((element) => element.id == listPedido.idMesa, orElse: () => Mesa()).nombreMesa : "") : listPedido.idCliente}'),
                       Spacer(),
+                      const Text('Estado')
                     ],
                   ),
-                  trailing: const Text('Estado'),
+                  subtitle: Row(
+                    children: [
+                      Text('${_subOptType == SubOptTypes.local ? '' : listPedido.idCliente == 60 ? 'varios': listPedido.nombreCliente } '),
+                    ],
+                  ),
                   onTap: () {
                     pedido(listPedido);
                   },
