@@ -20,9 +20,11 @@ class ProductoController {
   final SharedPref _sharedPref = SharedPref();
   List<Categoria> categorias = [];
   List<Producto> productos = [];
+
   late Timer searchOnStoppedTyping = Timer(Duration.zero, () {});
   String productName = '';
   late  Mesa mesa =  Mesa();
+  late int IDPEDIDO = 0 ;
   late List<Detalle_Pedido> detalle_pedido = [];
   var dbDetallePedido = DetallePedidoServicio();
   List<Producto>? productosSeleccionadosOtenidos = [];
@@ -41,6 +43,7 @@ class ProductoController {
     else if (args is MesaDetallePedido) {
       mesa = args.mesa;
       detalle_pedido = args.detallePedido;
+      IDPEDIDO = detalle_pedido.first.id_pedido!;
       // Itera sobre los detalles del pedido, si es necesario
 
       detalle_pedido.forEach((detalle) async {
@@ -64,35 +67,11 @@ class ProductoController {
         }
       });
     }
-    obtenerLista();
-     // mesa = ModalRoute.of(context)?.settings.arguments as Mesa;
-     // print('---> Producto controller');
-     // print('ESTADO Id DE MESA : ${mesa.estadoMesa} \n Estado : ${mesa.estDisMesa}');
+
     refresh();
   }
 
-  void obtenerLista(){
-    detalle_pedido.forEach((detalle) async {
-      // Busca el producto correspondiente al detalle
-      Producto? producto = await _getProductoPorId(detalle.id_producto);
-      Producto? setproducto = Producto(
-        id: producto?.id,
-          nombreproducto: producto?.nombreproducto,
-          precioproducto: producto?.precioproducto,
-          stock: detalle.cantidad_producto,
-          comentario: detalle.comentario,
-          idPedido: detalle.id_pedido
-      );
-      print('NOMBRE PRODUCTO ${producto?.nombreproducto}');
-      print('CANTIDAD PRODUCTO ${detalle.cantidad_producto}');
-      print('PRECIO PRODUCTO ${detalle.precio_producto}');
 
-      if (producto != null) {
-        productosSeleccionadosOtenidos?.add(setproducto);
-        print('INIT ${productosSeleccionadosOtenidos![0].stock}');
-      }
-    });
-  }
   Future<int> obtenerIdPedidoLast() async {
     return await dbDetallePedido.consultaObtenerDetallePedido(mesa.id, context);
   }

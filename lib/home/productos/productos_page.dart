@@ -19,9 +19,8 @@ class ProductosPage extends StatefulWidget {
 
 class _ProductosPageState extends State<ProductosPage> {
   int estado = 1;
-  String? nomMesa;
+  int? idPedido;
   List<Producto>? productosSeleccionados = [];
-  late List<Detalle_Pedido> detallePedidoLastCreat = [];
   final ProductoController _con = ProductoController();
 
   @override
@@ -64,7 +63,7 @@ class _ProductosPageState extends State<ProductosPage> {
                   child: ElevatedButton(
                     onPressed: (){
                     },
-                    child:  Text('${nomMesa ?? _con.mesa.nombreMesa}', style: TextStyle(fontSize: 18)),),
+                    child:  Text('${_con.mesa.nombreMesa}', style: TextStyle(fontSize: 18)),),
                 ),
               ),
               const SizedBox(width: 5)
@@ -121,10 +120,7 @@ class _ProductosPageState extends State<ProductosPage> {
                 height: 50,
                 child: ElevatedButton(
                   onPressed: () async {
-                    int id = await _con.obtenerIdPedidoLast();
-                    detallePedidoLastCreat = await _con.obtenerDetallePedidoLastCreate(id);
-                    print(detallePedidoLastCreat);
-                    pedido(id);
+                    pedido();
                   },
                   child:  Row(
                     children: [
@@ -179,9 +175,9 @@ class _ProductosPageState extends State<ProductosPage> {
 
 
 
-  Future pedido(int id) async {
-    List<Producto>? productosSeleccionadosCopy = List.from(_con.productosSeleccionados ?? []);
-    nomMesa = await showCupertinoModalBottomSheet<String?>(
+  Future pedido() async {
+    //List<Producto>? productosSeleccionadosCopy = List.from(_con.productosSeleccionados ?? []);
+    idPedido = await showCupertinoModalBottomSheet<int?>(
       barrierColor: Colors.transparent,
       context: context,
       builder: (BuildContext context) {
@@ -189,12 +185,9 @@ class _ProductosPageState extends State<ProductosPage> {
           child: SizedBox(
             height: MediaQuery.of(context).size.height * 0.87,
             child: DetailsPage(
-              productosSeleccionados: productosSeleccionadosCopy,
-              productosSeleccionadosOtenidos: _con.productosSeleccionadosOtenidos,
-              estado: estado,
+              productosSeleccionados: _con.productosSeleccionados,
+              idPedido: idPedido ?? _con.IDPEDIDO,
               mesa: _con.mesa,
-              idPedido: id,
-              detallePedidoLastCreate: detallePedidoLastCreat,
               detallePedidoLista: _con.detalle_pedido,
               onProductosActualizados: _actualizarProductosSeleccionados,
             ),
@@ -204,7 +197,7 @@ class _ProductosPageState extends State<ProductosPage> {
     );
 
     // Haz lo que necesites con el valor de nomMesa, por ejemplo, imprimirlo
-    print('Valor de nomMesa: $nomMesa');
+    print('-------------Valor de IDPEDIDO: $idPedido');
   }
 
 

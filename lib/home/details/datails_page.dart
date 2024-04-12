@@ -10,6 +10,7 @@ import 'package:printing/printing.dart';
 import 'package:restauflutter/model/mesa.dart';
 import 'package:restauflutter/model/detalle_pedido.dart';
 import 'package:restauflutter/model/mesa.dart';
+import 'package:restauflutter/model/mesaDetallePedido.dart';
 import 'package:restauflutter/model/mozo.dart';
 import 'package:restauflutter/model/pedido.dart';
 import 'package:restauflutter/model/producto.dart';
@@ -22,21 +23,15 @@ import 'package:intl/intl.dart';
 
 class DetailsPage extends StatefulWidget {
   final List<Producto>? productosSeleccionados;
-  final List<Producto>? productosSeleccionadosOtenidos;
-  final List<Detalle_Pedido> detallePedidoLista;
-  final List<Detalle_Pedido> detallePedidoLastCreate;
-  final int? estado;
-  final int? idPedido;
+  List<Detalle_Pedido> detallePedidoLista;
   final Mesa? mesa;
+  int? idPedido;
   final void Function(List<Producto>?)? onProductosActualizados; // Función de devolución de llamada
-  const DetailsPage({super.key,
-    required this.idPedido,
+  DetailsPage({super.key,
     required this.productosSeleccionados,
-    required this.estado,
-    required this.detallePedidoLastCreate,
     required this.detallePedidoLista,
-    required this.productosSeleccionadosOtenidos,
     required this.mesa,
+    required this.idPedido,
     this.onProductosActualizados});
 
   @override
@@ -84,8 +79,6 @@ class _DetailsPageState extends State<DetailsPage> {
     estado = widget.mesa!.estadoMesa!;
     selectObjmesa = widget.mesa!;
     detalles_pedios_tmp = widget.detallePedidoLista ;
-    print(widget.detallePedidoLastCreate);
-
     UserShared();
   }
 
@@ -212,21 +205,13 @@ class _DetailsPageState extends State<DetailsPage> {
                       style:  ButtonStyle(
                           elevation: MaterialStateProperty.all(2), backgroundColor: MaterialStateProperty.all(const Color(0xFF634FD2))),
                       onPressed: () async {
-                        int? idPedidoRecuperado = IDPEDIDOPRUEBA != 0 ? IDPEDIDOPRUEBA : widget.idPedido;
-
-                        print('ID PRUEBA RECUPERADO  222222 $idPedidoRecuperado');
-                        List<Detalle_Pedido> listDetalleRecuperado = detalles_pedios_tmp.isNotEmpty ? detalles_pedios_tmp : widget.detallePedidoLastCreate;
-
-                        detalles_pedios_tmp = await detallePedidoServicio.actualizarCantidadProductoDetallePedidoPrueba( idPedidoRecuperado ,listDetalleRecuperado, widget.productosSeleccionados!, pedidoTotal, context);
-                        print('DETALLE DE PEDIDO TPM 111$listDetalleRecuperado');
-                        
+                        print('---->BA BOTON ACTUALIZAR');
+                        detalles_pedios_tmp = await detallePedidoServicio.actualizarCantidadProductoDetallePedidoPrueba( widget.idPedido, widget.productosSeleccionados!, pedidoTotal, context);
                         if(detalles_pedios_tmp != []){
-                          mostrarMensajeActualizado('Productos Actualizados');
+                          mostrarMensajeActualizado('Pbroductos Actualizados');
                         }else{
                           mostrarMensaje('Nada por actualizar');
                         }
-
-                       
                       },
                       child: const Text('Actualizar', style: TextStyle(color: Colors.white, fontSize: 16))),
                 ),
@@ -364,12 +349,14 @@ class _DetailsPageState extends State<DetailsPage> {
             ),
             TextButton(
               onPressed: () {
-                int? idPedido = IDPEDIDOPRUEBA == 0 ? widget.productosSeleccionados![0].idPedido : IDPEDIDOPRUEBA;
-                bdPedido.actualizarPedido(idPedido, nuevaMesaId!, context).then((_) {
+                int? idPedido = IDPEDIDOPRUEBA == 0 ? widget.idPedido : IDPEDIDOPRUEBA;
+                bdPedido.actualizarPedido(idPedido, nuevaMesaId!, context).then((_) async {
                   bdMesas.actualizarMesa(nuevaMesaId!, 2, context);
                   bdMesas.actualizarMesa(widget.mesa!.id, 1, context);
+                  widget.mesa?.id = nuevaMesaId ;
+                  widget.mesa?.nombreMesa = nomMesa;
                   Navigator.pop(context); // Confirmar y pasar el valor seleccionado
-                  Navigator.pop(context, nomMesa); // Confirmar y pasar el valor seleccionado
+                  Navigator.pop(context, idPedido);
                 });
               },
               child: const Text('Confirmar'),
@@ -414,25 +401,26 @@ class _DetailsPageState extends State<DetailsPage> {
             print(retornoPedidoDetalle);
             setState(() {
               IDPEDIDOPRUEBA = newPedidoId;
-              print('ID del pedido creado: ${IDPEDIDOPRUEBA}');
+              widget.idPedido = newPedidoId;
+              print('ID del pedido creado: ${ widget.idPedido }');
               // Actualiza la mesa
               print(retornoMesa!.estDisMesa);
               // genera el detalle de pedido
               detalles_pedios_tmp = retornoPedidoDetalle;
+              widget.detallePedidoLista = retornoPedidoDetalle;
               print('DETALLA TMP $detalles_pedios_tmp');
               // seteo la mesa que ya tengo en el page
               selectObjmesa.estDisMesa = retornoMesa.estDisMesa;
+              widget.mesa?.estDisMesa = retornoMesa.estDisMesa;
               //selectObjmesa.estDisMesa = retornoMesa.estDisMesa;
               selectObjmesa.estadoMesa = retornoMesa.estadoMesa;
+              widget.mesa?.estadoMesa = retornoMesa.estadoMesa;
               //selectObjmesa.estadoMesa = retornoMesa.estadoMesa;
             });
-
-
+            Navigator.pop(context, newPedidoId);
+            //_pdf();
             // Actualizar mesa
             //print(retornoPedido);
-
-            //_pdf();
-
           }else{
             print('no puedes mandar una lista vacia');
           }

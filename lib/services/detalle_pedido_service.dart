@@ -206,83 +206,101 @@ class DetallePedidoServicio {
 
 
 
-  Future<List<Detalle_Pedido>> actualizarCantidadProductoDetallePedidoPrueba(int? pedidoid,List<Detalle_Pedido> detalle_pedidos, List<Producto> productos, double pedidoTotal, BuildContext context) async {
+  Future<List<Detalle_Pedido>> actualizarCantidadProductoDetallePedidoPrueba(
+      int? pedidoid,
+      List<Producto> productos,
+      double pedidoTotal,
+      BuildContext context
+      ) async {
     MySqlConnection? conn;
+
+    print('-------------- ID PEDIDO ${pedidoid}');
+    print('-------------- PRODUCTOS ${productos}');
+    print('-------------- PRECIO TOTAL ${pedidoTotal}');
+
     try {
-      int? idpedido = 0;
 
       conn = await _connectionSQL.getConnection();
 
-      if (pedidoid == 0) {
-        idpedido = detalle_pedidos[0].id_pedido;
-        print('PEDIDO REFERSH$idpedido');
-      } else {
-        idpedido = pedidoid;
-      }
+      final resultst = await conn.query('''
+      SELECT * FROM pedido_detalles WHERE id_pedido = ?
+      ''', [pedidoid]);
 
-      for (final producto in productos) {
-        var existingDetail = await conn.query(
-            'SELECT id_pedido_detalle FROM pedido_detalles WHERE id_pedido = ? AND id_producto = ?',
-            [idpedido, producto.id]);
+      List<Detalle_Pedido> listaBD = resultst.map((row) =>
+          Detalle_Pedido.fromJson(row.fields)).toList();
 
-        if (existingDetail.isEmpty) {
-          await conn.query(
-              'INSERT INTO pedido_detalles (id_pedido, id_producto, cantidad_producto, cantidad_real, precio_producto, comentario, estado_detalle, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-              [
-                idpedido,
-                producto.id,
-                producto.stock,
-                producto.stock,
-                producto.precioproducto,
-                producto.comentario,
-                1,
-                DateTime.now().toUtc(),
-                DateTime.now().toUtc()
-              ]);
-        } else {
-          double precio = producto.precioproducto! * producto.stock!;
-          await conn.query(
-              'UPDATE pedido_detalles SET cantidad_producto = ?, cantidad_real = ?, precio_producto = ?, comentario = ?, updated_at = ? WHERE id_pedido = ? AND id_producto = ?',
-              [
-                producto.stock,
-                producto.stock,
-                precio,
-                producto.comentario,
-                DateTime.now().toUtc(),
-                idpedido,
-                producto.id
-              ]);
+      print('LISTADO OBTENIDO POR LA CONSULTA $listaBD');
+
+
+      for (var detalle in listaBD) {
+        bool found = false;
+        for (var product in productos) {
+          if (product.id == detalle.id_producto) {
+            found = true;
+            break;
+          }
         }
-      }
-
-      var currentDetails = await conn.query(
-          'SELECT id_pedido_detalle FROM pedido_detalles WHERE id_pedido = ?',
-          [idpedido]);
-      var currentIds = currentDetails.map((
-          row) => row['id_pedido_detalle'] as int?).toSet();
-      print('ID OBTENIDO DE LA CONSULTA SELECT $currentDetails');
-      print('ID OBTENIDO DE LA CONSULTA SELECT 2222 $currentIds');
-      for (var detalle in detalle_pedidos) {
-        print('ID OBTENIDOS PARA ELIMINAR${detalle.id_pedido_detalle}');
-        if (!currentIds.contains(detalle.id_pedido_detalle)) {
+        if (!found) {
+          print('ID OBTENIDO PARA ELIMINAR: ${detalle.id_pedido_detalle}');
           await conn.query(
               'DELETE FROM pedido_detalles WHERE id_pedido_detalle = ?',
               [detalle.id_pedido_detalle]);
         }
       }
 
-      await conn.query('UPDATE pedidos SET Monto_total = ? WHERE id_pedido = ?',
-          [pedidoTotal, idpedido]);
-
-      final results = await conn.query('''
-      SELECT * FROM pedido_detalles WHERE id_pedido = ?
-      ''', [idpedido]);
-
-      List<Detalle_Pedido> detalle_pedido_actualizado = results.map((row) =>
-          Detalle_Pedido.fromJson(row.fields)).toList();
-
-      print('Cantidad actualizada correctamente en los detalles de pedido');
-      return detalle_pedido_actualizado;
+      // for (final producto in productos) {
+      //   var existingDetail = await conn.query(
+      //       'SELECT id_pedido_detalle FROM pedido_detalles WHERE id_pedido = ? AND id_producto = ?',
+      //       [idpedido, producto.id]);
+      //
+      //   if (existingDetail.isEmpty) {
+      //     await conn.query(
+      //         'INSERT INTO pedido_detalles (id_pedido, id_producto, cantidad_producto, cantidad_real, precio_producto, comentario, estado_detalle, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      //         [
+      //           idpedido,
+      //           producto.id,
+      //           producto.stock,
+      //           producto.stock,
+      //           producto.precioproducto,
+      //           producto.comentario,
+      //           1,
+      //           DateTime.now().toUtc(),
+      //           DateTime.now().toUtc()
+      //         ]);
+      //   } else {
+      //     double precio = producto.precioproducto! * producto.stock!;
+      //     await conn.query(
+      //         'UPDATE pedido_detalles SET cantidad_producto = ?, cantidad_real = ?, precio_producto = ?, comentario = ?, updated_at = ? WHERE id_pedido = ? AND id_producto = ?',
+      //         [
+      //           producto.stock,
+      //           producto.stock,
+      //           precio,
+      //           producto.comentario,
+      //           DateTime.now().toUtc(),
+      //           idpedido,
+      //           producto.id
+      //         ]);
+      //   }
+      // }
+      //
+      // var currentDetails = await conn.query(
+      //     'SELECT id_pedido_detalle FROM pedido_detalles WHERE id_pedido = ?',
+      //     [idpedido]);
+      //
+      //
+      //
+      // await conn.query('UPDATE pedidos SET Monto_total = ? WHERE id_pedido = ?',
+      //     [pedidoTotal, idpedido]);
+      //
+      // final results = await conn.query('''
+      // SELECT * FROM pedido_detalles WHERE id_pedido = ?
+      // ''', [idpedido]);
+      //
+      // List<Detalle_Pedido> detalle_pedido_actualizado = results.map((row) =>
+      //     Detalle_Pedido.fromJson(row.fields)).toList();
+      //
+      // print('Cantidad actualizada correctamente en los detalles de pedido');
+      return [];
     }catch (e) {
       print('Error al realizar la consulta: $e');
       return []; // Retorna 0 si ocurre algún error
