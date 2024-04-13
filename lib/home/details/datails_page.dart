@@ -453,12 +453,10 @@ class _DetailsPageState extends State<DetailsPage> {
             elevation: MaterialStateProperty.all(2), backgroundColor: MaterialStateProperty.all(const Color(0xFFFFB500))),
         onPressed: () async {
 
-          if (selectObjmesa.id != 2){
+          if (selectObjmesa.estadoMesa != 2){
             gif();
             Mesa? retornoMesa = await mesaServicio.actualizarMesa( selectObjmesa.id , 2, context);
             setState(() {
-              selectObjmesa.estDisMesa = retornoMesa?.estDisMesa;
-              widget.mesa?.estDisMesa = retornoMesa?.estDisMesa;
               selectObjmesa.estadoMesa = retornoMesa?.estadoMesa;
               widget.mesa?.estadoMesa = retornoMesa?.estadoMesa;
             });
