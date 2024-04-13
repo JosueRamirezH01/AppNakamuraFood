@@ -248,50 +248,46 @@ class DetallePedidoServicio {
         }
       }
 
-      // for (final producto in productos) {
-      //   var existingDetail = await conn.query(
-      //       'SELECT id_pedido_detalle FROM pedido_detalles WHERE id_pedido = ? AND id_producto = ?',
-      //       [idpedido, producto.id]);
+      for (final producto in productos) {
+        var existingDetail = await conn.query(
+            'SELECT id_pedido_detalle FROM pedido_detalles WHERE id_pedido = ? AND id_producto = ?',
+            [pedidoid, producto.id]);
+
+        if (existingDetail.isEmpty) {
+          await conn.query(
+              'INSERT INTO pedido_detalles (id_pedido, id_producto, cantidad_producto, cantidad_real, precio_producto, comentario, estado_detalle, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+              [
+                pedidoid,
+                producto.id,
+                producto.stock,
+                producto.stock,
+                producto.precioproducto,
+                producto.comentario,
+                1,
+                DateTime.now().toUtc(),
+                DateTime.now().toUtc()
+              ]);
+        } else {
+          double precio = producto.precioproducto! * producto.stock!;
+          await conn.query(
+              'UPDATE pedido_detalles SET cantidad_producto = ?, cantidad_real = ?, precio_producto = ?, comentario = ?, updated_at = ? WHERE id_pedido = ? AND id_producto = ?',
+              [
+                producto.stock,
+                producto.stock,
+                precio,
+                producto.comentario,
+                DateTime.now().toUtc(),
+                pedidoid,
+                producto.id
+              ]);
+        }
+
+      }
+
       //
-      //   if (existingDetail.isEmpty) {
-      //     await conn.query(
-      //         'INSERT INTO pedido_detalles (id_pedido, id_producto, cantidad_producto, cantidad_real, precio_producto, comentario, estado_detalle, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      //         [
-      //           idpedido,
-      //           producto.id,
-      //           producto.stock,
-      //           producto.stock,
-      //           producto.precioproducto,
-      //           producto.comentario,
-      //           1,
-      //           DateTime.now().toUtc(),
-      //           DateTime.now().toUtc()
-      //         ]);
-      //   } else {
-      //     double precio = producto.precioproducto! * producto.stock!;
-      //     await conn.query(
-      //         'UPDATE pedido_detalles SET cantidad_producto = ?, cantidad_real = ?, precio_producto = ?, comentario = ?, updated_at = ? WHERE id_pedido = ? AND id_producto = ?',
-      //         [
-      //           producto.stock,
-      //           producto.stock,
-      //           precio,
-      //           producto.comentario,
-      //           DateTime.now().toUtc(),
-      //           idpedido,
-      //           producto.id
-      //         ]);
-      //   }
-      // }
-      //
-      // var currentDetails = await conn.query(
-      //     'SELECT id_pedido_detalle FROM pedido_detalles WHERE id_pedido = ?',
-      //     [idpedido]);
-      //
-      //
-      //
-      // await conn.query('UPDATE pedidos SET Monto_total = ? WHERE id_pedido = ?',
-      //     [pedidoTotal, idpedido]);
-      //
+      await conn.query('UPDATE pedidos SET Monto_total = ? WHERE id_pedido = ?',
+          [pedidoTotal, pedidoid]);
+
       // final results = await conn.query('''
       // SELECT * FROM pedido_detalles WHERE id_pedido = ?
       // ''', [idpedido]);

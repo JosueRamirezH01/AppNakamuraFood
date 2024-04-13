@@ -177,7 +177,7 @@ class _ProductosPageState extends State<ProductosPage> {
 
   Future pedido() async {
     //List<Producto>? productosSeleccionadosCopy = List.from(_con.productosSeleccionados ?? []);
-    idPedido = await showCupertinoModalBottomSheet<int?>(
+    int? idPedidoNuevo = await showCupertinoModalBottomSheet<int>(
       barrierColor: Colors.transparent,
       context: context,
       builder: (BuildContext context) {
@@ -196,8 +196,14 @@ class _ProductosPageState extends State<ProductosPage> {
       },
     );
 
-    // Haz lo que necesites con el valor de nomMesa, por ejemplo, imprimirlo
+    if (idPedidoNuevo != null) {
+      setState(() {
+        idPedido = idPedidoNuevo;
+      });
+      // Haz lo que necesites con el valor de idPedido, por ejemplo, imprimirlo
+    }
     print('-------------Valor de IDPEDIDO: $idPedido');
+
   }
 
 
