@@ -17,6 +17,7 @@ import 'package:restauflutter/model/producto.dart';
 import 'package:restauflutter/services/mesas_service.dart';
 import 'package:restauflutter/services/pedido_service.dart';
 import 'package:restauflutter/services/detalle_pedido_service.dart';
+import 'package:restauflutter/utils/gifComponent.dart';
 import 'package:restauflutter/utils/shared_pref.dart';
 import 'package:intl/intl.dart';
 
@@ -61,7 +62,7 @@ class _DetailsPageState extends State<DetailsPage> {
     print('Id del establecimiento: ${mozo?.id_establecimiento}');
     print('Id de la mesa : ${selectObjmesa.id}');
   }
-  late int estado;
+  //late int estado;
   List<Mesa> mesasDisponibles = [];
   List<Detalle_Pedido> detalles_pedios_tmp = [];
   late Mesa selectObjmesa;
@@ -76,7 +77,7 @@ class _DetailsPageState extends State<DetailsPage> {
     // TODO: implement initState
     super.initState();
     print('ESTADO INICIANDO ${widget.mesa?.estadoMesa}');
-    estado = widget.mesa!.estadoMesa!;
+    //estado = widget.mesa!.estadoMesa!;
     selectObjmesa = widget.mesa!;
     detalles_pedios_tmp = widget.detallePedidoLista ;
     UserShared();
@@ -88,7 +89,7 @@ class _DetailsPageState extends State<DetailsPage> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            if(selectObjmesa.estadoMesa != 1)
+            if(selectObjmesa.estadoMesa != 1 && selectObjmesa.estadoMesa != 2)
               cabecera(),
             const SizedBox(height: 10),
             contenido(),
@@ -206,9 +207,11 @@ class _DetailsPageState extends State<DetailsPage> {
                           elevation: MaterialStateProperty.all(2), backgroundColor: MaterialStateProperty.all(const Color(0xFF634FD2))),
                       onPressed: () async {
                         print('---->BA BOTON ACTUALIZAR');
+                        gif();
                         detalles_pedios_tmp = await detallePedidoServicio.actualizarCantidadProductoDetallePedidoPrueba( widget.idPedido, widget.productosSeleccionados!, pedidoTotal, context);
                         if(detalles_pedios_tmp != []){
                           mostrarMensajeActualizado('Pbroductos Actualizados');
+                          Navigator.pop(context);
                         }else{
                           mostrarMensaje('Nada por actualizar');
                         }
@@ -221,6 +224,17 @@ class _DetailsPageState extends State<DetailsPage> {
           ),
         ],
       ),
+    );
+  }
+
+  Future gif(){
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return CustomAlertDialog(
+          gifPath: 'assets/gif/download.gif', // Ajusta la ruta de tu GIF
+        );
+      },
     );
   }
 
@@ -351,7 +365,7 @@ class _DetailsPageState extends State<DetailsPage> {
               onPressed: () {
                 int? idPedido = IDPEDIDOPRUEBA == 0 ? widget.idPedido : IDPEDIDOPRUEBA;
                 bdPedido.actualizarPedido(idPedido, nuevaMesaId!, context).then((_) async {
-                  bdMesas.actualizarMesa(nuevaMesaId!, 2, context);
+                  bdMesas.actualizarMesa(nuevaMesaId!, 3, context);
                   bdMesas.actualizarMesa(widget.mesa!.id, 1, context);
                   widget.mesa?.id = nuevaMesaId ;
                   widget.mesa?.nombreMesa = nomMesa;
@@ -374,6 +388,7 @@ class _DetailsPageState extends State<DetailsPage> {
         style:  ButtonStyle(
             elevation: MaterialStateProperty.all(2), backgroundColor: MaterialStateProperty.all(Colors.blue)),
         onPressed: () async {
+          gif();
           print('---> Boton pedido');
           DateTime now = DateTime.now();
           String formattedDate = DateFormat('yyyy-MM-dd HH:mm:ss').format(now);
@@ -396,7 +411,7 @@ class _DetailsPageState extends State<DetailsPage> {
             // Ya crea el pedido
 
             int newPedidoId = await pedidoServicio.crearPedidoPrueba(newpedido, context);
-            Mesa? retornoMesa = await mesaServicio.actualizarMesa( selectObjmesa.id , 2, context);
+            Mesa? retornoMesa = await mesaServicio.actualizarMesa( selectObjmesa.id , 3, context);
             List<Detalle_Pedido> retornoPedidoDetalle = await detallePedidoServicio.crearDetallePedidoPrueba( newPedidoId, widget.productosSeleccionados!, context);
             print(retornoPedidoDetalle);
             setState(() {
@@ -417,8 +432,9 @@ class _DetailsPageState extends State<DetailsPage> {
               widget.mesa?.estadoMesa = retornoMesa.estadoMesa;
               //selectObjmesa.estadoMesa = retornoMesa.estadoMesa;
             });
+            Navigator.pop(context);
             Navigator.pop(context, newPedidoId);
-            //_pdf();
+            _pdf();
             // Actualizar mesa
             //print(retornoPedido);
           }else{
@@ -435,7 +451,20 @@ class _DetailsPageState extends State<DetailsPage> {
     return ElevatedButton(
         style:  ButtonStyle(
             elevation: MaterialStateProperty.all(2), backgroundColor: MaterialStateProperty.all(const Color(0xFFFFB500))),
-        onPressed: () {
+        onPressed: () async {
+
+          if (selectObjmesa.id != 2){
+            gif();
+            Mesa? retornoMesa = await mesaServicio.actualizarMesa( selectObjmesa.id , 2, context);
+            setState(() {
+              selectObjmesa.estDisMesa = retornoMesa?.estDisMesa;
+              widget.mesa?.estDisMesa = retornoMesa?.estDisMesa;
+              selectObjmesa.estadoMesa = retornoMesa?.estadoMesa;
+              widget.mesa?.estadoMesa = retornoMesa?.estadoMesa;
+            });
+
+          }
+          Navigator.pop(context);
           _pdf();
         },
         child: const Text(

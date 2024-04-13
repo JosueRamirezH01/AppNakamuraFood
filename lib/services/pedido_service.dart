@@ -149,7 +149,7 @@ class PedidoServicio {
   }
 
 
-  Future<List<Pedido>> obtenerListasPedidos( SubOptTypes variable, BuildContext context) async {
+  Future<List<Pedido>> obtenerListasPedidos( SubOptTypes variable, int idEstablecimiento,BuildContext context) async {
     MySqlConnection? conn;
     try {
       conn = await _connectionSQL.getConnection();
@@ -159,8 +159,8 @@ class PedidoServicio {
       }else if(variable == SubOptTypes.delivery){
         id_tipo_ped = 3;
       }
-      const query = 'SELECT * FROM pedidos where id_tipo_ped = ? ORDER BY correlativo_pedido DESC ';
-      final results = await conn.query(query,[id_tipo_ped] );
+      const query = 'SELECT * FROM pedidos where id_tipo_ped = ? AND id_establecimiento = ? ORDER BY correlativo_pedido DESC ';
+      final results = await conn.query(query,[id_tipo_ped, idEstablecimiento] );
       if (results.isEmpty) {
         print('No se encontraron datos en las tablas.');
         return [];

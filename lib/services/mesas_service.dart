@@ -68,18 +68,11 @@ class MesaServicio {
 
   Future<Mesa?> actualizarMesa(int? idMesa, int estadoMesa, BuildContext context) async {
     MySqlConnection? conn;
-    String estDisMesa = 'Disponible';
 
     try {
       conn = await _connectionSQL.getConnection();
-      if (estadoMesa == 2){
-        estDisMesa = 'Ocupado';
-      }
-      if(estadoMesa == 3){
-        estDisMesa = 'Precuenta';
-      }
-      const query = 'UPDATE mesas SET est_dis_mesa=?, estado_mesa=? WHERE id = ?';
-      final results = await conn.query(query, [estDisMesa, estadoMesa, idMesa]);
+      const query = 'UPDATE mesas SET estado_mesa=? WHERE id = ?';
+      final results = await conn.query(query, [estadoMesa, idMesa]);
       if (results.affectedRows == 0) {
         print('No se encontró ninguna mesa con el ID proporcionado.');
         return null;
@@ -87,7 +80,6 @@ class MesaServicio {
         print('Mesa actualizada correctamente.');
         return Mesa(
           id: idMesa,
-          estDisMesa: estDisMesa,
           estadoMesa: estadoMesa,
         );
       }

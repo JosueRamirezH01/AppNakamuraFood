@@ -18,8 +18,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 List<Color> colores = [
   const Color(0xFF8EFF72), // verde
-  const Color(0xFFF35B5B), // rojo
   const Color(0xFFF2D32A), // amarrillo
+  const Color(0xFFF35B5B), // rojo
+
 ];
 
 const List<Widget> options = <Widget>[
@@ -95,7 +96,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       consultarPisos(idEstablecimiento, context);
       consultarMesas(pisoSelect, context).then((value) async {
         _subOptType = SubOptTypes.local;
-        listaPedido = await dbPedido.obtenerListasPedidos(_subOptType, context);
+        listaPedido = await dbPedido.obtenerListasPedidos(_subOptType, idEstablecimiento,context);
         setState(() {
           isLoading = false;
         });
@@ -307,7 +308,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                           ),
                                           itemCount:ListadoMesas.length,
                                           itemBuilder: (_, index) {
-                                            return _cardProduct(ListadoMesas[index]);
+                                            return _cardMesa(ListadoMesas[index]);
                                           },
                                         );
                                       }).toList(),
@@ -444,7 +445,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           isLoading = true;
           print(_subOptType);
         });
-        listaPedido = await dbPedido.obtenerListasPedidos(_subOptType, context);
+        listaPedido = await dbPedido.obtenerListasPedidos(_subOptType, idEstablecimiento, context);
         refresh();
         setState(() {
           isLoading = false;
@@ -869,7 +870,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     );
   }
 
-  Widget _cardProduct(Mesa mesa) {
+  Widget _cardMesa(Mesa mesa) {
+    String estadoMesaDis = 'Disponible';
+    if(mesa.estadoMesa == 2){
+      estadoMesaDis = 'Pre-Cuenta';
+    }else if (mesa.estadoMesa == 3){
+      estadoMesaDis = 'Ocupado';
+    }
+
     return GestureDetector(
         onTap: () async {
           if (mesa.estadoMesa == 1) {
@@ -945,7 +953,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                   ),
                    Center(
                     child: Text(
-                      '${mesa.estDisMesa}',
+                      estadoMesaDis,
                       style:
                       TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
