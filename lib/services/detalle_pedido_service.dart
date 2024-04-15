@@ -213,7 +213,7 @@ class DetallePedidoServicio {
       BuildContext context
       ) async {
     MySqlConnection? conn;
-
+    List<Detalle_Pedido> detallesPedido = [];
     print('-------------- ID PEDIDO ${pedidoid}');
     print('-------------- PRODUCTOS ${productos}');
     print('-------------- PRECIO TOTAL ${pedidoTotal}');
@@ -254,19 +254,31 @@ class DetallePedidoServicio {
             [pedidoid, producto.id]);
 
         if (existingDetail.isEmpty) {
+
+          Detalle_Pedido nuevoDetalle = Detalle_Pedido(
+            id_pedido: pedidoid,
+            id_producto: producto.id,
+            cantidad_producto: producto.stock,
+            cantidad_real: producto.stock,
+            precio_producto: producto.precioproducto,
+            comentario: producto.comentario,
+            estado_detalle: 1,
+          );
+
           await conn.query(
               'INSERT INTO pedido_detalles (id_pedido, id_producto, cantidad_producto, cantidad_real, precio_producto, comentario, estado_detalle, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
               [
-                pedidoid,
-                producto.id,
-                producto.stock,
-                producto.stock,
-                producto.precioproducto,
-                producto.comentario,
-                1,
+                nuevoDetalle.id_pedido,
+                nuevoDetalle.id_producto,
+                nuevoDetalle.cantidad_producto,
+                nuevoDetalle.cantidad_producto,
+                nuevoDetalle.precio_producto,
+                nuevoDetalle.comentario,
+                nuevoDetalle.estado_detalle,
                 DateTime.now().toUtc(),
                 DateTime.now().toUtc()
               ]);
+          detallesPedido.add(nuevoDetalle);
         } else {
           double precio = producto.precioproducto! * producto.stock!;
           await conn.query(
@@ -284,19 +296,10 @@ class DetallePedidoServicio {
 
       }
 
-      //
       await conn.query('UPDATE pedidos SET Monto_total = ? WHERE id_pedido = ?',
           [pedidoTotal, pedidoid]);
-
-      // final results = await conn.query('''
-      // SELECT * FROM pedido_detalles WHERE id_pedido = ?
-      // ''', [idpedido]);
-      //
-      // List<Detalle_Pedido> detalle_pedido_actualizado = results.map((row) =>
-      //     Detalle_Pedido.fromJson(row.fields)).toList();
-      //
-      // print('Cantidad actualizada correctamente en los detalles de pedido');
-      return [];
+      print('LISTA DE INSERTAR AL ACTUALIZAR EL PEDIDO $detallesPedido');
+      return detallesPedido;
     }catch (e) {
       print('Error al realizar la consulta: $e');
       return []; // Retorna 0 si ocurre algún error
