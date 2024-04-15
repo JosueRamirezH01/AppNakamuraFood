@@ -15,6 +15,7 @@ import 'package:restauflutter/services/detalle_pedido_service.dart';
 import 'package:restauflutter/services/mesas_service.dart';
 import 'package:restauflutter/services/pedido_service.dart';
 import 'package:restauflutter/services/piso_service.dart';
+import 'package:restauflutter/utils/impresora.dart';
 import 'package:restauflutter/utils/shared_pref.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -92,6 +93,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   late int pisoSelect = 0;
   late List<Piso> ListadoPisos = [];
   late List<Mesa> ListadoMesas = [];
+
+
+  var impresora = Impresora();
+
 
   @override
   void initState() {
@@ -758,7 +763,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                     margin: const EdgeInsets.only(right: 10),
                                     child: IconButton(
                                       onPressed: () {
-                                        print('Botón presionado');
+                                        List<Producto> listProduct= [];
+                                        for (int i = 0; i < listadoDetalle.length; i++) {
+                                          Detalle_Pedido detalle = listadoDetalle[i];
+                                          listProduct.add(ListadoProductos.firstWhere((producto) => producto.id == detalle.id_producto));
+                                        }
+                                        impresora.printLabel(listProduct,3, listPedido.montoTotal!);
+                                        print('Imprimir');
                                       },
                                       icon: const Icon(Icons.print),
                                       tooltip: 'Imprimir',
