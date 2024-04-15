@@ -5,10 +5,10 @@
 import FlutterMacOS
 import Foundation
 
-import printing
+import path_provider_foundation
 import shared_preferences_foundation
 
 func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
-  PrintingPlugin.register(with: registry.registrar(forPlugin: "PrintingPlugin"))
+  PathProviderPlugin.register(with: registry.registrar(forPlugin: "PathProviderPlugin"))
   SharedPreferencesPlugin.register(with: registry.registrar(forPlugin: "SharedPreferencesPlugin"))
 }

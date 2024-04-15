@@ -1,16 +1,13 @@
 
 import 'dart:convert';
 import 'dart:core';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:pdf/pdf.dart';
-import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:restauflutter/model/mesa.dart';
 import 'package:restauflutter/model/detalle_pedido.dart';
-import 'package:restauflutter/model/mesa.dart';
-import 'package:restauflutter/model/mesaDetallePedido.dart';
 import 'package:restauflutter/model/mozo.dart';
 import 'package:restauflutter/model/pedido.dart';
 import 'package:restauflutter/model/producto.dart';
@@ -18,6 +15,7 @@ import 'package:restauflutter/services/mesas_service.dart';
 import 'package:restauflutter/services/pedido_service.dart';
 import 'package:restauflutter/services/detalle_pedido_service.dart';
 import 'package:restauflutter/utils/gifComponent.dart';
+import 'package:restauflutter/utils/impresora.dart';
 import 'package:restauflutter/utils/shared_pref.dart';
 import 'package:intl/intl.dart';
 
@@ -44,7 +42,7 @@ class _DetailsPageState extends State<DetailsPage> {
   TextEditingController notaController = TextEditingController();
   var bdMesas = MesaServicio();
   var bdPedido = PedidoServicio();
-
+  var impresora = Impresora();
   final SharedPref _pref = SharedPref();
   late  Mozo? mozo = Mozo();
   late int? IDPEDIDOPRUEBA = 0;
@@ -207,13 +205,28 @@ class _DetailsPageState extends State<DetailsPage> {
                           elevation: MaterialStateProperty.all(2), backgroundColor: MaterialStateProperty.all(const Color(0xFF634FD2))),
                       onPressed: () async {
                         print('---->BA BOTON ACTUALIZAR');
+                        List<Producto> nombresProductos = [];
                         gif();
                         detalles_pedios_tmp = await detallePedidoServicio.actualizarCantidadProductoDetallePedidoPrueba( widget.idPedido, widget.productosSeleccionados!, pedidoTotal, context);
-                        if(detalles_pedios_tmp != []){
-                          mostrarMensajeActualizado('Pbroductos Actualizados');
+                        print('INSERTAR OBTENIDO PARA OBTENER EN EL TICKET $detalles_pedios_tmp');
+                        if(detalles_pedios_tmp.isNotEmpty){
+                          mostrarMensajeActualizado('Productos Actualizados');
                           Navigator.pop(context);
+                          detalles_pedios_tmp.forEach((detalle) async {
+                            String? nombreProducto = await buscarNombreProductoPorId(detalle.id_producto);
+                            if (nombreProducto != null) {
+                              nombresProductos.add(Producto(
+                                nombreproducto: nombreProducto,
+                                stock: detalle.cantidad_producto
+                              ));
+                            } else {
+                              print('No se encontró un producto con ID ${detalle.id_producto}');
+                            }
+                          });
+                          impresora.printLabel(nombresProductos,2, pedidoTotal);
                         }else{
-                          mostrarMensaje('Nada por actualizar');
+                          mostrarMensajeActualizado('Productos Actualizados');
+                          Navigator.pop(context);
                         }
                       },
                       child: const Text('Actualizar', style: TextStyle(color: Colors.white, fontSize: 16))),
@@ -226,6 +239,25 @@ class _DetailsPageState extends State<DetailsPage> {
       ),
     );
   }
+  Future<List<Producto>> leerProductosDesdeSharedPreferences() async {
+    String? jsonProductoData = await _pref.read('productos');
+    if (jsonProductoData != null) {
+      Iterable decoded = json.decode(jsonProductoData);
+      return decoded.map((producto) => Producto.fromJson(producto)).toList();
+    }
+    return []; // Otra opción: lanzar una excepción si no hay datos
+  }
+
+  Future<String?> buscarNombreProductoPorId(int? idProducto) async {
+    List<Producto> productos = await leerProductosDesdeSharedPreferences();
+    for (Producto producto in productos) {
+      if (producto.id == idProducto) {
+        return producto.nombreproducto;
+      }
+    }
+    return null;
+  }
+
 
   Future gif(){
     return showDialog(
@@ -434,7 +466,9 @@ class _DetailsPageState extends State<DetailsPage> {
             });
             Navigator.pop(context);
             Navigator.pop(context, newPedidoId);
-            _pdf();
+
+            impresora.printLabel(widget.productosSeleccionados,1, pedidoTotal);
+
             // Actualizar mesa
             //print(retornoPedido);
           }else{
@@ -462,14 +496,15 @@ class _DetailsPageState extends State<DetailsPage> {
             });
 
           }
-          Navigator.pop(context);
-          _pdf();
+          Navigator.pop(context,2);
+          impresora.printLabel(widget.productosSeleccionados,3,pedidoTotal);
         },
         child: const Text(
           'Pre Cuenta',
           style: TextStyle(color: Colors.white, fontSize: 16),
         ));
   }
+
   double calcularTotal() {
     double total = 0;
     if (widget.productosSeleccionados != null) {
@@ -603,128 +638,6 @@ class _DetailsPageState extends State<DetailsPage> {
   }
 
 
-
-
-  Future<void> _pdf() async {
-    final pdf = pw.Document();
-
-    // Tamaño del papel de la etiqueta
-    final PdfPageFormat labelSize =  const PdfPageFormat(
-      80.0 * PdfPageFormat.mm,
-      80.0 * PdfPageFormat.mm,
-    ); // Para 80x80 mm
-
-    pdf.addPage(
-      pw.Page(
-        pageFormat: PdfPageFormat.roll80,
-        build: (pw.Context context) {
-          return pw.Container(
-            padding: const pw.EdgeInsets.all(4),
-            child: pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: [
-                // Título de la mesa
-                pw.Center(
-                  child: pw.Text(
-                    '${selectObjmesa.nombreMesa}',
-                    style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
-                  ),
-                ),
-                pw.Divider(),
-                _buildDetails(),
-                pw.Divider(),
-                _buildTableHeader(),
-                pw.Divider(),
-                _buildTableContent(),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-
-    await Printing.layoutPdf(
-      onLayout: (PdfPageFormat format) async => pdf.save(),
-    );
-  }
-
-
-
-  pw.Widget _buildDetails() {
-    return pw.Column(
-      crossAxisAlignment: pw.CrossAxisAlignment.start,
-      children: [
-        pw.Text('Piso: PISO 1', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
-        pw.Text('Mesero(a): mozo', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
-        pw.Text('Hora: 14:20:26', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
-        pw.Text('Fecha: 2024-03-26', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
-      ],
-    );
-  }
-
-  pw.Widget _buildTableHeader() {
-    return pw.Row(
-      children: [
-        pw.SizedBox(width: 5),
-        pw.Text('CANTIDAD', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
-        pw.SizedBox(width: 20),
-        pw.Text('PRODUCTO', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
-        pw.SizedBox(width: 20),
-        pw.Text('NOTA', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
-      ],
-    );
-  }
-
-  pw.Widget _buildTableContent() {
-    return pw.ListView.builder(
-      itemCount: widget.productosSeleccionados!.length,
-      itemBuilder: (_, int index) {
-        return pw.Column(
-          children: [
-            pw.Row(
-              children: [
-                pw.Container(
-                  padding: const pw.EdgeInsets.only(left: 25, right: 30),
-                  child: pw.Center(
-                    child: pw.Text(
-                      '${widget.productosSeleccionados![index].stock}',
-                      style: const pw.TextStyle(fontSize: 8),
-                    ),
-                  ),
-                ),
-                pw.Container(
-                  constraints: const pw.BoxConstraints(maxWidth: 80),
-                  padding: const pw.EdgeInsets.only(right: 5),
-                  child: pw.Center(
-                    child: pw.Text(
-                      '${widget.productosSeleccionados![index].nombreproducto}',
-                      style: const pw.TextStyle(fontSize: 8),
-                      maxLines: 3,
-                      textAlign: pw.TextAlign.center,
-                    ),
-                  ),
-                ),
-                pw.Container(
-                  constraints: const pw.BoxConstraints(maxWidth: 70),
-                  padding: const pw.EdgeInsets.only(right: 20),
-                  child: pw.Center(
-                    child: pw.Text(
-                      '${widget.productosSeleccionados![index].comentario}',
-                      style: const pw.TextStyle(fontSize: 8),
-                      maxLines: 3,
-                      textAlign: pw.TextAlign.center,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            if (index != widget.productosSeleccionados!.length - 1)
-              pw.Divider(),
-          ],
-        );
-      },
-    );
-  }
 
   void refresh(){
     setState(() {

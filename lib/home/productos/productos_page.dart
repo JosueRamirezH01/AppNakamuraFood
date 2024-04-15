@@ -211,21 +211,26 @@ class _ProductosPageState extends State<ProductosPage> {
     return GestureDetector(
       onTap: () {
         setState(() {
-          if (_con.productosSeleccionados?.any((p) => p.nombreproducto == producto.nombreproducto) ?? false) {
-            // El producto ya está seleccionado, muestra un mensaje de confirmación
-            _con.mostrarMensaje('El producto ya ha sido seleccionado.');
-          } else {
-            // El producto no está seleccionado, agrégalo a la lista de productos seleccionados
-            setState(() {
-              _con.productosSeleccionados?.add(producto);
-            });
-            // Muestra un mensaje de confirmación
-            _con.agregarMsj('El producto se ha añadido a la lista.');
-            print('Productos seleccionados:');
-            _con.productosSeleccionados?.forEach((prod) {
-              print(prod.nombreproducto);
-            });
+          if(_con.mesa.estadoMesa != 2){
+            if (_con.productosSeleccionados?.any((p) => p.nombreproducto == producto.nombreproducto) ?? false) {
+              // El producto ya está seleccionado, muestra un mensaje de confirmación
+              _con.mostrarMensaje('El producto ya ha sido seleccionado.');
+            } else {
+              // El producto no está seleccionado, agrégalo a la lista de productos seleccionados
+              setState(() {
+                _con.productosSeleccionados?.add(producto);
+              });
+              // Muestra un mensaje de confirmación
+              _con.agregarMsj('El producto se ha añadido a la lista.');
+              print('Productos seleccionados:');
+              _con.productosSeleccionados?.forEach((prod) {
+                print(prod.nombreproducto);
+              });
+            }
+          }else{
+            _con.mostrarMensaje('No se pueden agregar productos porque el pedido está cerrado.');
           }
+
         });
       },
       child: SizedBox(

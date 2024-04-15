@@ -6,9 +6,9 @@
 
 #include "generated_plugin_registrant.h"
 
-#include <printing/printing_plugin.h>
+#include <charset_converter/charset_converter_plugin.h>
 
 void RegisterPlugins(flutter::PluginRegistry* registry) {
-  PrintingPluginRegisterWithRegistrar(
-      registry->GetRegistrarForPlugin("PrintingPlugin"));
+  CharsetConverterPluginRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("CharsetConverterPlugin"));
 }
