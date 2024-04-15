@@ -80,7 +80,5 @@ class Producto {
     "stock": stock,
     "categoria_id": categoria_id,
     "comentario": comentario
-
-
   };
 }
