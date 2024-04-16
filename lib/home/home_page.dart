@@ -726,6 +726,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                             ),
                                             //cp
                                             //obtenerDetallePedidoLastCreate
+                                            //
                                             _producList(listadoDetalle)
                                           ],
                                         ),
