@@ -1,7 +1,5 @@
 
 
-import 'dart:convert';
-import 'dart:typed_data';
 
 class Detalle_Pedido {
   int? id_pedido_detalle;
@@ -14,7 +12,6 @@ class Detalle_Pedido {
   double? precio_producto;
   String? comentario;
   int? estado_detalle;
-  Uint8List? comentarioBlob;
 
   Detalle_Pedido({
     this.id_pedido_detalle,
@@ -26,7 +23,6 @@ class Detalle_Pedido {
     this.cantidad_real,
     this.precio_producto,
     this.comentario,
-    this.comentarioBlob,
     this.estado_detalle
   });
 

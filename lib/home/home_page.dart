@@ -768,7 +768,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                           Detalle_Pedido detalle = listadoDetalle[i];
                                           listProduct.add(ListadoProductos.firstWhere((producto) => producto.id == detalle.id_producto));
                                         }
-                                        impresora.printLabel(listProduct,3, listPedido.montoTotal!);
+                                        impresora.printLabel(listProduct,3, listPedido.montoTotal!, '');
                                         print('Imprimir');
                                       },
                                       icon: const Icon(Icons.print),
