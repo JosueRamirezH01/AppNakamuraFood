@@ -2,6 +2,7 @@
 import 'dart:convert';
 import 'dart:core';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -239,6 +240,7 @@ class _DetailsPageState extends State<DetailsPage> {
       ),
     );
   }
+
   Future<List<Producto>> leerProductosDesdeSharedPreferences() async {
     String? jsonProductoData = await _pref.read('productos');
     if (jsonProductoData != null) {
@@ -636,7 +638,6 @@ class _DetailsPageState extends State<DetailsPage> {
       fontSize: 16.0,
     );
   }
-
 
 
   void refresh(){

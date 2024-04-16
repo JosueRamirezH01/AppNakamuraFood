@@ -3,8 +3,6 @@ import 'package:esc_pos_printer/esc_pos_printer.dart';
 import 'package:restauflutter/model/producto.dart';
 
 class Impresora {
-
-
   Future<void> printLabel(List<Producto>? producto, int? estado, double total) async {
     String tipoBoucher = '';
     if(estado == 1){
@@ -27,7 +25,6 @@ class Impresora {
 
   }
 
-
   void testReceipt(List<Producto>? producto, NetworkPrinter printer, String tipoBoucher, double total) {
 
     // Título de la mesa
@@ -41,10 +38,10 @@ class Impresora {
     _buildDetailsPreCuenta(printer);
 
     // Encabezado de la tabla
-    _buildTableHeaderPreCuenta(printer);
+    _buildTableHeaderPreCuenta( tipoBoucher,printer );
 
     // Contenido de la tabla
-    _buildTableContentPreCuenta(producto, printer);
+    _buildTableContentPreCuenta(producto, tipoBoucher, printer);
 
     // Importe total
     if(tipoBoucher != 'Pedido' && tipoBoucher !='Pedidos Actualizados'){
@@ -53,7 +50,7 @@ class Impresora {
 
       // DNI y RUC
       printer.text('DNI: _ _ _ _ _ _ _ _ _');
-      printer.text('RUC: _ _ _ _ _ _ _ _ _');
+      printer.text('RUC: _ _ _ _ _ _ _ _ _', linesAfter: 1);
 
       // Agradecimiento
       printer.text('******** GRACIAS POR SU VISITA ********',
@@ -81,25 +78,43 @@ class Impresora {
     printer.text('Fecha: $fechaActual');
   }
 
-  void _buildTableHeaderPreCuenta(NetworkPrinter printer) {
-    printer.row([
-      PosColumn(text: 'CANTIDAD', width: 3),  // 3 de ancho
-      PosColumn(text: 'PRODUCTO', width: 6),  // 6 de ancho
-      PosColumn(text: 'NOTA', width: 3),      // 3 de ancho
-    ]);
+  void _buildTableHeaderPreCuenta( String tipoBoucher, NetworkPrinter printer) {
+    if(tipoBoucher != 'Pedido' && tipoBoucher !='Pedidos Actualizados'){
+      printer.row([
+        PosColumn(text: 'CANTIDAD', width: 2,styles: PosStyles(bold: true)),  // 3 de ancho
+        PosColumn(text: 'PRODUCTO', width: 6,styles: PosStyles(bold: true)),  // 6 de ancho
+        PosColumn(text: 'P.UNIT', width: 2,styles: PosStyles(bold: true)),      // 3 de ancho
+        PosColumn(text: 'TOTAL', width: 2,styles: PosStyles(bold: true)),      // 3 de ancho
+      ]);
+    }else{
+      printer.row([
+        PosColumn(text: 'CANTIDAD', width: 3,styles: PosStyles(bold: true)),  // 3 de ancho
+        PosColumn(text: 'PRODUCTO', width: 6,styles: PosStyles(bold: true)),  // 6 de ancho
+        PosColumn(text: 'NOTA', width: 3,styles: PosStyles(bold: true)),      // 3 de ancho
+      ]);
+    }
+
   }
 
 
-void _buildTableContentPreCuenta(List<Producto>? producto,NetworkPrinter printer) {
-  producto?.forEach((producto) {
-    printer.row([
-      PosColumn(text: '${producto.stock}', width: 3),
-      PosColumn(text: '${producto.nombreproducto}', width: 6),
-      PosColumn(text: producto.comentario ?? '', width: 3),
-    ]);
-  });
-}
-
-
-
+  void _buildTableContentPreCuenta(List<Producto>? producto , String tipoBoucher, NetworkPrinter printer) {
+    if(tipoBoucher != 'Pedido' && tipoBoucher !='Pedidos Actualizados'){
+      producto?.forEach((producto) {
+        printer.row([
+          PosColumn(text: '${producto.stock}', width: 2),
+          PosColumn(text: '${producto.nombreproducto}', width: 6),
+          PosColumn(text: '${producto.precioproducto}', width: 2),
+          PosColumn(text: '${producto.precioproducto! * producto.stock!}', width: 2),
+        ]);
+      });
+    }else{
+      producto?.forEach((producto) {
+        printer.row([
+          PosColumn(text: '${producto.stock}', width: 3),
+          PosColumn(text: '${producto.nombreproducto}', width: 6),
+          PosColumn(text: producto.comentario ?? '', width: 3),
+        ]);
+      });
+    }
+  }
 }

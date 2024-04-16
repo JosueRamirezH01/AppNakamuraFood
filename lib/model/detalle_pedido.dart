@@ -33,7 +33,7 @@ class Detalle_Pedido {
     cantidad_exacta: json["cantidad_exacta"],
     cantidad_real: json["cantidad_real"],
       precio_producto: double.tryParse(json["precio_producto"]?.toString() ?? "0.0"),
-    comentario: json["comentario"],
+    comentario: json["comentario"].toString(),
     estado_detalle: json["estado_detalle"]
   );
 
