@@ -1,4 +1,8 @@
 
+
+import 'dart:convert';
+import 'dart:typed_data';
+
 class Detalle_Pedido {
   int? id_pedido_detalle;
   int? id_pedido;
@@ -10,6 +14,7 @@ class Detalle_Pedido {
   double? precio_producto;
   String? comentario;
   int? estado_detalle;
+  Uint8List? comentarioBlob;
 
   Detalle_Pedido({
     this.id_pedido_detalle,
@@ -21,6 +26,7 @@ class Detalle_Pedido {
     this.cantidad_real,
     this.precio_producto,
     this.comentario,
+    this.comentarioBlob,
     this.estado_detalle
   });
 
@@ -47,7 +53,16 @@ class Detalle_Pedido {
     "cantidad_exacta": cantidad_exacta,
     "cantidad_real": cantidad_real,
     "precio_producto": precio_producto,
-    "comentario": comentario,
+   "comentario": comentario,
     "estado_detalle": estado_detalle
   };
+
+  // Future<void> convertirComentarioBlobAString() async {
+  //   if (comentarioBlob != null) {
+  //     // Convierte los bytes a una cadena de texto utilizando utf8.decode
+  //     comentario = utf8.decode(comentarioBlob!);
+  //   }
+  // }
+
+
 }

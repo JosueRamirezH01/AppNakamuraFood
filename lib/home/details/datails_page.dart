@@ -224,7 +224,7 @@ class _DetailsPageState extends State<DetailsPage> {
                               print('No se encontró un producto con ID ${detalle.id_producto}');
                             }
                           });
-                          impresora.printLabel(nombresProductos,2, pedidoTotal);
+                          impresora.printLabel(nombresProductos,2, pedidoTotal, selectObjmesa.nombreMesa);
                         }else{
                           mostrarMensajeActualizado('Productos Actualizados');
                           Navigator.pop(context);
@@ -469,7 +469,7 @@ class _DetailsPageState extends State<DetailsPage> {
             Navigator.pop(context);
             Navigator.pop(context, newPedidoId);
 
-            impresora.printLabel(widget.productosSeleccionados,1, pedidoTotal);
+            impresora.printLabel(widget.productosSeleccionados,1, pedidoTotal, selectObjmesa.nombreMesa);
 
             // Actualizar mesa
             //print(retornoPedido);
@@ -499,7 +499,7 @@ class _DetailsPageState extends State<DetailsPage> {
 
           }
           Navigator.pop(context,2);
-          impresora.printLabel(widget.productosSeleccionados,3,pedidoTotal);
+          impresora.printLabel(widget.productosSeleccionados,3,pedidoTotal, selectObjmesa.nombreMesa);
         },
         child: const Text(
           'Pre Cuenta',
@@ -564,14 +564,17 @@ class _DetailsPageState extends State<DetailsPage> {
           onTap: () {
             final productoSeleccionado = widget.productosSeleccionados?[index];
             if (productoSeleccionado != null && productoSeleccionado.stock != null && productoSeleccionado.stock! > 1) {
+
               setState(() {
                 productoSeleccionado.stock = productoSeleccionado.stock! - 1; // Restar al stock
               });
+
             } else if (productoSeleccionado != null && productoSeleccionado.stock != null && productoSeleccionado.stock! == 1) {
               // Aquí puedes mostrar un mensaje o tomar alguna acción adicional si el stock ya es 1
             }
             _actualizarProductosSeleccionados(); // Llama a la función para actualizar los productos seleccionados
           },
+
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
             decoration: BoxDecoration(
@@ -595,10 +598,13 @@ class _DetailsPageState extends State<DetailsPage> {
           onTap: () {
             final productoSeleccionado = widget.productosSeleccionados?[index];
             if (productoSeleccionado != null && productoSeleccionado.stock != null) {
+
               setState(() {
                 productoSeleccionado.stock = productoSeleccionado.stock! + 1; // Aumentar el stock
               });
+
             }
+            print(productoSeleccionado?.toJson());
             _actualizarProductosSeleccionados(); // Llama a la función para actualizar los productos seleccionados
           },
           child: Container(
@@ -616,6 +622,9 @@ class _DetailsPageState extends State<DetailsPage> {
       ],
     );
   }
+
+
+
   void mostrarMensaje(String mensaje) {
     Fluttertoast.showToast(
       msg: mensaje,
