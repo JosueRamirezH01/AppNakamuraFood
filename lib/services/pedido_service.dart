@@ -24,7 +24,7 @@ class PedidoServicio {
         return null;
       } else {
         final idPedido = results.first.fields['id_pedido'] as int;
-        print('ID del pedido recuperado: $idPedido');
+        print('ID del pedido recuperado MESA: $idPedido');
         return idPedido;
       }
     } catch (e) {
@@ -49,6 +49,13 @@ class PedidoServicio {
         return [];
       } else {
         List<Detalle_Pedido> detallePedido = results.map((row) => Detalle_Pedido.fromJson(row.fields)).toList();
+        print('Detalles del pedido recuperados:');
+        for (var detalle in detallePedido) {
+          print('ID del detalle de pedido: ${detalle.id_pedido_detalle}');
+          print('ID del pedido: ${detalle.id_pedido}');
+          // Imprime otras propiedades aquí según sea necesario
+          print('-----------------------------');
+        }
         print('ID del pedido recuperado: $detallePedido');
         return detallePedido;
       }

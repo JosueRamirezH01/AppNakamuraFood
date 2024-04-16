@@ -281,6 +281,8 @@ class DetallePedidoServicio {
           detallesPedido.add(nuevoDetalle);
         } else {
           double precio = producto.precioproducto! * producto.stock!;
+
+
           await conn.query(
               'UPDATE pedido_detalles SET cantidad_producto = ?, cantidad_real = ?, precio_producto = ?, comentario = ?, updated_at = ? WHERE id_pedido = ? AND id_producto = ?',
               [
@@ -292,6 +294,8 @@ class DetallePedidoServicio {
                 pedidoid,
                 producto.id
               ]);
+
+
         }
 
       }

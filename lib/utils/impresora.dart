@@ -5,7 +5,7 @@ import 'package:restauflutter/model/producto.dart';
 class Impresora {
 
 
-  Future<void> printLabel(List<Producto>? producto, int? estado, double total) async {
+  Future<void> printLabel(List<Producto>? producto, int? estado, double total, String? nombreMesa) async {
     String tipoBoucher = '';
     if(estado == 1){
       tipoBoucher = 'Pedido';
@@ -21,19 +21,19 @@ class Impresora {
     final PosPrintResult res = await printer.connect('192.168.10.182', port: 9100);
 
     if (res == PosPrintResult.success) {
-      testReceipt(producto ,printer, tipoBoucher, total);
+      testReceipt(producto ,printer, tipoBoucher, total, nombreMesa!);
       printer.disconnect();
     }
 
   }
 
 
-  void testReceipt(List<Producto>? producto, NetworkPrinter printer, String tipoBoucher, double total) {
+  void testReceipt(List<Producto>? producto, NetworkPrinter printer, String tipoBoucher, double total,String nombreMesa ) {
 
     // Título de la mesa
     printer.text(tipoBoucher,
         styles: PosStyles(bold: true, align: PosAlign.center));
-    printer.text('MESA 1',
+    printer.text(nombreMesa,
         styles: PosStyles(bold: true, align: PosAlign.center));
     printer.hr();
 
@@ -50,15 +50,15 @@ class Impresora {
     if(tipoBoucher != 'Pedido' && tipoBoucher !='Pedidos Actualizados'){
       printer.text('IMPORTE TOTAL: S/$total',
           styles: PosStyles(bold: true), linesAfter: 1);
-
+      printer.feed(2);
       // DNI y RUC
       printer.text('DNI: _ _ _ _ _ _ _ _ _');
+      printer.feed(1);
       printer.text('RUC: _ _ _ _ _ _ _ _ _');
-
+      printer.feed(2);
       // Agradecimiento
       printer.text('******** GRACIAS POR SU VISITA ********',
           styles: PosStyles(align: PosAlign.center), linesAfter: 1);
-
     }
     printer.feed(2);
     printer.cut();
