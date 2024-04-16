@@ -1,3 +1,8 @@
+import 'dart:convert';
+
+Pedido responseApiFromJson(String str) => Pedido.fromJson(json.decode(str));
+String responseApiToJson(Pedido data) => json.encode(data.toJson());
+
 class Pedido {
   int? idPedido;
   int? idEntorno;
@@ -43,7 +48,7 @@ class Pedido {
     idEstablecimiento: json['id_establecimiento'],
     idSeriePedido: json['id_serie_pedido'],
     correlativoPedido: json['correlativo_pedido'],
-    montoTotal: double.tryParse(json["montoTotal"]?.toString() ?? "0.0"),
+    montoTotal: double.tryParse(json["Monto_total"]?.toString() ?? "0.0"),
     fechaPedido: json['fecha_pedido'] ,
     estadoPedido: json['estado_pedido'],
     motivo: json['motivo'],

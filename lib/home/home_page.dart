@@ -10,9 +10,12 @@ import 'package:restauflutter/model/mesaDetallePedido.dart';
 import 'package:restauflutter/model/mozo.dart';
 import 'package:restauflutter/model/pedido.dart';
 import 'package:restauflutter/model/piso.dart';
+import 'package:restauflutter/model/producto.dart';
+import 'package:restauflutter/services/detalle_pedido_service.dart';
 import 'package:restauflutter/services/mesas_service.dart';
 import 'package:restauflutter/services/pedido_service.dart';
 import 'package:restauflutter/services/piso_service.dart';
+import 'package:restauflutter/utils/impresora.dart';
 import 'package:restauflutter/utils/shared_pref.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -59,6 +62,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   bool isLoading = true;
   late List<Pedido> listaPedido = [];
   late int idEstablecimiento = 0 ;
+  late List<Producto> ListadoProductos = [];
 
 
   Future<void> UserShared() async {
@@ -68,10 +72,19 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       mozo = Mozo.fromJson(userDataMap);
       idEstablecimiento = mozo!.id_establecimiento ?? 0;
     }
+    String productosJson = await _pref.read('productos');
+
+    print('--L---L--');
+    print(productosJson);
+    if (productosJson.isNotEmpty) {
+      List<dynamic> productosData = json.decode(productosJson);
+      ListadoProductos = productosData.map((json) => Producto.fromJson(json)).toList();
+    }
   }
   var dbPisos = PisoServicio();
   var dbMesas = MesaServicio();
   var dbPedido = PedidoServicio();
+  var dbDetallePedido = DetallePedidoServicio();
 
 
 
@@ -81,6 +94,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   late List<Piso> ListadoPisos = [];
   late List<Mesa> ListadoMesas = [];
 
+
+  var impresora = Impresora();
 
 
   @override
@@ -143,13 +158,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   Future<void> consultarMesas(int idPiso, BuildContext context) async {
     print(' piso enviado: $idPiso');
     ListadoMesas = await dbMesas.consultarMesas(idPiso, context);
-    //print('mesas recividas $listaMesas');
-    // setState(() {
-    //   //ListadoMesas.clear();
-    //   for (int i = 0; i < listaMesas.length; i++) {
-    //     ListadoMesas.add(listaMesas[i]);
-    //   }
-   // });
   }
 
   static final ButtonStyle elevatedButtonStyle = ElevatedButton.styleFrom(
@@ -480,10 +488,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
   Widget pedidosList() {
     String buttonText = 'Cliente';
+    List<Pedido> listaFiltrada = listaPedido;
 
     if (_subOptType == SubOptTypes.local) {
-      buttonText =
-      'Mesa'; // Si _subOptType es 'local', el texto cambia a 'Mesa'
+      buttonText = 'Mesa';
+      listaFiltrada = listaPedido.where((pedido) => pedido.idUsuario == mozo?.id && pedido.idMesa != null).toList();
     }
 
     return Expanded(
@@ -522,7 +531,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                         ),
                       ),
                       child: Text(
-                        buttonText,
+                        buttonText ,
                         textAlign: TextAlign.center,
                         style: const TextStyle(fontWeight: FontWeight.w600),
                       ),
@@ -549,16 +558,22 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             child: CircularProgressIndicator(),
           )
               : ListView.builder(
-            itemCount: listaPedido.length,
+            //itemCount: listaPedido.length,
+            itemCount: listaFiltrada.length,
             itemBuilder: (_, index) {
-              if (index < listaPedido.length) {
-                Pedido listPedido = listaPedido[index];
+              //if (index < listaPedido.length) {
+              if (index < listaFiltrada.length) {
+
+                // Funcional
+                //Pedido listPedido = listaPedido[index];
+                Pedido listPedido = listaFiltrada[index];
                 return ListTile(
                   title: Row(
                     children: [
                       Text('PD-${listPedido.correlativoPedido}'),
                       Spacer(),
-                      Text('${_subOptType == SubOptTypes.local ? (ListadoMesas.isNotEmpty ? ListadoMesas.firstWhere((element) => element.id == listPedido.idMesa, orElse: () => Mesa()).nombreMesa : "") : listPedido.idCliente}'),
+                      //Text('${_subOptType == SubOptTypes.local ? (ListadoMesas.isNotEmpty ? ListadoMesas.firstWhere((element) => element.id == listPedido.idMesa, orElse: () => Mesa()).nombreMesa : "") : listPedido.idCliente}'),
+                      Text('${_subOptType == SubOptTypes.local ? (ListadoMesas.isNotEmpty ? (ListadoMesas.firstWhere((element) => element.id == listPedido.idMesa, orElse: () => Mesa()).nombreMesa ?? "") : "") : listPedido.idCliente}'),
                       Spacer(),
                       const Text('Estado')
                     ],
@@ -568,8 +583,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                       Text('${_subOptType == SubOptTypes.local ? '' : listPedido.idCliente == 60 ? 'varios': listPedido.nombreCliente } '),
                     ],
                   ),
-                  onTap: () {
-                    pedido(listPedido);
+                  onTap: () async {
+                    List<Detalle_Pedido> listadoDetalle = await dbDetallePedido.obtenerDetallePedidoLastCreate(listPedido.idPedido, context);
+                    pedido(listPedido, listadoDetalle);
                   },
                 );
               } else {
@@ -585,7 +601,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     );
   }
 
-  Future pedido(Pedido listPedido) {
+  Future pedido(Pedido listPedido, List<Detalle_Pedido> listadoDetalle) {
     return showCupertinoModalBottomSheet(
       barrierColor: Colors.transparent,
       context: context,
@@ -628,7 +644,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                           bottom: 10
                                       ),
                                       child: Text(
-                                        'n° pedido: ${listPedido.correlativoPedido}',
+                                        //'n° pedido: ${listPedido.correlativoPedido}',
+                                        'n° pedido: ${listPedido.idPedido}',
                                         style: const TextStyle(
                                             color: Color(0xFF111111),
                                             decoration: TextDecoration.none,
@@ -706,15 +723,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                                 ),
                                               ),
                                             ),
-                                            _producList([
-                                              Product('Chaufa de pollo', 2, 14.50),
-                                              Product('Arroz chaufa', 1, 10),
-                                              Product('Tallarín saltado', 3, 18.50),
-                                              Product('Arroz chaufa', 1, 10),
-                                              Product('Tallarín saltado combo familiar', 3, 18.50),
-                                              Product('Arroz chaufa', 1, 10),
-                                              Product('Tallarín saltado', 3, 18.50),
-                                            ])
+                                            //cp
+                                            //obtenerDetallePedidoLastCreate
+                                            _producList(listadoDetalle)
                                           ],
                                         ),
                                       ),
@@ -752,7 +763,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                     margin: const EdgeInsets.only(right: 10),
                                     child: IconButton(
                                       onPressed: () {
-                                        print('Botón presionado');
+                                        List<Producto> listProduct= [];
+                                        for (int i = 0; i < listadoDetalle.length; i++) {
+                                          Detalle_Pedido detalle = listadoDetalle[i];
+                                          listProduct.add(ListadoProductos.firstWhere((producto) => producto.id == detalle.id_producto));
+                                        }
+                                        impresora.printLabel(listProduct,3, listPedido.montoTotal!);
+                                        print('Imprimir');
                                       },
                                       icon: const Icon(Icons.print),
                                       tooltip: 'Imprimir',
@@ -775,10 +792,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                   ),
                                 ],
                               ),
-
-                              const Text(
-                                ' Total S/50',
-                                style: TextStyle(
+                              Text(
+                                ' Total S/${listPedido.montoTotal}',
+                                style:  const TextStyle(
                                     color: Color(0xFF111111),
                                     decoration: TextDecoration.none,
                                     fontSize : 20,
@@ -800,11 +816,12 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     );
   }
 
-  Widget _producList(List<Product> productList) {
+  // ----LS
+  Widget _producList(List<Detalle_Pedido> detalleList) {
     List<Widget> rows = [];
 
-    for (int i = 0; i < productList.length; i++) {
-      Product product = productList[i];
+    for (int i = 0; i < detalleList.length; i++) {
+      Detalle_Pedido detalle = detalleList[i];
       rows.add(
         Container(
           margin: const EdgeInsets.all(5),
@@ -817,7 +834,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                   child: Container(
                     alignment: Alignment.center,
                     child: Text(
-                      '${product.quantity}',
+                      '${detalle.cantidad_producto}',
                       style: const TextStyle(
                           color: Color(0xFF111111),
                           decoration: TextDecoration.none,
@@ -830,7 +847,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                   child: Container(
                     alignment: Alignment.center,
                     child: Text(
-                      product.name,
+                      '${ListadoProductos.firstWhere((producto) => producto.id == detalle.id_producto ).nombreproducto}',
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                           color: Color(0xFF111111),
@@ -844,7 +861,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                   child: Container(
                     alignment: Alignment.center,
                     child: Text(
-                      '${product.price}',
+                      '${detalle.precio_producto}',
                       style: const TextStyle(
                           color: Color(0xFF111111),
                           decoration: TextDecoration.none,

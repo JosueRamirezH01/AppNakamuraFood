@@ -204,8 +204,6 @@ class DetallePedidoServicio {
     }
   }
 
-
-
   Future<List<Detalle_Pedido>> actualizarCantidadProductoDetallePedidoPrueba(
       int? pedidoid,
       List<Producto> productos,
