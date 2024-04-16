@@ -115,6 +115,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         setState(() {
           isLoading = false;
         });
+        refresh();
       },);
       refresh();
     });
@@ -645,7 +646,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                       ),
                                       child: Text(
                                         //'n° pedido: ${listPedido.correlativoPedido}',
-                                        'n° pedido: ${listPedido.idPedido}',
+                                        'n° pedido: ${listPedido.correlativoPedido}',
                                         style: const TextStyle(
                                             color: Color(0xFF111111),
                                             decoration: TextDecoration.none,
@@ -766,8 +767,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                         List<Producto> listProduct= [];
                                         for (int i = 0; i < listadoDetalle.length; i++) {
                                           Detalle_Pedido detalle = listadoDetalle[i];
-                                          listProduct.add(ListadoProductos.firstWhere((producto) => producto.id == detalle.id_producto));
+                                          Producto producto = ListadoProductos.firstWhere((producto) => producto.id == detalle.id_producto);
+                                          producto.stock = detalle.cantidad_producto; // Aquí puedes calcular el nuevo precio según la lógica que necesites
+                                          listProduct.add(producto);
                                         }
+                                        listProduct.forEach((element) {
+                                          print('${element.toJson()}');
+                                        });
                                         impresora.printLabel(listProduct,3, listPedido.montoTotal!,'');
                                         print('Imprimir');
                                       },
