@@ -594,6 +594,7 @@ class _DetailsPageState extends State<DetailsPage> {
           Navigator.pop(context,2);
           impresora.printLabel(printerIP!,widget.productosSeleccionados,3,pedidoTotal, selectObjmesa.nombreMesa);
         },
+
         child: const Text(
           'Pre Cuenta',
           style: TextStyle(color: Colors.white, fontSize: 16),
