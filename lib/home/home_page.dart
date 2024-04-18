@@ -115,7 +115,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         setState(() {
           isLoading = false;
         });
-        refresh();
       },);
       refresh();
     });
@@ -183,18 +182,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                   children: [
                     Container(
                       decoration: const BoxDecoration(
-                          color: Colors.redAccent,
+                          color: Colors.grey,
                           shape: BoxShape.circle),
                       child: IconButton(
                         onPressed: () async {
-                          final prefs = await SharedPreferences.getInstance();
-                          prefs.remove('user_data');
-                          prefs.remove('categorias');
-                          prefs.remove('productos');
-                          // Redirigir a la nueva pantalla
-                          Navigator.pushReplacementNamed(context, 'login');
+                          Navigator.pushNamed(context, 'home/ajustes');
                         },
-                        icon: const Icon(Icons.logout_outlined),
+                        icon: const Icon(Icons.settings),
                         tooltip: 'Cerrar sesion',
                         color: Colors.white,
                       ),
@@ -769,9 +763,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                         List<Producto> listProduct= [];
                                         for (int i = 0; i < listadoDetalle.length; i++) {
                                           Detalle_Pedido detalle = listadoDetalle[i];
-                                          Producto producto = ListadoProductos.firstWhere((producto) => producto.id == detalle.id_producto);
-                                          producto.stock = detalle.cantidad_producto; // Aquí puedes calcular el nuevo precio según la lógica que necesites
-                                          listProduct.add(producto);
+                                          listProduct.add(ListadoProductos.firstWhere((producto) => producto.id == detalle.id_producto));
                                         }
                                         impresora.printLabel(printerIP!,listProduct,3, listPedido.montoTotal!, '');
                                         print('Imprimir');
