@@ -9,6 +9,9 @@ class Categoria {
   int? id;
   String? nombre;
   int? estado;
+  int? bar;
+  int? establecimiento_id;
+
 
 
   List<Categoria> categoria = [];
@@ -18,6 +21,8 @@ class Categoria {
     this.id,
     this.nombre,
     this.estado,
+    this.bar,
+    this.establecimiento_id
 
 
   });
@@ -26,6 +31,8 @@ class Categoria {
     id: json["id"],
     nombre: json["nombre"],
     estado: json["estado"],
+    bar: json["bar"],
+    establecimiento_id: json["establecimiento_id"]
     //puntuacion: double.tryParse(json["puntuacion"]?.toString() ?? "0.0"),
 
   );
@@ -43,6 +50,8 @@ class Categoria {
     "id": id,
     "nombre": nombre,
     "estado": estado,
+    "establecimiento_id": establecimiento_id,
+    "bar": bar
 
   };
 }

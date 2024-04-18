@@ -182,18 +182,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                   children: [
                     Container(
                       decoration: const BoxDecoration(
-                          color: Colors.redAccent,
+                          color: Colors.grey,
                           shape: BoxShape.circle),
                       child: IconButton(
                         onPressed: () async {
-                          final prefs = await SharedPreferences.getInstance();
-                          prefs.remove('user_data');
-                          prefs.remove('categorias');
-                          prefs.remove('productos');
-                          // Redirigir a la nueva pantalla
-                          Navigator.pushReplacementNamed(context, 'login');
+                          Navigator.pushNamed(context, 'home/ajustes');
                         },
-                        icon: const Icon(Icons.logout_outlined),
+                        icon: const Icon(Icons.settings),
                         tooltip: 'Cerrar sesion',
                         color: Colors.white,
                       ),
@@ -762,13 +757,15 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                     ),
                                     margin: const EdgeInsets.only(right: 10),
                                     child: IconButton(
-                                      onPressed: () {
+                                      onPressed: () async {
+                                        String? printerIP = await _pref.read('ipCocina');
+
                                         List<Producto> listProduct= [];
                                         for (int i = 0; i < listadoDetalle.length; i++) {
                                           Detalle_Pedido detalle = listadoDetalle[i];
                                           listProduct.add(ListadoProductos.firstWhere((producto) => producto.id == detalle.id_producto));
                                         }
-                                        impresora.printLabel(listProduct,3, listPedido.montoTotal!, '');
+                                        impresora.printLabel(printerIP!,listProduct,3, listPedido.montoTotal!, '');
                                         print('Imprimir');
                                       },
                                       icon: const Icon(Icons.print),

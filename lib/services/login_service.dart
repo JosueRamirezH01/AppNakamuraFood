@@ -6,6 +6,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:mysql1/mysql1.dart';
 import 'package:password_hash_plus/password_hash_plus.dart';
 import 'package:restauflutter/bd/conexion.dart';
+import 'package:restauflutter/model/mozo.dart';
 import 'package:restauflutter/model/piso.dart';
 import 'package:restauflutter/services/piso_service.dart';
 import 'package:restauflutter/services/producto_service.dart';
@@ -17,6 +18,7 @@ class LoginService {
   var generator = PBKDF2();
   var prod = ProductoServicio();
   var pisos = PisoServicio();
+  Mozo mozo = Mozo();
   Future<void> consultarUsuarios(String email, String password,
       BuildContext context) async {
     MySqlConnection? conn;
@@ -79,10 +81,14 @@ class LoginService {
               // Guarda la cadena JSON en SharedPreferences bajo una sola clave
               _sharedPreferences.save('user_data', jsonUserData);
             }
-            String emailData = await _sharedPreferences.read('user_data');
-            await prod.consultarCategorias(context);
+            final dynamic userData = await _sharedPreferences.read('user_data');
+            if (userData != null) {
+              final Map<String, dynamic> userDataMap = json.decode(userData);
+              mozo = Mozo.fromJson(userDataMap);
+            }
+            await prod.consultarCategorias(context, mozo.id_establecimiento!);
             await prod.consultarProductos(context);
-            print('DATA OBTENIDO $emailData');
+            print('DATA OBTENIDO ${mozo.email}');
             Navigator.pushNamedAndRemoveUntil(
                 context, 'home', (route) => false);
           }

@@ -20,6 +20,8 @@ import 'package:restauflutter/utils/impresora.dart';
 import 'package:restauflutter/utils/shared_pref.dart';
 import 'package:intl/intl.dart';
 
+import '../../model/categoria.dart';
+
 
 class DetailsPage extends StatefulWidget {
   final List<Producto>? productosSeleccionados;
@@ -205,6 +207,7 @@ class _DetailsPageState extends State<DetailsPage> {
                       style:  ButtonStyle(
                           elevation: MaterialStateProperty.all(2), backgroundColor: MaterialStateProperty.all(const Color(0xFF634FD2))),
                       onPressed: () async {
+                        String? printerIP = await _pref.read('ipCocina');
                         print('---->BA BOTON ACTUALIZAR');
                         List<Producto> nombresProductos = [];
                         gif();
@@ -214,21 +217,24 @@ class _DetailsPageState extends State<DetailsPage> {
                           mostrarMensajeActualizado('Productos Actualizados');
                           Navigator.pop(context);
                           detalles_pedios_tmp.forEach((detalle) async {
-                            String? nombreProducto = await buscarNombreProductoPorId(detalle.id_producto);
-                            if (nombreProducto != null) {
+                            Producto? producto = await buscarNombreProductoPorId(detalle.id_producto);
+                            if (producto != null) {
                               nombresProductos.add(Producto(
-                                nombreproducto: nombreProducto,
+                                categoria_id:  producto.categoria_id,
+                                nombreproducto: producto.nombreproducto,
                                 stock: detalle.cantidad_producto
                               ));
                             } else {
                               print('No se encontró un producto con ID ${detalle.id_producto}');
                             }
                           });
-                          impresora.printLabel(nombresProductos,2, pedidoTotal, selectObjmesa.nombreMesa);
+                          imprimir(nombresProductos, 2);
+                          //impresora.printLabel(printerIP!,nombresProductos,2, pedidoTotal, selectObjmesa.nombreMesa);
                         }else{
                           mostrarMensajeActualizado('Productos Actualizados');
                           Navigator.pop(context);
                         }
+
                       },
                       child: const Text('Actualizar', style: TextStyle(color: Colors.white, fontSize: 16))),
                 ),
@@ -250,11 +256,11 @@ class _DetailsPageState extends State<DetailsPage> {
     return []; // Otra opción: lanzar una excepción si no hay datos
   }
 
-  Future<String?> buscarNombreProductoPorId(int? idProducto) async {
+  Future<Producto?> buscarNombreProductoPorId(int? idProducto) async {
     List<Producto> productos = await leerProductosDesdeSharedPreferences();
     for (Producto producto in productos) {
       if (producto.id == idProducto) {
-        return producto.nombreproducto;
+        return producto;
       }
     }
     return null;
@@ -372,7 +378,7 @@ class _DetailsPageState extends State<DetailsPage> {
           content: StatefulBuilder(
             builder: (BuildContext context, StateSetter setState) {
               return DropdownButtonFormField<Mesa>(
-                hint: const Text("Seleccione una mesa disponible"),
+                hint: const Text("Seleccione una mesa disponible", style: TextStyle(fontSize: 14),),
                 onChanged: (Mesa? newValue) {
                   setState(() {
                     nuevaMesaId = newValue?.id;
@@ -422,13 +428,35 @@ class _DetailsPageState extends State<DetailsPage> {
         style:  ButtonStyle(
             elevation: MaterialStateProperty.all(2), backgroundColor: MaterialStateProperty.all(Colors.blue)),
         onPressed: () async {
-          gif();
           print('---> Boton pedido');
+          String? printerIP = await _pref.read('ipCocina');
           DateTime now = DateTime.now();
           String formattedDate = DateFormat('yyyy-MM-dd HH:mm:ss').format(now);
           DateTime parsedDateTime = DateFormat('yyyy-MM-dd HH:mm:ss').parse(formattedDate);
 
-          if (widget.productosSeleccionados!.length > 0) {
+          if (printerIP == null) {
+            // Mostrar un AlertDialog
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: const Text('Error de Impresión'),
+                  content: const Text('No se ha encontrado la dirección IP de la impresora.'),
+                  actions: <Widget>[
+                    TextButton(
+                      child: const Text('OK'),
+                      onPressed: () {
+                        Navigator.of(context).pop(); // Cerrar el AlertDialog
+                        Navigator.pushNamed(context, 'home/ajustes'); // Dirigir a otra pantalla
+                      },
+                    ),
+                  ],
+                );
+              },
+            );
+            return; // Salir del método printLabel
+          }else if (widget.productosSeleccionados!.length > 0) {
+            gif();
             // crear el pedido
             newpedido = Pedido(
               idEntorno: 1, // 1-> demo || 2-> producion
@@ -468,13 +496,13 @@ class _DetailsPageState extends State<DetailsPage> {
             });
             Navigator.pop(context);
             Navigator.pop(context, newPedidoId);
-
-            impresora.printLabel(widget.productosSeleccionados,1, pedidoTotal, selectObjmesa.nombreMesa);
-
+            //impresora.printLabel(printerIP,widget.productosSeleccionados,1, pedidoTotal, selectObjmesa.nombreMesa);
+            imprimir(widget.productosSeleccionados!,1);
             // Actualizar mesa
             //print(retornoPedido);
-          }else{
-            print('no puedes mandar una lista vacia');
+            }else{
+            mostrarMensaje('No hay productos seleccionados');
+            Navigator.pop(context);
           }
         },
         child: const Text(
@@ -483,11 +511,76 @@ class _DetailsPageState extends State<DetailsPage> {
         ));
   }
 
+  Future<void> imprimir(List<Producto> prodSeleccionados, int? estado) async {
+    String categoriasJson = await _pref.read('categorias');
+    String? ipBar = await _pref.read('ipBar');
+
+    String? ipCocina = await _pref.read('ipCocina');
+
+    List<Producto> ParaBar = [];
+    List<Producto> ParaCNormal = [];
+
+    List<Categoria> categorias = [];
+
+    if (categoriasJson != null) {
+      List<dynamic> categoriasList = json.decode(categoriasJson);
+
+      categorias = categoriasList
+          .where((cat) => cat['bar'] == 1)
+          .map((cat) => Categoria.fromJson(cat))
+          .toList();
+
+      if (categorias.isNotEmpty) {
+        print('Categorías encontradas:');
+        categorias.forEach((categoria) {
+          print(categoria.nombre);
+        });
+
+        for (Producto producto in prodSeleccionados) {
+          if (categorias.any((categoria) => categoria.id == producto.categoria_id)) {
+            ParaBar.add(producto);
+          } else {
+            ParaCNormal.add(producto);
+          }
+        }
+
+        if (ipBar == null) {
+          print('Lista de productos seleccionados:');
+          impresora.printLabel(ipCocina!,prodSeleccionados,estado, pedidoTotal, selectObjmesa.nombreMesa);
+          prodSeleccionados.forEach((producto) {
+            print(producto.nombreproducto);
+          });
+        } else {
+          print('Productos para el bar:');
+          impresora.printLabel(ipBar,ParaBar,estado, pedidoTotal, selectObjmesa.nombreMesa);
+          impresora.printLabel(ipCocina!,ParaCNormal,estado, pedidoTotal, selectObjmesa.nombreMesa);
+          ParaBar.forEach((producto) {
+            print(producto.nombreproducto);
+          });
+
+        }
+
+        print('Productos para consumo normal:');
+        ParaCNormal.forEach((producto) {
+          print(producto.nombreproducto);
+        });
+
+      } else {
+        print('No se encontraron categorías con bar en 1.');
+      }
+    } else {
+      print('El JSON de categorías es nulo.');
+    }
+  }
+
+
+
   Widget _preCuenta(){
     return ElevatedButton(
         style:  ButtonStyle(
             elevation: MaterialStateProperty.all(2), backgroundColor: MaterialStateProperty.all(const Color(0xFFFFB500))),
         onPressed: () async {
+          String? printerIP = await _pref.read('ipCocina');
 
           if (selectObjmesa.estadoMesa != 2){
             gif();
@@ -499,7 +592,7 @@ class _DetailsPageState extends State<DetailsPage> {
 
           }
           Navigator.pop(context,2);
-          impresora.printLabel(widget.productosSeleccionados,3,pedidoTotal, selectObjmesa.nombreMesa);
+          impresora.printLabel(printerIP!,widget.productosSeleccionados,3,pedidoTotal, selectObjmesa.nombreMesa);
         },
         child: const Text(
           'Pre Cuenta',

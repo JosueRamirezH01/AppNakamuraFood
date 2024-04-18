@@ -1,12 +1,20 @@
+
 import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:esc_pos_printer/esc_pos_printer.dart';
+import 'package:flutter/material.dart';
 import 'package:restauflutter/model/producto.dart';
+import 'package:restauflutter/utils/shared_pref.dart';
 
 class Impresora {
 
 
-  Future<void> printLabel(List<Producto>? producto, int? estado, double total, String? nombreMesa) async {
+
+  Future<void> printLabel(String printerIP,List<Producto>? producto, int? estado, double total, String? nombreMesa) async {
+
     String tipoBoucher = '';
+
+
+
     if(estado == 1){
       tipoBoucher = 'Pedido';
     }else if(estado == 2){
@@ -14,11 +22,12 @@ class Impresora {
     }else if(estado == 3){
       tipoBoucher = 'Pre-Cuenta';
     }
+    //192.168.10.182
     // Crea la instancia de la impresora
     const PaperSize paper = PaperSize.mm80;
     final profile = await CapabilityProfile.load();
     final printer = NetworkPrinter(paper, profile);
-    final PosPrintResult res = await printer.connect('192.168.10.182', port: 9100);
+    final PosPrintResult res = await printer.connect(printerIP, port: 9100);
 
     if (res == PosPrintResult.success) {
       testReceipt(producto ,printer, tipoBoucher, total, nombreMesa!);
@@ -32,9 +41,9 @@ class Impresora {
 
     // Título de la mesa
     printer.text(tipoBoucher,
-        styles: PosStyles(bold: true, align: PosAlign.center));
+        styles: const PosStyles(bold: true, align: PosAlign.center));
     printer.text(nombreMesa,
-        styles: PosStyles(bold: true, align: PosAlign.center));
+        styles: const PosStyles(bold: true, align: PosAlign.center));
     printer.hr();
 
     // Detalles del mesero, hora y fecha
@@ -49,7 +58,7 @@ class Impresora {
     // Importe total
     if(tipoBoucher != 'Pedido' && tipoBoucher !='Pedidos Actualizados'){
       printer.text('IMPORTE TOTAL: S/$total',
-          styles: PosStyles(bold: true), linesAfter: 1);
+          styles: const PosStyles(bold: true), linesAfter: 1);
 
       // DNI y RUC
       printer.text('DNI: _ _ _ _ _ _ _ _ _');
@@ -57,7 +66,7 @@ class Impresora {
 
       // Agradecimiento
       printer.text('******** GRACIAS POR SU VISITA ********',
-          styles: PosStyles(align: PosAlign.center), linesAfter: 1);
+          styles: const PosStyles(align: PosAlign.center), linesAfter: 1);
     }
     printer.feed(2);
     printer.cut();
@@ -83,16 +92,16 @@ class Impresora {
   void _buildTableHeaderPreCuenta( String tipoBoucher, NetworkPrinter printer) {
     if(tipoBoucher != 'Pedido' && tipoBoucher !='Pedidos Actualizados'){
       printer.row([
-        PosColumn(text: 'CANTIDAD', width: 2,styles: PosStyles(bold: true)),  // 3 de ancho
-        PosColumn(text: 'PRODUCTO', width: 6,styles: PosStyles(bold: true)),  // 6 de ancho
-        PosColumn(text: 'P.UNIT', width: 2,styles: PosStyles(bold: true)),      // 3 de ancho
-        PosColumn(text: 'TOTAL', width: 2,styles: PosStyles(bold: true)),      // 3 de ancho
+        PosColumn(text: 'CANTIDAD', width: 2,styles: const PosStyles(bold: true)),  // 3 de ancho
+        PosColumn(text: 'PRODUCTO', width: 6,styles: const PosStyles(bold: true)),  // 6 de ancho
+        PosColumn(text: 'P.UNIT', width: 2,styles: const PosStyles(bold: true)),      // 3 de ancho
+        PosColumn(text: 'TOTAL', width: 2,styles: const PosStyles(bold: true)),      // 3 de ancho
       ]);
     }else{
       printer.row([
-        PosColumn(text: 'CANTIDAD', width: 3,styles: PosStyles(bold: true)),  // 3 de ancho
-        PosColumn(text: 'PRODUCTO', width: 6,styles: PosStyles(bold: true)),  // 6 de ancho
-        PosColumn(text: 'NOTA', width: 3,styles: PosStyles(bold: true)),      // 3 de ancho
+        PosColumn(text: 'CANTIDAD', width: 3,styles: const PosStyles(bold: true)),  // 3 de ancho
+        PosColumn(text: 'PRODUCTO', width: 6,styles: const PosStyles(bold: true)),  // 6 de ancho
+        PosColumn(text: 'NOTA', width: 3,styles: const PosStyles(bold: true)),      // 3 de ancho
       ]);
     }
 

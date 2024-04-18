@@ -14,14 +14,14 @@ class ProductoServicio {
   final Connection _connectionSQL = Connection();
   final SharedPref _sharedPref = SharedPref();
 
-  Future<void> consultarCategorias(BuildContext context) async {
+  Future<void> consultarCategorias(BuildContext context, int id_establecimiento) async {
     MySqlConnection? conn;
     try {
       conn = await _connectionSQL.getConnection();
 
       // Consulta para obtener todos los datos de las tablas categorias y productos
-      const query = 'SELECT id,nombre, estado  FROM categorias ';
-      final results = await conn.query(query);
+      const query = 'SELECT *  FROM categorias WHERE establecimiento_id = ?';
+      final results = await conn.query(query,[id_establecimiento]);
       if (results.isEmpty) {
         Fluttertoast.showToast(
           msg: "No se encontraron datos en las tablas.",

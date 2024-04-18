@@ -27,13 +27,14 @@ class ProductoController {
   late int IDPEDIDO = 0 ;
   late List<Detalle_Pedido> detalle_pedido = [];
   var dbDetallePedido = DetallePedidoServicio();
-  List<Producto>? productosSeleccionadosOtenidos = [];
   List<Producto>? productosSeleccionados = [];
+
   Future init(BuildContext context, Function refresh) async {
     this.context = context;
     this.refresh = refresh;
     _getProductos();
     _getCategorias();
+
     final args = ModalRoute.of(context)?.settings.arguments;
     if (args is Mesa) {
       mesa = args;
@@ -70,6 +71,8 @@ class ProductoController {
 
     refresh();
   }
+
+
 
 
   Future<int> obtenerIdPedidoLast() async {
@@ -125,11 +128,13 @@ class ProductoController {
         List<dynamic> categoriasData = json.decode(categoriasJson);
         categorias = categoriasData.map((categoriaJson) =>
             Categoria.fromJson(categoriaJson)).toList();
+        refresh();
       }
     } catch (e) {
       print('Error al obtener las categorías: $e');
     }
   }
+
 
   Future<void> _getProductos() async {
     try {
@@ -204,6 +209,27 @@ class ProductoController {
         fontSize: 16.0
     );
   }
+
+  // Future<List<Producto>> getProductosPorCategoria(int? categoriaId) async {
+  //   try {
+  //     String productosJson = await _sharedPref.read('productos');
+  //     if (productosJson.isNotEmpty) {
+  //       List<dynamic> productosData = json.decode(productosJson);
+  //
+  //       // Filtra los productos por el ID de categoría
+  //       List<Producto> productosCategoria = productosData
+  //           .map((productoJson) => Producto.fromJson(productoJson))
+  //           .where((producto) => producto.categoria_id == categoriaId)
+  //           .toList();
+  //
+  //       return productosCategoria;
+  //     }
+  //   } catch (e) {
+  //     print('Error al obtener los productos por categoría: $e');
+  //   }
+  //   return [];
+  // }
+
 }
 
 

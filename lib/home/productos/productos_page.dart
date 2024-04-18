@@ -5,8 +5,8 @@ import 'package:flutter/scheduler.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:restauflutter/home/details/datails_page.dart';
 import 'package:restauflutter/home/productos/producto_controller.dart';
-import 'package:restauflutter/model/detalle_pedido.dart';
 import 'package:restauflutter/model/producto.dart';
+
 
 class ProductosPage extends StatefulWidget {
   const ProductosPage({super.key});
@@ -17,12 +17,14 @@ class ProductosPage extends StatefulWidget {
 
 
 
-class _ProductosPageState extends State<ProductosPage> {
+class _ProductosPageState extends State<ProductosPage> with TickerProviderStateMixin {
   int estado = 1;
   int? idPedido;
   List<Producto>? productosSeleccionados = [];
   final ProductoController _con = ProductoController();
-
+  int selectedIndex = 0;
+  late TabController _tabController;
+  late PageController _pageController;
   @override
   void initState() {
     // TODO: implement initState
@@ -30,7 +32,16 @@ class _ProductosPageState extends State<ProductosPage> {
     SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
       _con.init(context, refresh);
     });
+    refresh();
   }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    _pageController.dispose();
+    super.dispose();
+  }
+
 
 
   @override
@@ -70,12 +81,18 @@ class _ProductosPageState extends State<ProductosPage> {
             ],
             bottom: TabBar(
               isScrollable: true,
+              controller: _tabController,
               tabs: List<Widget>.generate(_con.categorias.length, (index) {
                 return Tab(
                   child: Text(_con.categorias[index].nombre ?? ''),
                 );
               }),
               onTap: (index) async {
+                _pageController.animateToPage(
+                  index,
+                  duration: Duration(milliseconds: 500),
+                  curve: Curves.easeInOut,
+                );
                 List<Producto> productosCategoria = await _con.getProductosPorCategoria(_con.categorias[index].id);
                 setState(() {
                   _con.productos = productosCategoria;
@@ -89,25 +106,34 @@ class _ProductosPageState extends State<ProductosPage> {
               _textFieldSearch(),
               const SizedBox(height: 10),
               Expanded(
-                child: TabBarView(
-                  children: _con.categorias.map((categoria)  {
-                    return  GridView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            childAspectRatio: 0.7
-                        ),
-                        itemCount: _con.productos.length,
-                        itemBuilder: (_, index) {
-                          if (index < _con.productos.length) {
-                            Producto producto = _con.productos[index];
-                            return _cardProduct(producto);
-                          } else {
-                            return const SizedBox(); // Otra opción es devolver un widget vacío si el índice está fuera de rango
-                          }
+                child: PageView.builder(
+                  controller: _pageController,
+                  onPageChanged: (index) async {
+                    _tabController.animateTo(index);
+                    List<Producto> productosCategoria = await _con.getProductosPorCategoria(_con.categorias[index].id);
+                    setState(() {
+                      _con.productos = productosCategoria;
+                    });
+                  },
+                  itemCount: _con.categorias.length,
+                  itemBuilder: (context, index) {
+                    return GridView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        childAspectRatio: 0.7,
+                      ),
+                      itemCount: _con.productos.length,
+                      itemBuilder: (_, index) {
+                        if (index < _con.productos.length) {
+                          Producto producto = _con.productos[index];
+                          return _cardProduct(producto);
+                        } else {
+                          return const SizedBox(); // Otra opción es devolver un widget vacío si el índice está fuera de rango
                         }
+                      },
                     );
-                  }).toList(),
+                  },
                 ),
               ),
             ],
@@ -224,7 +250,7 @@ class _ProductosPageState extends State<ProductosPage> {
               _con.agregarMsj('El producto se ha añadido a la lista.');
               print('Productos seleccionados:');
               _con.productosSeleccionados?.forEach((prod) {
-                print(prod.nombreproducto);
+                print(prod.toJson());
               });
             }
           }else{
@@ -340,6 +366,13 @@ class _ProductosPageState extends State<ProductosPage> {
   }
 
   void refresh(){
-    setState(() {});
+    setState(() {
+      _tabController = TabController(
+        length: _con.categorias.length,
+        vsync: this,
+        initialIndex: selectedIndex
+      );
+      _pageController = PageController();
+    });
   }
 }
