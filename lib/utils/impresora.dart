@@ -112,7 +112,7 @@ class Impresora {
     if(tipoBoucher != 'Pedido' && tipoBoucher !='Pedidos Actualizados'){
       producto?.forEach((producto) {
         printer.row([
-          PosColumn(text: '${producto.stock}', width: 2),
+          PosColumn(text: '${producto.stock}', width: 2 ),
           PosColumn(text: '${producto.nombreproducto}', width: 6),
           PosColumn(text: '${producto.precioproducto}', width: 2),
           PosColumn(text: '${producto.precioproducto! * producto.stock!}', width: 2),
@@ -120,11 +120,26 @@ class Impresora {
       });
     }else{
       producto?.forEach((producto) {
-        printer.row([
-          PosColumn(text: '${producto.stock}', width: 3),
-          PosColumn(text: '${producto.nombreproducto}', width: 6),
-          PosColumn(text: producto.comentario ?? '', width: 3),
-        ]);
+        if(producto.stock == 0){
+          printer.row([
+            PosColumn(text: 'Rechazado', width: 3),
+            PosColumn(text: '${producto.nombreproducto}', width: 6),
+            PosColumn(text: producto.comentario ?? '', width: 3),
+          ]);
+        }else if(producto.stock! < 0){
+          printer.row([
+            PosColumn(text: '${producto.stock}', width: 3),
+            PosColumn(text: '${producto.nombreproducto}', width: 6),
+            PosColumn(text: 'excluidos', width: 3),
+          ]);
+        }else{
+          printer.row([
+            PosColumn(text: '${producto.stock}', width: 3),
+            PosColumn(text: '${producto.nombreproducto}', width: 6),
+            PosColumn(text: producto.comentario ?? '', width: 3),
+          ]);
+        }
+
       });
     }
   }

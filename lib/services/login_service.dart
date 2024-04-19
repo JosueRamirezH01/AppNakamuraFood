@@ -87,7 +87,7 @@ class LoginService {
               mozo = Mozo.fromJson(userDataMap);
             }
             await prod.consultarCategorias(context, mozo.id_establecimiento!);
-            await prod.consultarProductos(context);
+            await prod.consultarProductos(context, mozo.id_establecimiento!);
             print('DATA OBTENIDO ${mozo.email}');
             Navigator.pushNamedAndRemoveUntil(
                 context, 'home', (route) => false);
