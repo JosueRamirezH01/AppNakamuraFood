@@ -79,6 +79,61 @@ class DetallePedidoServicio {
     }
   }
 
+  Future<List<Detalle_Pedido>> eliminarCantidadProductoDetallePedidoImprimir(
+      int? pedidoid,
+      List<Producto> productos,
+      double pedidoTotal,
+      BuildContext context
+      ) async {
+    MySqlConnection? conn;
+    List<Detalle_Pedido> detallesPedido = [];
+    try {
+      conn = await _connectionSQL.getConnection();
+
+      final resultst = await conn.query('''
+      SELECT * FROM pedido_detalles WHERE id_pedido = ?
+      ''', [pedidoid]);
+
+      List<Detalle_Pedido> listaBD = resultst.map((row) =>
+          Detalle_Pedido.fromJson(row.fields)).toList();
+
+
+      for (var detalle in listaBD) {
+        bool found = false;
+        for (var product in productos) {
+          if (product.id == detalle.id_producto) {
+            found = true;
+            break;
+          }
+
+        }
+        if (!found) {
+
+          print('ID OBTENIDO PARA ELIMINAR IMPRESORA----------------------------: ${detalle.id_pedido_detalle}');
+          detalle.cantidad_real = 0;
+          detalle.cantidad_producto = 0;
+          detallesPedido.add(detalle);
+        }
+
+      }
+
+      print('---- Productos para la otraq lista -----');
+      detallesPedido.forEach((element) {
+
+        print(element.id_producto);
+        print(element.cantidad_producto);
+      });
+      return detallesPedido;
+    }catch (e) {
+      print('Error al realizar la consulta: $e');
+      return []; // Retorna 0 si ocurre algún error
+    } finally {
+      if (conn != null) {
+        await conn.close();
+      }
+    }
+  }
+
 
 
   Future<List<Detalle_Pedido>> actualizarCantidadProductoDetallePedidoPrueba(
@@ -89,6 +144,7 @@ class DetallePedidoServicio {
       ) async {
     MySqlConnection? conn;
     List<Detalle_Pedido> detallesPedido = [];
+    detallesPedido.clear();
     print('-------------- ID PEDIDO ${pedidoid}');
     print('-------------- PRODUCTOS ${productos}');
     print('-------------- PRECIO TOTAL ${pedidoTotal}');
@@ -125,11 +181,11 @@ class DetallePedidoServicio {
 
       for (final producto in productos) {
         var existingDetail = await conn.query(
-            'SELECT id_pedido_detalle, cantidad_producto FROM pedido_detalles WHERE id_pedido = ? AND id_producto = ?',
+            'SELECT id_pedido_detalle, cantidad_producto, comentario FROM pedido_detalles WHERE id_pedido = ? AND id_producto = ?',
             [pedidoid, producto.id]);
         print('LISTA $existingDetail');
+        producto.comentario = producto.comentario == 'null'? null : producto.comentario;
         if (existingDetail.isEmpty) {
-
           Detalle_Pedido nuevoDetalle = Detalle_Pedido(
             id_pedido: pedidoid,
             id_producto: producto.id,
@@ -155,12 +211,13 @@ class DetallePedidoServicio {
               ]);
           detallesPedido.add(nuevoDetalle);
         } else {
-
           var detailRow = existingDetail.first;
           int cantidadProductoExistente = detailRow['cantidad_producto'];
+          String? nomComent = detailRow['comentario']?.toString();
           int productoRestado = producto.stock! - cantidadProductoExistente;
           print('Cantidad Restado $productoRestado');
-          if(productoRestado > 0){
+          print(' COMENTARIO ACTUALZIADO ${producto.comentario}');
+          if(productoRestado < 0 ){
             Detalle_Pedido nuevoDetalle2 = Detalle_Pedido(
               id_pedido: pedidoid,
               id_producto: producto.id,
@@ -171,7 +228,30 @@ class DetallePedidoServicio {
               estado_detalle: 1,
             );
             detallesPedido.add(nuevoDetalle2);
+          }else if(productoRestado>0){
+            Detalle_Pedido nuevoDetalle2 = Detalle_Pedido(
+              id_pedido: pedidoid,
+              id_producto: producto.id,
+              cantidad_producto: productoRestado,
+              cantidad_real: producto.stock,
+              precio_producto: producto.precioproducto,
+              comentario: producto.comentario,
+              estado_detalle: 1,
+            );
+            detallesPedido.add(nuevoDetalle2);
+          }else if(nomComent != producto.comentario){
+            Detalle_Pedido nuevoDetalle2 = Detalle_Pedido(
+              id_pedido: pedidoid,
+              id_producto: producto.id,
+              cantidad_producto: producto.stock,
+              cantidad_real: producto.stock,
+              precio_producto: producto.precioproducto,
+              comentario: producto.comentario,
+              estado_detalle: 1,
+            );
+            detallesPedido.add(nuevoDetalle2);
           }
+
 
 
 

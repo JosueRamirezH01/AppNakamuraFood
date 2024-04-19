@@ -207,34 +207,46 @@ class _DetailsPageState extends State<DetailsPage> {
                       style:  ButtonStyle(
                           elevation: MaterialStateProperty.all(2), backgroundColor: MaterialStateProperty.all(const Color(0xFF634FD2))),
                       onPressed: () async {
-                        String? printerIP = await _pref.read('ipCocina');
                         print('---->BA BOTON ACTUALIZAR');
                         List<Producto> nombresProductos = [];
                         gif();
-                        detalles_pedios_tmp = await detallePedidoServicio.actualizarCantidadProductoDetallePedidoPrueba( widget.idPedido, widget.productosSeleccionados!, pedidoTotal, context);
+                        List<Detalle_Pedido> detalleCompletos = await detallePedidoServicio.eliminarCantidadProductoDetallePedidoImprimir(widget.idPedido, widget.productosSeleccionados!, pedidoTotal, context);
+                        detalles_pedios_tmp = await detallePedidoServicio.actualizarCantidadProductoDetallePedidoPrueba(widget.idPedido, widget.productosSeleccionados!, pedidoTotal, context);
+
                         print('INSERTAR OBTENIDO PARA OBTENER EN EL TICKET $detalles_pedios_tmp');
-                        if(detalles_pedios_tmp.isNotEmpty){
-                          mostrarMensajeActualizado('Productos Actualizados');
-                          Navigator.pop(context);
-                          detalles_pedios_tmp.forEach((detalle) async {
+
+                        if (detalles_pedios_tmp.isNotEmpty) {
+                          for (var detalle in detalles_pedios_tmp) {
                             Producto? producto = await buscarNombreProductoPorId(detalle.id_producto);
                             if (producto != null) {
                               nombresProductos.add(Producto(
-                                categoria_id:  producto.categoria_id,
+                                categoria_id: producto.categoria_id,
                                 nombreproducto: producto.nombreproducto,
-                                stock: detalle.cantidad_producto
+                                stock: detalle.cantidad_producto,
+                                comentario: detalle.comentario
                               ));
-                            } else {
-                              print('No se encontró un producto con ID ${detalle.id_producto}');
                             }
-                          });
-                          imprimir(nombresProductos, 2);
-                          //impresora.printLabel(printerIP!,nombresProductos,2, pedidoTotal, selectObjmesa.nombreMesa);
-                        }else{
-                          mostrarMensajeActualizado('Productos Actualizados');
-                          Navigator.pop(context);
+                          }
                         }
 
+// Agregar productos de detalleCompletos si no está vacío
+                        if (detalleCompletos.isNotEmpty) {
+                          for (var element in detalleCompletos) {
+                            Producto? producto = await buscarNombreProductoPorId(element.id_producto);
+                            if (producto != null) {
+                              producto.stock = 0;
+                              nombresProductos.add(producto);
+                            }
+                          }
+                        }
+
+                        if (nombresProductos.isNotEmpty) {
+                          imprimir(nombresProductos, 2);
+                          Navigator.pop(context);
+                        } else {
+                          mostrarMensajeActualizado('No hay productos que Actualizar');
+                          Navigator.pop(context);
+                        }
                       },
                       child: const Text('Actualizar', style: TextStyle(color: Colors.white, fontSize: 16))),
                 ),
@@ -311,7 +323,9 @@ class _DetailsPageState extends State<DetailsPage> {
     );
   }
   Future<String?> _nota(int index){
+    // notaController.text = widget.productosSeleccionados?[index].comentario == 'null' ? '' : widget.productosSeleccionados![index].comentario!;
     notaController.text = widget.productosSeleccionados?[index].comentario ?? '';
+    print('COMENTARIO EN NOTA ${widget.productosSeleccionados?[index].comentario}');
     return showDialog<String>(
       context: context,
       builder: (BuildContext context) => AlertDialog(
@@ -325,7 +339,10 @@ class _DetailsPageState extends State<DetailsPage> {
           TextButton(
             onPressed: () {
               setState(() {
-                widget.productosSeleccionados?[index].comentario = notaController.text;
+                widget.productosSeleccionados?[index].comentario = notaController.text == '' ? null : notaController.text;
+                print('NOTA SETSTATE ${widget.productosSeleccionados?[index].comentario}');
+                print('NOTA SETSTATE Nota${notaController.text}');
+
               });
               Navigator.pop(context, 'OK');
             } ,
@@ -518,7 +535,7 @@ class _DetailsPageState extends State<DetailsPage> {
     String? ipCocina = await _pref.read('ipCocina');
 
     List<Producto> ParaBar = [];
-    List<Producto> ParaCNormal = [];
+    List<Producto> ParaCocina = [];
 
     List<Categoria> categorias = [];
 
@@ -540,28 +557,38 @@ class _DetailsPageState extends State<DetailsPage> {
           if (categorias.any((categoria) => categoria.id == producto.categoria_id)) {
             ParaBar.add(producto);
           } else {
-            ParaCNormal.add(producto);
+            ParaCocina.add(producto);
           }
         }
 
         if (ipBar == null) {
-          print('Lista de productos seleccionados:');
-          impresora.printLabel(ipCocina!,prodSeleccionados,estado, pedidoTotal, selectObjmesa.nombreMesa);
-          prodSeleccionados.forEach((producto) {
-            print(producto.nombreproducto);
-          });
+          if (prodSeleccionados.isNotEmpty){
+            print('Lista de productos seleccionados:');
+            impresora.printLabel(ipCocina!,prodSeleccionados,estado, pedidoTotal, selectObjmesa.nombreMesa);
+          }else{
+            print('nada que imprimir');
+          }
         } else {
           print('Productos para el bar:');
-          impresora.printLabel(ipBar,ParaBar,estado, pedidoTotal, selectObjmesa.nombreMesa);
-          impresora.printLabel(ipCocina!,ParaCNormal,estado, pedidoTotal, selectObjmesa.nombreMesa);
-          ParaBar.forEach((producto) {
-            print(producto.nombreproducto);
-          });
-
+          if(ParaBar.isNotEmpty){
+            impresora.printLabel(ipBar,ParaBar,estado, pedidoTotal, selectObjmesa.nombreMesa);
+            if (ParaCocina.isNotEmpty){
+              print('Lista de productos seleccionados:');
+              impresora.printLabel(ipCocina!,ParaCocina,estado, pedidoTotal, selectObjmesa.nombreMesa);
+            }else{
+              print('nada que imprimir');
+            }
+          }else{
+            if (ParaCocina.isNotEmpty){
+              print('Lista de productos seleccionados:');
+              impresora.printLabel(ipCocina!,ParaCocina,estado, pedidoTotal, selectObjmesa.nombreMesa);
+            }else{
+              print('nada que imprimir');
+            }
+          }
         }
-
         print('Productos para consumo normal:');
-        ParaCNormal.forEach((producto) {
+        ParaCocina.forEach((producto) {
           print(producto.nombreproducto);
         });
 

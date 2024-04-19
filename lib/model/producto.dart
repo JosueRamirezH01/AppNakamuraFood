@@ -13,6 +13,7 @@ class Producto {
   String? foto;
   double? precioproducto;
   int? stock;
+  String? codigo_interno;
   int? categoria_id;
   String? comentario;
   List<Producto> productos = [];
@@ -25,6 +26,7 @@ class Producto {
     this.foto,
     this.precioproducto,
     this.stock,
+    this.codigo_interno,
     this.categoria_id,
     this.comentario
 
@@ -57,6 +59,7 @@ class Producto {
     foto: json["foto"],
     stock: json["stock"],
     categoria_id: json["categoria_id"],
+    codigo_interno: json["codigo_interno"],
     precioproducto: double.tryParse(json["precioproducto"]?.toString() ?? "0.0"),
     comentario: json["comentario"],
 
@@ -78,6 +81,7 @@ class Producto {
     "foto": foto,
     "precioproducto": precioproducto,
     "stock": stock,
+    "codigo_interno": codigo_interno,
     "categoria_id": categoria_id,
     "comentario": comentario
   };

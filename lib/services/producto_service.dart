@@ -49,14 +49,13 @@ class ProductoServicio {
     }
   }
 
-  Future<void> consultarProductos(BuildContext context) async {
+  Future<void> consultarProductos(BuildContext context, int id_establecimiento) async {
     MySqlConnection? conn;
     try {
       conn = await _connectionSQL.getConnection();
-
       // Consulta para obtener todos los datos de las tablas categorias y productos
-      const query = 'SELECT id,nombreproducto, foto, precioproducto, stock, categoria_id  FROM productos ';
-      final results = await conn.query(query);
+      const query = 'SELECT id,nombreproducto, foto, precioproducto, stock, categoria_id, codigo_interno FROM productos WHERE establecimiento_id = ?';
+      final results = await conn.query(query,[id_establecimiento]);
       if (results.isEmpty) {
         Fluttertoast.showToast(
           msg: "No se encontraron datos en las tablas.",
@@ -70,6 +69,7 @@ class ProductoServicio {
         print('No se encontraron datos en las tablas.');
       } else {
         List<Producto> producto = results.map((row) => Producto.fromJson(row.fields)).toList();
+
         final jsonProductoData = json.encode(producto);
         _sharedPref.save('productos', jsonProductoData);
 

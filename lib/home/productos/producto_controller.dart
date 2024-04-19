@@ -142,17 +142,31 @@ class ProductoController {
       if (productosJson.isNotEmpty) {
         List<dynamic> productosData = json.decode(productosJson);
 
-        // Filtra los productos según el nombre basado en la búsqueda
         if (productName.isNotEmpty) {
+          // Filtra los productos según el código interno exacto o el nombre basado en la búsqueda
           productos = productosData
               .map((productoJson) => Producto.fromJson(productoJson))
-              .where((producto) =>
-              producto.nombreproducto!.toLowerCase().contains(
-                  productName.toLowerCase()))
+              .where((producto) {
+            final codigoInterno = producto.codigo_interno ?? "";
+            final nombreProducto = producto.nombreproducto ?? "";
+            final isNumeric = RegExp(r'^[0-9]+$').hasMatch(productName);
+            final isAlphaNumeric = RegExp(r'^[0-9a-zA-Z]+$').hasMatch(productName);
+
+            if (isNumeric) {
+              // Si el término de búsqueda es un número, buscar por código interno
+              return codigoInterno.toLowerCase() == productName.toLowerCase();
+            } else if (isAlphaNumeric) {
+              // Si el término de búsqueda es alfanumérico, buscar por nombre o código interno
+              return codigoInterno.toLowerCase() == productName.toLowerCase() || nombreProducto.toLowerCase().contains(productName.toLowerCase());
+            } else {
+              // Si el término de búsqueda no es ni un número ni alfanumérico, buscar solo por nombre
+              return nombreProducto.toLowerCase().contains(productName.toLowerCase());
+            }
+          })
               .toList();
         } else {
-          productos = productosData.map((productoJson) =>
-              Producto.fromJson(productoJson)).toList();
+          // Si no se proporciona ningún texto de búsqueda, reinicia la lista de productos
+          productos = productosData.map((productoJson) => Producto.fromJson(productoJson)).toList();
         }
       }
     } catch (e) {
@@ -160,6 +174,8 @@ class ProductoController {
     }
   }
 
+
+//RegExp(r'^[a-z]{2}\d+|\d+$')
 
   Future<List<Producto>> getProductosPorCategoria(int? categoriaId) async {
     try {
