@@ -115,7 +115,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         setState(() {
           isLoading = false;
         });
-        refresh();
       },);
       refresh();
     });
@@ -183,26 +182,21 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                   children: [
                     Container(
                       decoration: const BoxDecoration(
-                          color: Colors.redAccent,
+                          color: Colors.grey,
                           shape: BoxShape.circle),
                       child: IconButton(
                         onPressed: () async {
-                          final prefs = await SharedPreferences.getInstance();
-                          prefs.remove('user_data');
-                          prefs.remove('categorias');
-                          prefs.remove('productos');
-                          // Redirigir a la nueva pantalla
-                          Navigator.pushReplacementNamed(context, 'login');
+                          Navigator.pushNamed(context, 'home/ajustes');
                         },
-                        icon: const Icon(Icons.logout_outlined),
+                        icon: const Icon(Icons.settings),
                         tooltip: 'Cerrar sesion',
                         color: Colors.white,
                       ),
                     ),
                     Container(
                       margin: const EdgeInsets.only(
-                        left: 2,
-                        right: 1.5
+                          left: 2,
+                          right: 1.5
                       ),
                       child: ElevatedButton.icon(
                         onPressed: () {
@@ -239,7 +233,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         ),
         body: ClipRRect(
             borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(30), topRight: Radius.circular(30)),
+                topLeft: Radius.circular(20), topRight: Radius.circular(20)),
             child: Container(
               color: Colors.white, // Fondo de color D9D9D9
               child: TabBarView(
@@ -251,10 +245,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     child: Center(
                       child: Column(
                         children: [
-                          Container(
-                            margin: const EdgeInsets.all(8),
-                            child: subopt(),
-                          ),
+                          // Container(
+                          //   margin: const EdgeInsets.all(8),
+                          //   child: subopt(),
+                          // ),
                           Expanded(
                             child: mainListado(),
                           ),
@@ -431,20 +425,20 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             child: Center(child: Text('Local')),
           ),
         ),
-        ButtonSegment<SubOptTypes>(
-          value: SubOptTypes.llevar,
-          label: SizedBox(
-            width: 53,
-            child: Center(child: Text('llevar')),
-          ),
-        ),
-        ButtonSegment<SubOptTypes>(
-          value: SubOptTypes.delivery,
-          label: SizedBox(
-            width: 53,
-            child: Center(child: Text('Delivery')),
-          ),
-        ),
+        // ButtonSegment<SubOptTypes>(
+        //   value: SubOptTypes.llevar,
+        //   label: SizedBox(
+        //     width: 53,
+        //     child: Center(child: Text('llevar')),
+        //   ),
+        // ),
+        // ButtonSegment<SubOptTypes>(
+        //   value: SubOptTypes.delivery,
+        //   label: SizedBox(
+        //     width: 53,
+        //     child: Center(child: Text('Delivery')),
+        //   ),
+        // ),
       ],
       selected: {_subOptType}, // Corregir _subOptTypes a _subOptType
       onSelectionChanged: (Set<SubOptTypes> newSelection) async {
@@ -480,7 +474,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [_textFieldSearch(), pedidosList()],
+            // children: [_textFieldSearch(), pedidosList()],
+            children: [ pedidosList()],
           ),
         ),
       ),
@@ -551,51 +546,51 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 ],
               ),
             ),
-      Expanded(
-        child: Container(
-          decoration: const BoxDecoration(),
-          child: isLoading
-              ? const Center(
-            child: CircularProgressIndicator(),
-          )
-              : ListView.builder(
-            //itemCount: listaPedido.length,
-            itemCount: listaFiltrada.length,
-            itemBuilder: (_, index) {
-              //if (index < listaPedido.length) {
-              if (index < listaFiltrada.length) {
+            Expanded(
+              child: Container(
+                decoration: const BoxDecoration(),
+                child: isLoading
+                    ? const Center(
+                  child: CircularProgressIndicator(),
+                )
+                    : ListView.builder(
+                  //itemCount: listaPedido.length,
+                  itemCount: listaFiltrada.length,
+                  itemBuilder: (_, index) {
+                    //if (index < listaPedido.length) {
+                    if (index < listaFiltrada.length) {
 
-                // Funcional
-                //Pedido listPedido = listaPedido[index];
-                Pedido listPedido = listaFiltrada[index];
-                return ListTile(
-                  title: Row(
-                    children: [
-                      Text('PD-${listPedido.correlativoPedido}'),
-                      Spacer(),
-                      //Text('${_subOptType == SubOptTypes.local ? (ListadoMesas.isNotEmpty ? ListadoMesas.firstWhere((element) => element.id == listPedido.idMesa, orElse: () => Mesa()).nombreMesa : "") : listPedido.idCliente}'),
-                      Text('${_subOptType == SubOptTypes.local ? (ListadoMesas.isNotEmpty ? (ListadoMesas.firstWhere((element) => element.id == listPedido.idMesa, orElse: () => Mesa()).nombreMesa ?? "") : "") : listPedido.idCliente}'),
-                      Spacer(),
-                      const Text('Estado')
-                    ],
-                  ),
-                  subtitle: Row(
-                    children: [
-                      Text('${_subOptType == SubOptTypes.local ? '' : listPedido.idCliente == 60 ? 'varios': listPedido.nombreCliente } '),
-                    ],
-                  ),
-                  onTap: () async {
-                    List<Detalle_Pedido> listadoDetalle = await dbDetallePedido.obtenerDetallePedidoLastCreate(listPedido.idPedido, context);
-                    pedido(listPedido, listadoDetalle);
+                      // Funcional
+                      //Pedido listPedido = listaPedido[index];
+                      Pedido listPedido = listaFiltrada[index];
+                      return ListTile(
+                        title: Row(
+                          children: [
+                            Text('PD-${listPedido.correlativoPedido}'),
+                            Spacer(),
+                            //Text('${_subOptType == SubOptTypes.local ? (ListadoMesas.isNotEmpty ? ListadoMesas.firstWhere((element) => element.id == listPedido.idMesa, orElse: () => Mesa()).nombreMesa : "") : listPedido.idCliente}'),
+                            Text('${_subOptType == SubOptTypes.local ? (ListadoMesas.isNotEmpty ? (ListadoMesas.firstWhere((element) => element.id == listPedido.idMesa, orElse: () => Mesa()).nombreMesa ?? "") : "") : listPedido.idCliente}'),
+                            Spacer(),
+                            Text('${listPedido.estadoPedido == 1 ? 'Registrado' : listPedido.estadoPedido == 0? 'Anulado':'pendiente'}')
+                          ],
+                        ),
+                        subtitle: Row(
+                          children: [
+                            Text('${_subOptType == SubOptTypes.local ? '' : listPedido.idCliente == 60 ? 'varios': listPedido.nombreCliente } '),
+                          ],
+                        ),
+                        onTap: () async {
+                          List<Detalle_Pedido> listadoDetalle = await dbDetallePedido.obtenerDetallePedidoLastCreate(listPedido.idPedido, context);
+                          pedido(listPedido, listadoDetalle);
+                        },
+                      );
+                    } else {
+                      return null;
+                    }
                   },
-                );
-              } else {
-                return null;
-              }
-            },
-          ),
-        ),
-      )
+                ),
+              ),
+            )
           ],
         ),
       ),
@@ -769,9 +764,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                         List<Producto> listProduct= [];
                                         for (int i = 0; i < listadoDetalle.length; i++) {
                                           Detalle_Pedido detalle = listadoDetalle[i];
-                                          Producto producto = ListadoProductos.firstWhere((producto) => producto.id == detalle.id_producto);
-                                          producto.stock = detalle.cantidad_producto; // Aquí puedes calcular el nuevo precio según la lógica que necesites
-                                          listProduct.add(producto);
+                                          listProduct.add(ListadoProductos.firstWhere((producto) => producto.id == detalle.id_producto));
                                         }
                                         impresora.printLabel(printerIP!,listProduct,3, listPedido.montoTotal!, '');
                                         print('Imprimir');
@@ -901,36 +894,36 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     }
 
     return GestureDetector(
-        onTap: () async {
-          if (mesa.estadoMesa == 1) {
-            Navigator.pushNamed(context, 'home/productos', arguments: mesa);
-          } else {
-           int? idPedido = await dbPedido.consultarMesasDisponibilidad(mozo!.id, mesa.id,context);
-           if(idPedido != null){
-             List<Detalle_Pedido> detallePedido =  await dbPedido.consultaObtenerDetallePedido(idPedido, context);
-             MesaDetallePedido mesaDetallePedido = MesaDetallePedido(mesa, detallePedido);
-             Navigator.pushNamed(context, 'home/productos', arguments: mesaDetallePedido);
-           }else {
-             showDialog(
-               context: context,
-               builder: (BuildContext context) {
-                 return AlertDialog(
-                   title: Text('Mensaje'),
-                   content: Text('La Mesa ya esta ocupada por otro Mozo'),
-                   actions: <Widget>[
-                     TextButton(
-                       onPressed: () {
-                         Navigator.of(context).pop();
-                       },
-                       child: Text('OK'),
-                     ),
-                   ],
-                 );
-               },
-             );
-           }
+      onTap: () async {
+        if (mesa.estadoMesa == 1) {
+          Navigator.pushNamed(context, 'home/productos', arguments: mesa);
+        } else {
+          int? idPedido = await dbPedido.consultarMesasDisponibilidad(mozo!.id, mesa.id,context);
+          if(idPedido != null){
+            List<Detalle_Pedido> detallePedido =  await dbPedido.consultaObtenerDetallePedido(idPedido, context);
+            MesaDetallePedido mesaDetallePedido = MesaDetallePedido(mesa, detallePedido);
+            Navigator.pushNamed(context, 'home/productos', arguments: mesaDetallePedido);
+          }else {
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: Text('Mensaje'),
+                  content: Text('La Mesa ya esta ocupada por otro Mozo'),
+                  actions: <Widget>[
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: Text('OK'),
+                    ),
+                  ],
+                );
+              },
+            );
           }
-        },
+        }
+      },
       child: SizedBox(
         child: Card(
           margin: const EdgeInsets.all(10),
@@ -973,7 +966,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                       ),
                     ),
                   ),
-                   Center(
+                  Center(
                     child: Text(
                       estadoMesaDis,
                       style:
