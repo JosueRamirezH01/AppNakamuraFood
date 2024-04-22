@@ -137,7 +137,6 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
                     setState(() {
                       _con.productos = productosCategoria;
                     });
-                    refresh();
                   },
                   itemCount: _con.categorias.length,
                   itemBuilder: (context, index) {
