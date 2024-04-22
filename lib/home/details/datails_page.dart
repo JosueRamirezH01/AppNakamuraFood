@@ -90,9 +90,10 @@ class _DetailsPageState extends State<DetailsPage> {
       body: SingleChildScrollView(
         child: Column(
           children: [
+            icono(),
             if(selectObjmesa.estadoMesa != 1 && selectObjmesa.estadoMesa != 2)
               cabecera(),
-            const SizedBox(height: 10),
+            // const SizedBox(height: 10),
             contenido(),
             debajo()
           ],
@@ -102,43 +103,53 @@ class _DetailsPageState extends State<DetailsPage> {
   }
 
   Widget contenido() {
-    return SingleChildScrollView(
-      child: Container(
-        height: MediaQuery.of(context).size.height * 0.6,
-        width: MediaQuery.of(context).size.height * 0.45,
-        decoration: BoxDecoration(borderRadius: const BorderRadius.all(Radius.circular(15)), border: Border.all(width: 2),),
-        child: ListView.builder(
-          itemCount: widget.productosSeleccionados?.length,
-          itemBuilder: (_, int index) {
-            return Column(
-              children: [
-                ListTile(
-                  title: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          '${widget.productosSeleccionados?[index].nombreproducto}',
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
+
+    return NotificationListener<ScrollNotification>(
+      onNotification: (notification) {
+        if (notification is ScrollUpdateNotification && notification.metrics.atEdge && notification.metrics.pixels <= 0) {
+          return false;
+        }
+        return true;
+      },
+      child: SingleChildScrollView(
+        child: Container(
+          margin: EdgeInsets.only(top:5 ,left: 15,right: 15),
+          height: MediaQuery.of(context).size.height * 0.6,
+          width: MediaQuery.of(context).size.height * 0.45,
+          decoration: BoxDecoration(borderRadius: const BorderRadius.all(Radius.circular(15)), border: Border.all(width: 2),),
+          child: ListView.builder(
+            itemCount: widget.productosSeleccionados?.length,
+            itemBuilder: (_, int index) {
+              return Column(
+                children: [
+                  ListTile(
+                    title: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            '${widget.productosSeleccionados?[index].nombreproducto}',
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                      ),
-                      _addOrRemoveItem(index),
-                      const SizedBox(width: 5),
-                      _iconDelete(index),
-                      const SizedBox(width: 5),
-                      _iconNota(index),
-                    ],
+                        _addOrRemoveItem(index),
+                        const SizedBox(width: 5),
+                        _iconDelete(index),
+                        const SizedBox(width: 5),
+                        _iconNota(index),
+                      ],
+                    ),
                   ),
-                ),
-                if (index != widget.productosSeleccionados!.length - 1) const Divider(
-                  height: 1,
-                  thickness: 2,
-                  indent: 10,
-                  endIndent: 10,
-                ),
-              ],
-            );
-          },
+                  if (index != widget.productosSeleccionados!.length - 1) const Divider(
+                    height: 1,
+                    thickness: 2,
+                    indent: 10,
+                    endIndent: 10,
+                  ),
+                ],
+              );
+            },
+          ),
         ),
       ),
     );
@@ -165,7 +176,7 @@ class _DetailsPageState extends State<DetailsPage> {
   }
   Widget icono(){
     return const Padding(
-      padding: EdgeInsets.only(top: 10.0, bottom: 10),
+      padding: EdgeInsets.only(top: 15, bottom: 15),
       child: Divider(
         indent: 120,
         endIndent: 120,
@@ -178,16 +189,19 @@ class _DetailsPageState extends State<DetailsPage> {
     return Center(
       child: Column(
         children: [
-          icono(),
           Container(
+            margin: EdgeInsets.only(left: 15,right: 15, bottom: 10),
             width: MediaQuery.of(context).size.width * 0.95,
             height: MediaQuery.of(context).size.height * 0.08,
-            decoration: const BoxDecoration(
-                borderRadius: BorderRadius.all(Radius.circular(15)), color: Color(0xFF99CFB5)),
+            decoration: BoxDecoration(
+              border: Border.fromBorderSide(BorderSide(width: 2)),
+                borderRadius: BorderRadius.all(Radius.circular(20)), color: Color(0xFF99CFB5)
+            ),
             child: Row(
               children: [
-                const SizedBox(width: 5),
-                Expanded(
+                // const SizedBox(width: 5),
+                Container(
+                  margin: EdgeInsets.only(left: 10 ),
                   child: ElevatedButton(
                       style:  ButtonStyle(
                           elevation: MaterialStateProperty.all(2), backgroundColor: MaterialStateProperty.all(const Color(0xFF4C95DD))),
@@ -201,8 +215,10 @@ class _DetailsPageState extends State<DetailsPage> {
                         style: TextStyle(color: Colors.white, fontSize: 16),
                       )),
                 ),
-                const SizedBox(width: 10),
-                Expanded(
+                // const SizedBox(width: 10),
+                Spacer(),
+                Container(
+                  margin: EdgeInsets.only(right: 10),
                   child: ElevatedButton(
                       style:  ButtonStyle(
                           elevation: MaterialStateProperty.all(2), backgroundColor: MaterialStateProperty.all(const Color(0xFF634FD2))),
@@ -229,7 +245,7 @@ class _DetailsPageState extends State<DetailsPage> {
                           }
                         }
 
-// Agregar productos de detalleCompletos si no está vacío
+                                    // Agregar productos de detalleCompletos si no está vacío
                         if (detalleCompletos.isNotEmpty) {
                           for (var element in detalleCompletos) {
                             Producto? producto = await buscarNombreProductoPorId(element.id_producto);
@@ -531,7 +547,6 @@ class _DetailsPageState extends State<DetailsPage> {
   Future<void> imprimir(List<Producto> prodSeleccionados, int? estado) async {
     String categoriasJson = await _pref.read('categorias');
     String? ipBar = await _pref.read('ipBar');
-
     String? ipCocina = await _pref.read('ipCocina');
 
     List<Producto> ParaBar = [];
@@ -552,49 +567,48 @@ class _DetailsPageState extends State<DetailsPage> {
         categorias.forEach((categoria) {
           print(categoria.nombre);
         });
-
-        for (Producto producto in prodSeleccionados) {
-          if (categorias.any((categoria) => categoria.id == producto.categoria_id)) {
-            ParaBar.add(producto);
-          } else {
-            ParaCocina.add(producto);
-          }
-        }
-
-        if (ipBar == null) {
-          if (prodSeleccionados.isNotEmpty){
-            print('Lista de productos seleccionados:');
-            impresora.printLabel(ipCocina!,prodSeleccionados,estado, pedidoTotal, selectObjmesa.nombreMesa);
-          }else{
-            print('nada que imprimir');
-          }
-        } else {
-          print('Productos para el bar:');
-          if(ParaBar.isNotEmpty){
-            impresora.printLabel(ipBar,ParaBar,estado, pedidoTotal, selectObjmesa.nombreMesa);
-            if (ParaCocina.isNotEmpty){
-              print('Lista de productos seleccionados:');
-              impresora.printLabel(ipCocina!,ParaCocina,estado, pedidoTotal, selectObjmesa.nombreMesa);
-            }else{
-              print('nada que imprimir');
-            }
-          }else{
-            if (ParaCocina.isNotEmpty){
-              print('Lista de productos seleccionados:');
-              impresora.printLabel(ipCocina!,ParaCocina,estado, pedidoTotal, selectObjmesa.nombreMesa);
-            }else{
-              print('nada que imprimir');
-            }
-          }
-        }
-        print('Productos para consumo normal:');
-        ParaCocina.forEach((producto) {
-          print(producto.nombreproducto);
-        });
-
       } else {
         print('No se encontraron categorías con bar en 1.');
       }
+
+      for (Producto producto in prodSeleccionados) {
+        if (categorias.any((categoria) => categoria.id == producto.categoria_id)) {
+          ParaBar.add(producto);
+        } else {
+          ParaCocina.add(producto);
+        }
+      }
+
+      if (ipBar == null) {
+        if (prodSeleccionados.isNotEmpty){
+          print('Lista de productos seleccionados:');
+          impresora.printLabel(ipCocina!,prodSeleccionados,estado, pedidoTotal, selectObjmesa.nombreMesa);
+        }else{
+          print('nada que imprimir');
+        }
+      } else {
+        print('Productos para el bar:');
+        if(ParaBar.isNotEmpty){
+          impresora.printLabel(ipBar,ParaBar,estado, pedidoTotal, selectObjmesa.nombreMesa);
+          if (ParaCocina.isNotEmpty){
+            print('Lista de productos seleccionados:');
+            impresora.printLabel(ipCocina!,ParaCocina,estado, pedidoTotal, selectObjmesa.nombreMesa);
+          }else{
+            print('nada que imprimir');
+          }
+        }else{
+          if (ParaCocina.isNotEmpty){
+            print('Lista de productos seleccionados:');
+            impresora.printLabel(ipCocina!,ParaCocina,estado, pedidoTotal, selectObjmesa.nombreMesa);
+          }else{
+            print('nada que imprimir');
+          }
+        }
+      }
+      print('Productos para consumo normal:');
+      ParaCocina.forEach((producto) {
+        print(producto.nombreproducto);
+      });
     } else {
       print('El JSON de categorías es nulo.');
     }
@@ -644,27 +658,28 @@ class _DetailsPageState extends State<DetailsPage> {
       child: Container(
         margin: const EdgeInsets.only(top: 20),
         width: MediaQuery.of(context).size.width * 0.9,
-        height: MediaQuery.of(context).size.height * 0.07,
+        height: MediaQuery.of(context).size.height * 0.08,
         decoration: const BoxDecoration(
-            borderRadius: BorderRadius.all(Radius.circular(15)), color: Color(0xFF99CFB5)),
+            borderRadius: BorderRadius.all(Radius.circular(20)), color: Color(0xFF99CFB5)),
         child: Row(
           children: [
-            const SizedBox(width: 5),
-            Expanded(
+            // const SizedBox(width: 5),
+            Container(
+              margin: EdgeInsets.only(left: 15),
               child: selectObjmesa.estadoMesa == 1 ? _pedido() : _preCuenta(),
             ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: SizedBox(
-                child: Row(
-                  children: [
-                    const Text('TOTAL : ', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                    Text('S/ ${total.toStringAsFixed(2)}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold))
-                  ],
-                ),
+            // const SizedBox(width: 10),
+            Spacer(),
+            Container(
+              margin: EdgeInsets.only(right: 20),
+              child: Row(
+                children: [
+                  const Text('TOTAL : ', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  Text('S/ ${total.toStringAsFixed(2)}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold))
+                ],
               ),
             ),
-            const SizedBox(width: 5),
+            // const SizedBox(width: 5),
           ],
         ),
       ),

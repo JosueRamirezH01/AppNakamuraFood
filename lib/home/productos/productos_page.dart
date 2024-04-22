@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:restauflutter/home/details/datails_page.dart';
+import 'package:restauflutter/home/home_page.dart';
 import 'package:restauflutter/home/productos/producto_controller.dart';
 import 'package:restauflutter/model/producto.dart';
 
@@ -50,60 +51,83 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
           length: _con.categorias.length,
           child: Scaffold(
           appBar: AppBar(
+            automaticallyImplyLeading: false,
             elevation: 3,
             toolbarHeight: 100,
-            backgroundColor: const Color(0xFF99CFB5),
+            // backgroundColor: const Color(0xFF99CFB5),
             actions: [
-              const SizedBox(width: 5),
-              Expanded(
-                child: Padding(
-                          padding: const EdgeInsets.only(top: 10),
-                          child: ElevatedButton.icon(
-                            style: const ButtonStyle(backgroundColor: MaterialStatePropertyAll(Colors.deepOrange)),
-                              onPressed: (){
-                              Navigator.pushNamed(context, 'home');
-                              },
-                              icon: const Icon(Icons.arrow_back_ios_outlined, color: Colors.white,),
-                              label: const Text("SALIR", style: TextStyle(fontSize: 18, color: Colors.white),)),
-                        ),
-              ),
-              const SizedBox(width: 50),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 10),
-                  child: ElevatedButton(
+              Container(
+                margin: EdgeInsets.only(top: 10,left: 15),
+                child: ElevatedButton.icon(
+                    style: const ButtonStyle(backgroundColor: MaterialStatePropertyAll(Colors.deepOrange)),
                     onPressed: (){
-                    },
-                    child:  Text('${_con.mesa.nombreMesa}', style: TextStyle(fontSize: 18)),),
+                      Navigator.pushNamed(context, 'home');
+                      },
+                    icon: const Icon(Icons.arrow_back_ios_outlined, color: Colors.white,),
+                    label: const Text("SALIR", style: TextStyle(fontSize: 18, color: Colors.white),)
                 ),
+              ),
+              Spacer(),
+              Container(
+                margin: EdgeInsets.only( top: 10 ,right: 15),
+                child: ElevatedButton(
+                  style: ButtonStyle(
+                    backgroundColor: MaterialStateProperty.all<Color>(Colors.grey[300]!),
+                  ),
+                  onPressed: (){
+                  },
+                  child:  Text('${_con.mesa.nombreMesa}', style: TextStyle(fontSize: 18,color: Colors.black)),),
               ),
               const SizedBox(width: 5)
             ],
-            bottom: TabBar(
-              isScrollable: true,
-              controller: _tabController,
-              tabs: List<Widget>.generate(_con.categorias.length, (index) {
-                return Tab(
-                  child: Text(_con.categorias[index].nombre ?? ''),
-                );
-              }),
-              onTap: (index) async {
-                _pageController.animateToPage(
-                  index,
-                  duration: Duration(milliseconds: 500),
-                  curve: Curves.easeInOut,
-                );
-                List<Producto> productosCategoria = await _con.getProductosPorCategoria(_con.categorias[index].id);
-                setState(() {
-                  _con.productos = productosCategoria;
-                });
-              },
-            ),
+            // bottom: TabBar(
+            //   isScrollable: true,
+            //   controller: _tabController,
+            //   indicatorColor: Color(0xFFFF562F),
+            //   tabs: List<Widget>.generate(_con.categorias.length, (index) {
+            //     return Tab(
+            //       child: Text(_con.categorias[index].nombre ?? '', style: TextStyle(color: Color(0xFF1f1f1f)),),
+            //     );
+            //   }),
+            //   onTap: (index) async {
+            //     _pageController.animateToPage(
+            //       index,
+            //       duration: Duration(milliseconds: 300),
+            //       curve: Curves.easeInOut,
+            //     );
+            //     List<Producto> productosCategoria = await _con.getProductosPorCategoria(_con.categorias[index].id);
+            //     setState(() {
+            //       _con.productos = productosCategoria;
+            //     });
+            //   },
+            // ),
           ),
           body:  Column(
             children: [
               const SizedBox(height: 10),
               _textFieldSearch(),
+              const SizedBox(height: 10),
+              TabBar(
+                isScrollable: true,
+                controller: _tabController,
+                indicatorColor: Color(0xFFFF562F),
+                tabs: List<Widget>.generate(_con.categorias.length, (index) {
+                  return Tab(
+                    child: Text(_con.categorias[index].nombre ?? '', style: TextStyle(color: Color(0xFF1f1f1f)),),
+                  );
+                }),
+                onTap: (index) async {
+                  _pageController.animateToPage(
+                    index,
+                    duration: Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                  );
+                  List<Producto> productosCategoria = await _con.getProductosPorCategoria(_con.categorias[index].id);
+                  setState(() {
+                    _con.productos = productosCategoria;
+                  });
+                },
+              ),
               const SizedBox(height: 10),
               Expanded(
                 child: PageView.builder(
@@ -114,6 +138,7 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
                     setState(() {
                       _con.productos = productosCategoria;
                     });
+                    refresh();
                   },
                   itemCount: _con.categorias.length,
                   itemBuilder: (context, index) {
@@ -145,14 +170,17 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
                 width: 250,
                 height: 50,
                 child: ElevatedButton(
+                  style: ButtonStyle(
+                    backgroundColor: MaterialStateProperty.all<Color>(Colors.grey[300]!),
+                  ),
                   onPressed: () async {
                     pedido();
                   },
                   child:  Row(
                     children: [
-                      Expanded(child: cantidad()),
-                      const SizedBox(width: 10),
-                      Expanded(child: precio()),
+                      Expanded(child: cantidad(),flex: 2,),
+                      Spacer(flex: 1,),
+                      Expanded(child: precio(), flex: 0,),
                     ],
                   ),
                 ),
@@ -165,12 +193,12 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
   }
   Widget precio(){
     double total = calcularTotal();
-    return Text('S/ ${total.toStringAsFixed(2)}');
+    return Text('S/ ${total.toStringAsFixed(2)}', style: TextStyle(color: Colors.black),);
   }
 
   Widget cantidad(){
     int cantidadProductos = calcularCantidadProductosSeleccionados();
-    return Text('CANTIDAD: $cantidadProductos' );
+    return Text('CANTIDAD: $cantidadProductos', style: TextStyle(color: Colors.black),);
   }
 
   double calcularTotal() {
@@ -226,10 +254,8 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
       setState(() {
         idPedido = idPedidoNuevo;
       });
-      // Haz lo que necesites con el valor de idPedido, por ejemplo, imprimirlo
     }
     print('-------------Valor de IDPEDIDO: $idPedido');
-
   }
 
 
@@ -341,22 +367,24 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
             hintText: 'Buscar',
             suffixIcon: const Icon(
                 Icons.search,
-                color: Colors.grey
+                color: Color(0xFF000000)
             ),
             hintStyle: const TextStyle(
-                fontSize: 17,
-                color: Colors.grey
+                fontSize: 15,
+                color: Color(0xFF000000)
             ),
             enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(25),
+                borderRadius: BorderRadius.circular(20),
                 borderSide: const BorderSide(
-                    color: Colors.grey
+                    color: Color(0xFF000000),
+                  width: 2
                 )
             ),
             focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(25),
+                borderRadius: BorderRadius.circular(20),
                 borderSide: const BorderSide(
-                    color: Colors.grey
+                    color: Color(0xFF000000),
+                  width: 2
                 )
             ),
             contentPadding: const EdgeInsets.all(10)
