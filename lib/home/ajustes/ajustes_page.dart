@@ -182,6 +182,7 @@ class _AjustesPageState extends State<AjustesPage> {
         labelText: 'Dirección IP',
         hintText: 'Ej. 192.168.1.1',
         border: OutlineInputBorder(),
+
       ),
       inputFormatters: [
         FilteringTextInputFormatter.allow(RegExp(r'^\d{0,3}(\.\d{0,3}){0,3}$')),

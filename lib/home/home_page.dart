@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:restauflutter/model/detalle_pedido.dart';
 import 'package:restauflutter/model/mesa.dart';
@@ -153,11 +154,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       }
       pisoSelect = listaPisos[0].id!;
       consultarMesas(pisoSelect,context);
+      refresh();
     });
   }
   Future<void> consultarMesas(int idPiso, BuildContext context) async {
     print(' piso enviado: $idPiso');
     ListadoMesas = await dbMesas.consultarMesas(idPiso, context);
+    refresh();
   }
 
   static final ButtonStyle elevatedButtonStyle = ElevatedButton.styleFrom(
@@ -182,21 +185,20 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                   children: [
                     Container(
                       decoration: const BoxDecoration(
-                          color: Colors.grey,
+                          color: Colors.black,
                           shape: BoxShape.circle),
                       child: IconButton(
                         onPressed: () async {
                           Navigator.pushNamed(context, 'home/ajustes');
                         },
                         icon: const Icon(Icons.settings),
-                        tooltip: 'Cerrar sesion',
                         color: Colors.white,
                       ),
                     ),
                     Container(
                       margin: const EdgeInsets.only(
-                        left: 2,
-                        right: 1.5
+                          left: 2,
+                          right: 1.5
                       ),
                       child: ElevatedButton.icon(
                         onPressed: () {
@@ -233,7 +235,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         ),
         body: ClipRRect(
             borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(30), topRight: Radius.circular(30)),
+                topLeft: Radius.circular(20), topRight: Radius.circular(20)),
             child: Container(
               color: Colors.white, // Fondo de color D9D9D9
               child: TabBarView(
@@ -245,10 +247,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     child: Center(
                       child: Column(
                         children: [
-                          Container(
-                            margin: const EdgeInsets.all(8),
-                            child: subopt(),
-                          ),
+                          // Container(
+                          //   margin: const EdgeInsets.all(8),
+                          //   child: subopt(),
+                          // ),
                           Expanded(
                             child: mainListado(),
                           ),
@@ -262,7 +264,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     child: Center(
                       child: Column(
                         children: [
-                          // Otros widgets...
                           DefaultTabController(
                             length: myTabs.length,
                             child: Expanded(
@@ -281,11 +282,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                             print('Selected tab name: $selectedTabName');
                                             for (int i = 0; i < ListadoPisos.length; i++) {
                                               if (ListadoPisos[i].nombrePiso == selectedTabName) {
-                                                pisoSelect = ListadoPisos[i].id!;
-                                                consultarMesas(pisoSelect,context);
-                                                print('Mesas: $ListadoMesas');
+                                                setState(() {
+                                                  pisoSelect = ListadoPisos[i].id!;
+                                                  consultarMesas(pisoSelect,context);
+                                                });
                                               }
                                             }
+                                            refresh();
                                           },
                                           indicatorColor: const Color( 0xFFFF562F),
                                           labelColor: const Color( 0xFFFF562F),
@@ -311,6 +314,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                           ),
                                           itemCount:ListadoMesas.length,
                                           itemBuilder: (_, index) {
+                                            print('piso Selecionado = ${ListadoMesas[index]} ');
                                             return _cardMesa(ListadoMesas[index]);
                                           },
                                         );
@@ -425,20 +429,20 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             child: Center(child: Text('Local')),
           ),
         ),
-        ButtonSegment<SubOptTypes>(
-          value: SubOptTypes.llevar,
-          label: SizedBox(
-            width: 53,
-            child: Center(child: Text('llevar')),
-          ),
-        ),
-        ButtonSegment<SubOptTypes>(
-          value: SubOptTypes.delivery,
-          label: SizedBox(
-            width: 53,
-            child: Center(child: Text('Delivery')),
-          ),
-        ),
+        // ButtonSegment<SubOptTypes>(
+        //   value: SubOptTypes.llevar,
+        //   label: SizedBox(
+        //     width: 53,
+        //     child: Center(child: Text('llevar')),
+        //   ),
+        // ),
+        // ButtonSegment<SubOptTypes>(
+        //   value: SubOptTypes.delivery,
+        //   label: SizedBox(
+        //     width: 53,
+        //     child: Center(child: Text('Delivery')),
+        //   ),
+        // ),
       ],
       selected: {_subOptType}, // Corregir _subOptTypes a _subOptType
       onSelectionChanged: (Set<SubOptTypes> newSelection) async {
@@ -474,7 +478,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [_textFieldSearch(), pedidosList()],
+            // children: [_textFieldSearch(), pedidosList()],
+            children: [ pedidosList()],
           ),
         ),
       ),
@@ -545,51 +550,57 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 ],
               ),
             ),
-      Expanded(
-        child: Container(
-          decoration: const BoxDecoration(),
-          child: isLoading
-              ? const Center(
-            child: CircularProgressIndicator(),
-          )
-              : ListView.builder(
-            //itemCount: listaPedido.length,
-            itemCount: listaFiltrada.length,
-            itemBuilder: (_, index) {
-              //if (index < listaPedido.length) {
-              if (index < listaFiltrada.length) {
+            Expanded(
+              child: Container(
+                decoration: const BoxDecoration(),
+                child: isLoading
+                    ? const Center(
+                  child: CircularProgressIndicator(),
+                )
+                    : ListView.builder(
+                  //itemCount: listaPedido.length,
+                  itemCount: listaFiltrada.length,
+                  itemBuilder: (_, index) {
+                    //if (index < listaPedido.length) {
+                    if (index < listaFiltrada.length) {
 
-                // Funcional
-                //Pedido listPedido = listaPedido[index];
-                Pedido listPedido = listaFiltrada[index];
-                return ListTile(
-                  title: Row(
-                    children: [
-                      Text('PD-${listPedido.correlativoPedido}'),
-                      Spacer(),
-                      //Text('${_subOptType == SubOptTypes.local ? (ListadoMesas.isNotEmpty ? ListadoMesas.firstWhere((element) => element.id == listPedido.idMesa, orElse: () => Mesa()).nombreMesa : "") : listPedido.idCliente}'),
-                      Text('${_subOptType == SubOptTypes.local ? (ListadoMesas.isNotEmpty ? (ListadoMesas.firstWhere((element) => element.id == listPedido.idMesa, orElse: () => Mesa()).nombreMesa ?? "") : "") : listPedido.idCliente}'),
-                      Spacer(),
-                      const Text('Estado')
-                    ],
-                  ),
-                  subtitle: Row(
-                    children: [
-                      Text('${_subOptType == SubOptTypes.local ? '' : listPedido.idCliente == 60 ? 'varios': listPedido.nombreCliente } '),
-                    ],
-                  ),
-                  onTap: () async {
-                    List<Detalle_Pedido> listadoDetalle = await dbDetallePedido.obtenerDetallePedidoLastCreate(listPedido.idPedido, context);
-                    pedido(listPedido, listadoDetalle);
+                      // Funcional
+                      //Pedido listPedido = listaPedido[index];
+                      Pedido listPedido = listaFiltrada[index];
+                      return ListTile(
+                        title: Row(
+                          children: [
+                            Expanded(child: Text('PD-${listPedido.correlativoPedido}')),
+                            // Spacer(),
+                            //Text('${_subOptType == SubOptTypes.local ? (ListadoMesas.isNotEmpty ? ListadoMesas.firstWhere((element) => element.id == listPedido.idMesa, orElse: () => Mesa()).nombreMesa : "") : listPedido.idCliente}'),
+                            Expanded(child: Text('${_subOptType == SubOptTypes.local ? (ListadoMesas.isNotEmpty ? (ListadoMesas.firstWhere((element) => element.id == listPedido.idMesa, orElse: () => Mesa()).nombreMesa ?? "") : "") : listPedido.idCliente}')),
+                            // Spacer(),
+                            Expanded(child: Text('${listPedido.estadoPedido == 1 ? 'Registrado' : listPedido.estadoPedido == 0? 'Anulado':'pendiente'}',overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                  color: Color(0xFF111111),
+                                  decoration: TextDecoration.none,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500
+                              ),))
+                          ],
+                        ),
+                        subtitle: Row(
+                          children: [
+                            Text('${_subOptType == SubOptTypes.local ? '' : listPedido.idCliente == 60 ? 'varios': listPedido.nombreCliente } '),
+                          ],
+                        ),
+                        onTap: () async {
+                          List<Detalle_Pedido> listadoDetalle = await dbDetallePedido.obtenerDetallePedidoLastCreate(listPedido.idPedido, context);
+                          pedido(listPedido, listadoDetalle);
+                        },
+                      );
+                    } else {
+                      return null;
+                    }
                   },
-                );
-              } else {
-                return null;
-              }
-            },
-          ),
-        ),
-      )
+                ),
+              ),
+            )
           ],
         ),
       ),
@@ -601,208 +612,218 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       barrierColor: Colors.transparent,
       context: context,
       builder: (BuildContext context) {
-        return SingleChildScrollView(
-          child: Container(
-            decoration: const BoxDecoration(
-              color: Color.fromRGBO(217, 217, 217, 0.8),
-            ),
-            child: SizedBox(
-              height: MediaQuery.of(context).size.height * 0.62,
-              child: Container(
-                decoration: const BoxDecoration(
-                  borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(30),
-                      topRight: Radius.circular(30)
+        return NotificationListener<ScrollNotification>(
+          onNotification: (notification) {
+            if (notification is ScrollUpdateNotification && notification.metrics.atEdge && notification.metrics.pixels <= 0) {
+              return false;
+            }
+            return true;
+          },
+          child: SingleChildScrollView(
+            child: Container(
+              decoration: const BoxDecoration(
+                color: Color.fromRGBO(217, 217, 217, 0.8),
+              ),
+              child: SizedBox(
+                height: MediaQuery.of(context).size.height * 0.62,
+                child: Container(
+                  decoration: const BoxDecoration(
+                    borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(30),
+                        topRight: Radius.circular(30)
+                    ),
                   ),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    children: [
-                      Expanded(
-                          child: Container(
-                            alignment: Alignment.topLeft,
-                            decoration: BoxDecoration(
-                                color: const Color(0xFFf1f1f1),
-                                border: Border.all(width: 2),
-                                borderRadius: const BorderRadius.all(Radius.circular(20))
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.only(bottom: 15),
-                              child: Column(
-                                children: [
-                                  Container(
-                                    alignment: Alignment.center,
-                                    child:  Padding(
-                                      padding: const EdgeInsets.only(
-                                          top: 10,
-                                          bottom: 10
-                                      ),
-                                      child: Text(
-                                        //'n° pedido: ${listPedido.correlativoPedido}',
-                                        'n° pedido: ${listPedido.idPedido}',
-                                        style: const TextStyle(
-                                            color: Color(0xFF111111),
-                                            decoration: TextDecoration.none,
-                                            fontSize : 30,
-                                            fontWeight: FontWeight.w600
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      children: [
+                        Expanded(
+                            child: Container(
+                              alignment: Alignment.topLeft,
+                              decoration: BoxDecoration(
+                                  color: const Color(0xFFf1f1f1),
+                                  border: Border.all(width: 2),
+                                  borderRadius: const BorderRadius.all(Radius.circular(20))
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.only(bottom: 15),
+                                child: Column(
+                                  children: [
+                                    Container(
+                                      alignment: Alignment.center,
+                                      child:  Padding(
+                                        padding: const EdgeInsets.only(
+                                            top: 10,
+                                            bottom: 10
+                                        ),
+                                        child: Text(
+                                          //'n° pedido: ${listPedido.correlativoPedido}',
+                                          'n° pedido: ${listPedido.correlativoPedido}',
+                                          style: const TextStyle(
+                                              color: Color(0xFF111111),
+                                              decoration: TextDecoration.none,
+                                              fontSize : 30,
+                                              fontWeight: FontWeight.w600
+                                          ),
                                         ),
                                       ),
                                     ),
-                                  ),
-                                  Expanded(
-                                    child: Padding(
-                                      padding: const EdgeInsets.only(
-                                          top: 10,
-                                          left: 20,
-                                          bottom: 10,
-                                          right: 20
-                                      ),
-                                      child: Container(
-                                        decoration: BoxDecoration(
-                                            color: const Color(0xFFD9D9D9),
-                                            border: Border.all(width: 2),
-                                            borderRadius: const BorderRadius.all(Radius.circular(20))
+                                    Expanded(
+                                      child: Padding(
+                                        padding: const EdgeInsets.only(
+                                            top: 10,
+                                            left: 20,
+                                            bottom: 10,
+                                            right: 20
                                         ),
-                                        child: Column(
-                                          children: [
-                                            Container(
-                                              margin: const EdgeInsets.all(5),
-                                              decoration: const BoxDecoration(border: Border(bottom: BorderSide(width: 2))),
-                                              child:  Padding(
-                                                padding: const EdgeInsets.all(5),
-                                                child: Row(
-                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                  children: [
-                                                    Expanded(
-                                                      child: Container(
-                                                        alignment: Alignment.center,
-                                                        child: const Text(
-                                                          'Cantidad',
-                                                          style: TextStyle(
-                                                              color: Color(0xFF111111),
-                                                              decoration: TextDecoration.none,
-                                                              fontSize: 16,
-                                                              fontWeight: FontWeight.w500),
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                              color: const Color(0xFFD9D9D9),
+                                              border: Border.all(width: 2),
+                                              borderRadius: const BorderRadius.all(Radius.circular(20))
+                                          ),
+                                          child: Column(
+                                            children: [
+                                              Container(
+                                                margin: const EdgeInsets.all(5),
+                                                decoration: const BoxDecoration(border: Border(bottom: BorderSide(width: 2))),
+                                                child:  Padding(
+                                                  padding: const EdgeInsets.all(5),
+                                                  child: Row(
+                                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                    children: [
+                                                      Expanded(
+                                                        child: Container(
+                                                          alignment: Alignment.center,
+                                                          child: const Text(
+                                                            'Cantidad',
+                                                            style: TextStyle(
+                                                                color: Color(0xFF111111),
+                                                                decoration: TextDecoration.none,
+                                                                fontSize: 16,
+                                                                fontWeight: FontWeight.w500),
+                                                          ),
                                                         ),
                                                       ),
-                                                    ),
-                                                    Expanded(
-                                                      child: Container(
-                                                        alignment: Alignment.center,
-                                                        child: const Text(
-                                                          'Producto',
-                                                          style: TextStyle(
-                                                              color: Color(0xFF111111),
-                                                              decoration: TextDecoration.none,
-                                                              fontSize: 16,
-                                                              fontWeight: FontWeight.w500),
+                                                      Expanded(
+                                                        child: Container(
+                                                          alignment: Alignment.center,
+                                                          child: const Text(
+                                                            'Producto',
+                                                            style: TextStyle(
+                                                                color: Color(0xFF111111),
+                                                                decoration: TextDecoration.none,
+                                                                fontSize: 16,
+                                                                fontWeight: FontWeight.w500),
+                                                          ),
                                                         ),
                                                       ),
-                                                    ),
-                                                    Expanded(
-                                                      child: Container(
-                                                        alignment: Alignment.center,
-                                                        child: const Text(
-                                                          'Precio',
-                                                          style: TextStyle(
-                                                              color: Color(0xFF111111),
-                                                              decoration: TextDecoration.none,
-                                                              fontSize: 16,
-                                                              fontWeight: FontWeight.w500),
+                                                      Expanded(
+                                                        child: Container(
+                                                          alignment: Alignment.center,
+                                                          child: const Text(
+                                                            'Precio',
+                                                            style: TextStyle(
+                                                                color: Color(0xFF111111),
+                                                                decoration: TextDecoration.none,
+                                                                fontSize: 16,
+                                                                fontWeight: FontWeight.w500),
+                                                          ),
                                                         ),
                                                       ),
-                                                    ),
 
-                                                  ],
+                                                    ],
+                                                  ),
                                                 ),
                                               ),
-                                            ),
-                                            //cp
-                                            //obtenerDetallePedidoLastCreate
-                                            _producList(listadoDetalle)
-                                          ],
+                                              //cp
+                                              //obtenerDetallePedidoLastCreate
+                                              _producList(listadoDetalle)
+                                            ],
+                                          ),
                                         ),
                                       ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          )
-                      ),
-                      Container(
-                        margin: const EdgeInsets.only(top: 20),
-                        alignment: Alignment.centerRight,
-                        decoration: BoxDecoration(
-                            color: const Color(0xFF99CFB5),
-                            border: Border.all(width: 2),
-                            borderRadius: const BorderRadius.all(Radius.circular(20))
-                        ),
-
-                        child:  Padding(
-                          padding: const EdgeInsets.only(
-                              top: 10,
-                              bottom: 10
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
-                            children: [
-                              Row(
-                                children: [
-                                  Container(
-                                    decoration: const BoxDecoration(
-                                        color: Colors.blueAccent,
-                                        shape: BoxShape.circle
-                                    ),
-                                    margin: const EdgeInsets.only(right: 10),
-                                    child: IconButton(
-                                      onPressed: () async {
-                                        String? printerIP = await _pref.read('ipCocina');
-
-                                        List<Producto> listProduct= [];
-                                        for (int i = 0; i < listadoDetalle.length; i++) {
-                                          Detalle_Pedido detalle = listadoDetalle[i];
-                                          listProduct.add(ListadoProductos.firstWhere((producto) => producto.id == detalle.id_producto));
-                                        }
-                                        impresora.printLabel(printerIP!,listProduct,3, listPedido.montoTotal!, '');
-                                        print('Imprimir');
-                                      },
-                                      icon: const Icon(Icons.print),
-                                      tooltip: 'Imprimir',
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  Container(
-                                    decoration: const BoxDecoration(
-                                        color: Colors.redAccent,
-                                        shape: BoxShape.circle
-                                    ),
-                                    child: IconButton(
-                                      onPressed: () {
-                                        print('Botón presionado');
-                                      },
-                                      icon: const Icon(Icons.cancel_outlined),
-                                      tooltip: 'Anular',
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              Text(
-                                ' Total S/${listPedido.montoTotal}',
-                                style:  const TextStyle(
-                                    color: Color(0xFF111111),
-                                    decoration: TextDecoration.none,
-                                    fontSize : 20,
-                                    fontWeight: FontWeight.w600
+                                  ],
                                 ),
                               ),
-                            ],
+                            )
+                        ),
+                        Container(
+                          margin: const EdgeInsets.only(top: 20),
+                          alignment: Alignment.centerRight,
+                          decoration: BoxDecoration(
+                              color: const Color(0xFF99CFB5),
+                              border: Border.all(width: 2),
+                              borderRadius: const BorderRadius.all(Radius.circular(20))
+                          ),
+
+                          child:  Padding(
+                            padding: const EdgeInsets.only(
+                                top: 10,
+                                bottom: 10
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: [
+                                Row(
+                                  children: [
+                                    Container(
+                                      decoration: const BoxDecoration(
+                                          color: Colors.blueAccent,
+                                          shape: BoxShape.circle
+                                      ),
+                                      margin: const EdgeInsets.only(right: 10),
+                                      child: IconButton(
+                                        onPressed: () async {
+                                          String? printerIP = await _pref.read('ipCocina');
+
+                                          List<Producto> listProduct= [];
+                                          for (int i = 0; i < listadoDetalle.length; i++) {
+                                            Detalle_Pedido detalle = listadoDetalle[i];
+                                            Producto producto = ListadoProductos.firstWhere((producto) => producto.id == detalle.id_producto);
+                                            producto.stock = detalle.cantidad_producto;
+                                            listProduct.add(producto);
+                                          }
+                                          impresora.printLabel(printerIP!,listProduct,3, listPedido.montoTotal!, '');
+                                          print('Imprimir');
+                                        },
+                                        icon: const Icon(Icons.print),
+                                        tooltip: 'Imprimir',
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    Container(
+                                      decoration: const BoxDecoration(
+                                          color: Colors.redAccent,
+                                          shape: BoxShape.circle
+                                      ),
+                                      child: IconButton(
+                                        onPressed: () {
+                                          print('Botón presionado');
+                                        },
+                                        icon: const Icon(Icons.cancel_outlined),
+                                        tooltip: 'Anular',
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Text(
+                                  ' Total S/${listPedido.montoTotal}',
+                                  style:  const TextStyle(
+                                      color: Color(0xFF111111),
+                                      decoration: TextDecoration.none,
+                                      fontSize : 20,
+                                      fontWeight: FontWeight.w600
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -850,7 +871,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                           color: Color(0xFF111111),
                           decoration: TextDecoration.none,
                           fontSize: 16,
-                          fontWeight: FontWeight.w500),
+                          fontWeight: FontWeight.w500
+                      ),
                     ),
                   ),
                 ),
@@ -893,36 +915,36 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     }
 
     return GestureDetector(
-        onTap: () async {
-          if (mesa.estadoMesa == 1) {
-            Navigator.pushNamed(context, 'home/productos', arguments: mesa);
-          } else {
-           int? idPedido = await dbPedido.consultarMesasDisponibilidad(mozo!.id, mesa.id,context);
-           if(idPedido != null){
-             List<Detalle_Pedido> detallePedido =  await dbPedido.consultaObtenerDetallePedido(idPedido, context);
-             MesaDetallePedido mesaDetallePedido = MesaDetallePedido(mesa, detallePedido);
-             Navigator.pushNamed(context, 'home/productos', arguments: mesaDetallePedido);
-           }else {
-             showDialog(
-               context: context,
-               builder: (BuildContext context) {
-                 return AlertDialog(
-                   title: Text('Mensaje'),
-                   content: Text('La Mesa ya esta ocupada por otro Mozo'),
-                   actions: <Widget>[
-                     TextButton(
-                       onPressed: () {
-                         Navigator.of(context).pop();
-                       },
-                       child: Text('OK'),
-                     ),
-                   ],
-                 );
-               },
-             );
-           }
+      onTap: () async {
+        if (mesa.estadoMesa == 1) {
+          Navigator.pushNamed(context, 'home/productos', arguments: mesa);
+        } else {
+          int? idPedido = await dbPedido.consultarMesasDisponibilidad(mozo!.id, mesa.id,context);
+          if(idPedido != null){
+            List<Detalle_Pedido> detallePedido =  await dbPedido.consultaObtenerDetallePedido(idPedido, context);
+            MesaDetallePedido mesaDetallePedido = MesaDetallePedido(mesa, detallePedido);
+            Navigator.pushNamed(context, 'home/productos', arguments: mesaDetallePedido);
+          }else {
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: Text('Mensaje'),
+                  content: Text('La Mesa ya esta ocupada por otro Mozo'),
+                  actions: <Widget>[
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: Text('OK'),
+                    ),
+                  ],
+                );
+              },
+            );
           }
-        },
+        }
+      },
       child: SizedBox(
         child: Card(
           margin: const EdgeInsets.all(10),
@@ -965,7 +987,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                       ),
                     ),
                   ),
-                   Center(
+                  Center(
                     child: Text(
                       estadoMesaDis,
                       style:
