@@ -1,8 +1,16 @@
+import 'dart:convert';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:intl/intl.dart';
+import 'package:restauflutter/services/login_service.dart';
 import 'package:restauflutter/utils/shared_pref.dart';
+
+import '../../model/mozo.dart';
+import '../../services/producto_service.dart';
 
 class AjustesPage extends StatefulWidget {
   @override
@@ -15,12 +23,23 @@ class _AjustesPageState extends State<AjustesPage> {
   bool _showBarPrinter = false;
   final _formKey = GlobalKey<FormState>(); // Agregar GlobalKey<FormState>
   final SharedPref _sharedPref = SharedPref();
+  var prod = ProductoServicio();
+  Mozo mozo = Mozo();
+  SharedPref _pref = SharedPref();
 
 
+  Future<void> UserShared() async {
+    final dynamic userData = await _pref.read('user_data');
+    if (userData != null) {
+      final Map<String, dynamic> userDataMap = json.decode(userData);
+      mozo = Mozo.fromJson(userDataMap);
+    }
+  }
   @override
   void initState() {
     super.initState();
     _loadPrinters(); // Cargar las impresoras al inicializar la página
+    UserShared();
   }
   @override
   void dispose() {
@@ -48,63 +67,89 @@ class _AjustesPageState extends State<AjustesPage> {
 
         ),
         body: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Form( // Envolver la columna en un Form
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Cocina',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+              padding: const EdgeInsets.all(16.0),
+              child: Form( // Envolver la columna en un Form
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Cocina',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 10),
-                  _buildPrinterInputField(_printer1Controller),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      const Text(
-                        'Bar',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                    _buildPrinterInputField(_printer1Controller),
+                    Row(
+                      children: [
+                        const Text(
+                          'Bar',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                      const Spacer(),
-                      Switch(
-                        value: _showBarPrinter,
-                        onChanged: (value) {
-                          setState(() {
-                            _showBarPrinter = value;
-                          });
-                        },
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  if (_showBarPrinter) _buildPrinterInputField(_printer2Controller),
-                  const SizedBox(height: 32),
-                  ElevatedButton(
-                    onPressed: () {
-                      if (_formKey.currentState!.validate()) { // Validar el formulario
-                        _savePrinters();
-                      }
-                    },
-                    child: const Text('Guardar'),
-                  ),
-                  Spacer(),
-                  Divider(),
-                  const SizedBox(height: 16),
-                  iconCerrar()
-                ],
+                        const Spacer(),
+                        Switch(
+                          value: _showBarPrinter,
+                          onChanged: (value) {
+                            setState(() {
+                              _showBarPrinter = value;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                    if (_showBarPrinter) _buildPrinterInputField(_printer2Controller),
+                    const SizedBox(height: 20),
+
+                    ElevatedButton(
+                      onPressed: () {
+                        if (_formKey.currentState!.validate()) { // Validar el formulario
+                          _savePrinters();
+                        }
+                      },
+                      child: const Text('Guardar'),
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Text('Actualizar Producto', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),),
+                        Spacer(),
+                        ElevatedButton(onPressed: (){
+                          actualziarProducto();
+                        }, child: Text('Actualizar'))
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Text('Actualizar Categoria', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),),
+                        Spacer(),
+                        ElevatedButton(onPressed: (){
+                          actualziarCategoria();
+                        }, child: Text('Actualizar'))
+                      ],
+                    ),
+                    Spacer(),
+                    Expanded(child: iconCerrar())
+                  ],
+                ),
               ),
             ),
-          ),
     );
+  }
+  Future<void> actualziarProducto() async {
+    await prod.consultarProductos(context, mozo.id_establecimiento!);
+    agregarMsj('Se actualizo correctamente los productos');
+  }
+
+  Future<void> actualziarCategoria() async {
+    await prod.consultarCategorias(context, mozo.id_establecimiento!);
+    agregarMsj('Se actualizo correctamente los productos');
   }
 
   Widget iconCerrar(){

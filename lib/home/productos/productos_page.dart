@@ -25,6 +25,7 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
   int selectedIndex = 0;
   late TabController _tabController;
   late PageController _pageController;
+
   @override
   void initState() {
     // TODO: implement initState
@@ -32,6 +33,7 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
     SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
       _con.init(context, refresh);
     });
+
     refresh();
   }
 
@@ -43,134 +45,145 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
   }
 
 
-
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-          length: _con.categorias.length,
-          child: Scaffold(
-          appBar: AppBar(
-            elevation: 3,
-            toolbarHeight: 100,
-            backgroundColor: const Color(0xFF99CFB5),
-            actions: [
-              const SizedBox(width: 5),
-              Expanded(
-                child: Padding(
-                          padding: const EdgeInsets.only(top: 10),
-                          child: ElevatedButton.icon(
-                            style: const ButtonStyle(backgroundColor: MaterialStatePropertyAll(Colors.deepOrange)),
-                              onPressed: (){
-                              Navigator.pushNamed(context, 'home');
-                              },
-                              icon: const Icon(Icons.arrow_back_ios_outlined, color: Colors.white,),
-                              label: const Text("SALIR", style: TextStyle(fontSize: 18, color: Colors.white),)),
-                        ),
-              ),
-              const SizedBox(width: 50),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 10),
-                  child: ElevatedButton(
-                    onPressed: (){
+      length: _con.categorias.length,
+      child: Scaffold(
+        appBar: AppBar(
+          elevation: 3,
+          toolbarHeight: 100,
+          backgroundColor: const Color(0xFF99CFB5),
+          actions: [
+            const SizedBox(width: 5),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 10),
+                child: ElevatedButton.icon(
+                    style: const ButtonStyle(
+                        backgroundColor: MaterialStatePropertyAll(
+                            Colors.deepOrange)),
+                    onPressed: () {
+                      Navigator.pushNamed(context, 'home');
                     },
-                    child:  Text('${_con.mesa.nombreMesa}', style: TextStyle(fontSize: 18)),),
-                ),
+                    icon: const Icon(
+                      Icons.arrow_back_ios_outlined, color: Colors.white,),
+                    label: const Text("SALIR",
+                      style: TextStyle(fontSize: 18, color: Colors.white),)),
               ),
-              const SizedBox(width: 5)
-            ],
-            bottom: TabBar(
-              isScrollable: true,
-              controller: _tabController,
-              tabs: List<Widget>.generate(_con.categorias.length, (index) {
-                return Tab(
-                  child: Text(_con.categorias[index].nombre ?? ''),
-                );
-              }),
-              onTap: (index) async {
-                _pageController.animateToPage(
-                  index,
-                  duration: Duration(milliseconds: 500),
-                  curve: Curves.easeInOut,
-                );
-                List<Producto> productosCategoria = await _con.getProductosPorCategoria(_con.categorias[index].id);
-                setState(() {
-                  _con.productos = productosCategoria;
-                });
-              },
             ),
-          ),
-          body:  Column(
-            children: [
-              const SizedBox(height: 10),
-              _textFieldSearch(),
-              const SizedBox(height: 10),
-              Expanded(
-                child: PageView.builder(
-                  controller: _pageController,
-                  onPageChanged: (index) async {
-                    _tabController.animateTo(index);
-                    List<Producto> productosCategoria = await _con.getProductosPorCategoria(_con.categorias[index].id);
-                    setState(() {
-                      _con.productos = productosCategoria;
-                    });
-                  },
-                  itemCount: _con.categorias.length,
-                  itemBuilder: (context, index) {
-                    return GridView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        childAspectRatio: 0.7,
-                      ),
-                      itemCount: _con.productos.length,
-                      itemBuilder: (_, index) {
-                        if (index < _con.productos.length) {
-                          Producto producto = _con.productos[index];
-                          return _cardProduct(producto);
-                        } else {
-                          return const SizedBox(); // Otra opción es devolver un widget vacío si el índice está fuera de rango
-                        }
-                      },
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-            floatingActionButton: Container(
-              width: MediaQuery.of(context).size.width,
-              alignment: Alignment.bottomCenter,
-              child: SizedBox(
-                width: 250,
-                height: 50,
+            const SizedBox(width: 50),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 10),
                 child: ElevatedButton(
-                  onPressed: () async {
-                    pedido();
-                  },
-                  child:  Row(
-                    children: [
-                      Expanded(child: cantidad()),
-                      const SizedBox(width: 10),
-                      Expanded(child: precio()),
-                    ],
-                  ),
-                ),
+                  onPressed: () {},
+                  child: Text('${_con.mesa.nombreMesa}',
+                      style: TextStyle(fontSize: 18)),),
               ),
             ),
-            floatingActionButtonLocation: FloatingActionButtonLocation.miniCenterFloat,
+            const SizedBox(width: 5)
+          ],
+          bottom: TabBar(
+            isScrollable: true,
+            controller: _tabController,
+            tabs: List<Widget>.generate(_con.categorias.length, (index) {
+              return Tab(
+                child: Text(_con.categorias[index].nombre ?? ''),
+              );
+            }),
+            onTap: (index) async {
+              _pageController.animateToPage(
+                index,
+                duration: Duration(milliseconds: 500),
+                curve: Curves.easeInOut,
+              );
+              List<Producto> productosCategoria = await _con
+                  .getProductosPorCategoria(_con.categorias[index].id);
+              setState(() {
+                _con.productos = productosCategoria;
+              });
+            },
           ),
+        ),
+        body: Column(
+          children: [
+            const SizedBox(height: 10),
+            _textFieldSearch(),
+            const SizedBox(height: 10),
+            Expanded(
+              child: PageView.builder(
+                controller: _pageController,
+                onPageChanged: (index) async {
+                  _tabController.animateTo(index);
+                  List<Producto> productosCategoria = await _con
+                      .getProductosPorCategoria(_con.categorias[index].id);
+                  setState(() {
+                    _con.productos = productosCategoria;
+                  });
+                },
+                itemCount: _con.categorias.length,
+                itemBuilder: (context, index) {
+                  return GridView.builder(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 10),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      childAspectRatio: 0.7,
+                    ),
+                    itemCount: _con.productos.length,
+                    itemBuilder: (_, index) {
+                      if (index < _con.productos.length) {
+                        Producto producto = _con.productos[index];
+                        return _cardProduct(producto);
+                      } else {
+                        return const SizedBox(); // Otra opción es devolver un widget vacío si el índice está fuera de rango
+                      }
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+        floatingActionButton: Container(
+          width: MediaQuery
+              .of(context)
+              .size
+              .width,
+          alignment: Alignment.bottomCenter,
+          child: SizedBox(
+            width: 250,
+            height: 50,
+            child: ElevatedButton(
+              onPressed: () async {
+                pedido();
+              },
+              child: Row(
+                children: [
+                  Expanded(child: cantidad()),
+                  const SizedBox(width: 10),
+                  Expanded(child: precio()),
+                ],
+              ),
+            ),
+          ),
+        ),
+        floatingActionButtonLocation: FloatingActionButtonLocation
+            .miniCenterFloat,
+      ),
 
     );
   }
-  Widget precio(){
+
+  Widget precio() {
     double total = calcularTotal();
     return Text('S/ ${total.toStringAsFixed(2)}');
   }
 
-  Widget cantidad(){
+  Widget cantidad() {
     int cantidadProductos = calcularCantidadProductosSeleccionados();
-    return Text('CANTIDAD: $cantidadProductos' );
+    return Text('CANTIDAD: $cantidadProductos');
   }
 
   double calcularTotal() {
@@ -182,6 +195,7 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
     }
     return total;
   }
+
   int calcularCantidadProductosSeleccionados() {
     int cantidad = 0;
     if (_con.productosSeleccionados != null) {
@@ -192,13 +206,12 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
     return cantidad;
   }
 
-  void _actualizarProductosSeleccionados(List<Producto>? nuevosProductosSeleccionados) {
+  void _actualizarProductosSeleccionados(
+      List<Producto>? nuevosProductosSeleccionados) {
     setState(() {
       _con.productosSeleccionados = nuevosProductosSeleccionados;
     });
   }
-
-
 
 
   Future pedido() async {
@@ -209,7 +222,10 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
       builder: (BuildContext context) {
         return SingleChildScrollView(
           child: SizedBox(
-            height: MediaQuery.of(context).size.height * 0.87,
+            height: MediaQuery
+                .of(context)
+                .size
+                .height * 0.87,
             child: DetailsPage(
               productosSeleccionados: _con.productosSeleccionados,
               idPedido: idPedido ?? _con.IDPEDIDO,
@@ -229,7 +245,6 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
       // Haz lo que necesites con el valor de idPedido, por ejemplo, imprimirlo
     }
     print('-------------Valor de IDPEDIDO: $idPedido');
-
   }
 
 
@@ -237,8 +252,9 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
     return GestureDetector(
       onTap: () {
         setState(() {
-          if(_con.mesa.estadoMesa != 2){
-            if (_con.productosSeleccionados?.any((p) => p.nombreproducto == producto.nombreproducto) ?? false) {
+          if (_con.mesa.estadoMesa != 2) {
+            if (_con.productosSeleccionados?.any((p) =>
+            p.nombreproducto == producto.nombreproducto) ?? false) {
               // El producto ya está seleccionado, muestra un mensaje de confirmación
               _con.mostrarMensaje('El producto ya ha sido seleccionado.');
             } else {
@@ -253,10 +269,10 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
                 print(prod.toJson());
               });
             }
-          }else{
-            _con.mostrarMensaje('No se pueden agregar productos porque el pedido está cerrado.');
+          } else {
+            _con.mostrarMensaje(
+                'No se pueden agregar productos porque el pedido está cerrado.');
           }
-
         });
       },
       child: SizedBox(
@@ -287,20 +303,24 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    height: MediaQuery.of(context).size.height * 0.2,
-                    width: MediaQuery.of(context).size.width,
+                    height: MediaQuery
+                        .of(context)
+                        .size
+                        .height * 0.2,
+                    width: MediaQuery
+                        .of(context)
+                        .size
+                        .width,
                     padding: const EdgeInsets.only(left: 10, right: 10),
-                    child: const FadeInImage(
-                      image: AssetImage('assets/img/arrozconpollo.jpeg'),
+                    child: Image.network(
+                      'http://137.184.54.213/storage/${producto.foto}',
                       fit: BoxFit.contain,
-                      fadeInDuration: Duration(milliseconds: 50),
-                      placeholder: AssetImage('assets/img/no-image.png'),
                     ),
                   ),
                   Container(
                     margin: const EdgeInsets.symmetric(horizontal: 20),
                     height: 40,
-                    child:  Text(
+                    child: Text(
                       producto.nombreproducto ?? 'Nombre no disponible',
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -314,7 +334,8 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
                   Container(
                     margin: const EdgeInsets.symmetric(horizontal: 20),
                     child: Text(
-                      'S/ ${producto.precioproducto ?? 'Precio no disponible'} ' ,
+                      'S/ ${producto.precioproducto ??
+                          'Precio no disponible'} ',
                       style: const TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
@@ -365,14 +386,17 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
     );
   }
 
-  void refresh(){
+  void refresh() {
     setState(() {
       _tabController = TabController(
-        length: _con.categorias.length,
-        vsync: this,
-        initialIndex: selectedIndex
+          length: _con.categorias.length,
+          vsync: this,
+          initialIndex: selectedIndex
       );
       _pageController = PageController();
     });
+
   }
+
+
 }

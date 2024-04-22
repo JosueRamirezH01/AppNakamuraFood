@@ -32,8 +32,8 @@ class ProductoController {
   Future init(BuildContext context, Function refresh) async {
     this.context = context;
     this.refresh = refresh;
-    _getProductos();
     _getCategorias();
+    _getProductos();
 
     final args = ModalRoute.of(context)?.settings.arguments;
     if (args is Mesa) {
@@ -166,7 +166,7 @@ class ProductoController {
               .toList();
         } else {
           // Si no se proporciona ningún texto de búsqueda, reinicia la lista de productos
-          productos = productosData.map((productoJson) => Producto.fromJson(productoJson)).toList();
+          productos = await getProductosPorCategoria(categorias.isNotEmpty ? categorias.first.id : null);
         }
       }
     } catch (e) {
