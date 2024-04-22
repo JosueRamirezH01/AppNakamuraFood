@@ -63,7 +63,6 @@ class ProductoController {
         print('PRECIO PRODUCTO ${detalle.precio_producto}');
 
         if (producto != null) {
-          // Agrega el producto a la lista de productos encontrados
           productosSeleccionados?.add(setproducto);
         }
       });
@@ -89,7 +88,6 @@ class ProductoController {
       String productosJson = await _sharedPref.read('productos');
       if (productosJson.isNotEmpty) {
         List<dynamic> productosData = json.decode(productosJson);
-        // Busca el producto con el ID dado
         for (var productoJson in productosData) {
           Producto producto = Producto.fromJson(productoJson);
           if (producto.id == idProducto) {
@@ -100,14 +98,14 @@ class ProductoController {
     } catch (e) {
       print('Error al obtener el producto por ID: $e');
     }
-    return null; // Devuelve null si no se encuentra el producto
+    return null;
   }
 
 
 
   void onChangeText(String text) {
     const duration = Duration(
-        milliseconds: 800); // set the duration that you want call search() after that.
+        milliseconds: 800);
     searchOnStoppedTyping.cancel();
     refresh();
 
@@ -143,7 +141,6 @@ class ProductoController {
         List<dynamic> productosData = json.decode(productosJson);
 
         if (productName.isNotEmpty) {
-          // Filtra los productos según el código interno exacto o el nombre basado en la búsqueda
           productos = productosData
               .map((productoJson) => Producto.fromJson(productoJson))
               .where((producto) {
@@ -153,19 +150,14 @@ class ProductoController {
             final isAlphaNumeric = RegExp(r'^[0-9a-zA-Z]+$').hasMatch(productName);
 
             if (isNumeric) {
-              // Si el término de búsqueda es un número, buscar por código interno
               return codigoInterno.toLowerCase() == productName.toLowerCase();
             } else if (isAlphaNumeric) {
-              // Si el término de búsqueda es alfanumérico, buscar por nombre o código interno
               return codigoInterno.toLowerCase() == productName.toLowerCase() || nombreProducto.toLowerCase().contains(productName.toLowerCase());
             } else {
-              // Si el término de búsqueda no es ni un número ni alfanumérico, buscar solo por nombre
               return nombreProducto.toLowerCase().contains(productName.toLowerCase());
             }
-          })
-              .toList();
+          }).toList();
         } else {
-          // Si no se proporciona ningún texto de búsqueda, reinicia la lista de productos
           productos = await getProductosPorCategoria(categorias.isNotEmpty ? categorias.first.id : null);
         }
       }
@@ -173,10 +165,7 @@ class ProductoController {
       print('Error al obtener los productos: $e');
     }
   }
-
-
 //RegExp(r'^[a-z]{2}\d+|\d+$')
-
   Future<List<Producto>> getProductosPorCategoria(int? categoriaId) async {
     try {
       String productosJson = await _sharedPref.read('productos');
@@ -214,6 +203,7 @@ class ProductoController {
       fontSize: 16.0,
     );
   }
+
   void agregarMsj(String mensaje){
     Fluttertoast.showToast(
         msg: mensaje,

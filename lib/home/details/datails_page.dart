@@ -401,6 +401,27 @@ class _DetailsPageState extends State<DetailsPage> {
   }
 
   Future<String?> mostrarMesa(List<Mesa> mesas) async {
+    if (mesas.isEmpty) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Mesas no disponibles'),
+            content: Text('Lo sentimos, no hay mesas disponibles en este momento.'),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: Text('Aceptar'),
+              ),
+            ],
+          );
+        },
+      );
+      return null;
+    }
+
     int? nuevaMesaId;
     String? nomMesa;
     nomMesa = await showDialog<String>(
@@ -411,7 +432,10 @@ class _DetailsPageState extends State<DetailsPage> {
           content: StatefulBuilder(
             builder: (BuildContext context, StateSetter setState) {
               return DropdownButtonFormField<Mesa>(
-                hint: const Text("Seleccione una mesa disponible", style: TextStyle(fontSize: 14),),
+                hint: const Text(
+                  "Seleccione una mesa disponible",
+                  style: TextStyle(fontSize: 14),
+                ),
                 onChanged: (Mesa? newValue) {
                   setState(() {
                     nuevaMesaId = newValue?.id;
@@ -430,7 +454,7 @@ class _DetailsPageState extends State<DetailsPage> {
           actions: <Widget>[
             TextButton(
               onPressed: () {
-                Navigator.pop(context); // Cancelar: Cierra el diálogo y la página
+                Navigator.pop(context);
               },
               child: const Text('Cancelar'),
             ),
@@ -442,7 +466,7 @@ class _DetailsPageState extends State<DetailsPage> {
                   bdMesas.actualizarMesa(widget.mesa!.id, 1, context);
                   widget.mesa?.id = nuevaMesaId ;
                   widget.mesa?.nombreMesa = nomMesa;
-                  Navigator.pop(context); // Confirmar y pasar el valor seleccionado
+                  Navigator.pop(context);
                   Navigator.pop(context, idPedido);
                 });
               },
@@ -453,9 +477,10 @@ class _DetailsPageState extends State<DetailsPage> {
       },
     );
 
-    // Regresa el valor de nomMesa
     return nomMesa;
   }
+
+
   Widget _pedido(){
     return ElevatedButton(
         style:  ButtonStyle(
