@@ -132,6 +132,16 @@ class _AjustesPageState extends State<AjustesPage> {
                                           print(value);
                                           setState(() {
                                             _showBarPrinter = value;
+                                            prod.consultarCategoriaIpBar(
+                                                context, mozo.id_establecimiento).then((
+                                                consultaExitosa) {
+                                              if (!consultaExitosa) {
+                                                setState(() {
+                                                  _showBarPrinter = false;
+                                                });
+                                              }
+                                            }
+                                              );
                                           });
                                         },
                                       ),
@@ -148,13 +158,14 @@ class _AjustesPageState extends State<AjustesPage> {
                                           const Color(0xFFFF562F))),
                                   onPressed: () {
                                     if (_formKey.currentState!.validate()) {
+                                      // Validar el formulario
                                       _savePrinters();
                                     }
                                   },
                                   child: const Text(
                                     'Guardar',
                                     style: TextStyle(color: Colors.white),
-                                  ),
+                                  ), // Color(0xFF111111)
                                 ),
                               ],
                             ),
@@ -196,7 +207,6 @@ class _AjustesPageState extends State<AjustesPage> {
                                         onPressed: () {
                                           actualziarCategoria();
                                           actualziarProducto();
-                                          agregarMsj('Se actualizo correctamente los productos');
                                         },
                                         child: Text('Actualizar', style: TextStyle(color: Colors.white)))
                                   ],
@@ -214,6 +224,7 @@ class _AjustesPageState extends State<AjustesPage> {
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: iconCerrar(),
+
               )
             ],
           )),
@@ -222,10 +233,12 @@ class _AjustesPageState extends State<AjustesPage> {
 
   Future<void> actualziarProducto() async {
     await prod.consultarProductos(context, mozo.id_establecimiento!);
+    agregarMsj('Se actualizo correctamente los productos');
   }
 
   Future<void> actualziarCategoria() async {
     await prod.consultarCategorias(context, mozo.id_establecimiento!);
+    agregarMsj('Se actualizo correctamente los productos');
   }
 
   Widget iconCerrar() {
@@ -236,30 +249,32 @@ class _AjustesPageState extends State<AjustesPage> {
         _sharedPref.remove('productos');
         _sharedPref.remove('ipBar');
         Navigator.pushNamedAndRemoveUntil(context, 'login', (route) => false);
+
+        print('todos');
       },
-      child: Padding(
-        padding: EdgeInsets.only(left: 30),
-        child: Row(
-          children: [
-            Container(
-              margin: EdgeInsets.only(right: 20),
+      child: Row(
+        children: [
+          Container(
+            margin: EdgeInsets.only(right: 20, left: 20),
+            child: Padding(
+              padding: const EdgeInsets.all(5.0),
               child: Icon(
                 Icons.logout_outlined,
-                size: 30,
-              ),
-              decoration: BoxDecoration(
-                  color: Colors.grey, borderRadius: BorderRadius.circular(20)),
-            ),
-            Expanded(
-              child: Text(
-                'Cerrar sesión',
-                style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold), // Color del texto
+                size: 25,
               ),
             ),
-          ],
-        ),
+            decoration: BoxDecoration(
+                color: Colors.grey, borderRadius: BorderRadius.circular(20)),
+          ),
+          Expanded(
+            child: Text(
+              'Cerrar sesión',
+              style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold), // Color del texto
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -351,6 +366,8 @@ class _AjustesPageState extends State<AjustesPage> {
   void _savePrinters() {
     final String printer1IP = _printer1Controller.text;
     final String printer2IP = _printer2Controller.text;
+
+    print('Impresora 1 (Cocina): $printer1IP');
     _sharedPref.save('ipCocina', printer1IP);
     if (_showBarPrinter) {
       _sharedPref.save('ipBar', printer2IP);
