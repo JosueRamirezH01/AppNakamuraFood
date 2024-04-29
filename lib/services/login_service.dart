@@ -74,7 +74,8 @@ class LoginService {
                 'email': row['email'],
                 'id':row['id'],
                 'id_establecimiento':row['id_establecimiento'],
-                'idperfil':row["idperfil"]
+                'idperfil':row["idperfil"],
+                'mombre_usuario':row["mombre_usuario"]
               };
               final jsonUserData = json.encode(userData);
 

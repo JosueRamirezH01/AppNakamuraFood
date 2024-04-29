@@ -233,33 +233,37 @@ class _AjustesPageState extends State<AjustesPage> {
   Widget iconCerrar() {
     return GestureDetector(
       onTap: () {
-        // _sharedPref.remove('user_data');
-        // _sharedPref.remove('categorias');
-        // _sharedPref.remove('productos');
-        // _sharedPref.remove('ipBar');
-        // Navigator.pushNamedAndRemoveUntil(context, 'login', (route) => false);
-        _nota(staticComidas);
+        _sharedPref.remove('user_data');
+        _sharedPref.remove('categorias');
+        _sharedPref.remove('productos');
+        _sharedPref.remove('ipBar');
+        Navigator.pushNamedAndRemoveUntil(context, 'login', (route) => false);
+
         print('todos');
       },
-      child: Row(
-        children: [
-          Container(
-            margin: EdgeInsets.only(right: 20),
-            child: Icon(
-              Icons.logout_outlined,
-              size: 30,
+      child: Padding(
+        padding: EdgeInsets.only(left: 30),
+        child: Row(
+          children: [
+            Container(
+              margin: EdgeInsets.only(right: 20),
+              child: Icon(
+                Icons.logout_outlined,
+                size: 30,
+              ),
+              decoration: BoxDecoration(
+                  color: Colors.grey, borderRadius: BorderRadius.circular(20)),
             ),
-            decoration: BoxDecoration(
-                color: Colors.grey, borderRadius: BorderRadius.circular(20)),
-          ),
-          Expanded(
-            child: Text(
-              'Cerrar sesión',
-              style: TextStyle(
-                  fontSize: 20, fontWeight: FontWeight.bold), // Color del texto
+            Expanded(
+              child: Text(
+                'Cerrar sesión',
+                style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold), // Color del texto
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -315,8 +319,7 @@ class _AjustesPageState extends State<AjustesPage> {
         )
       ),
       inputFormatters: [
-        FilteringTextInputFormatter.allow(
-            RegExp(r'^\d{0,3}(\.\d{0,3}){0,3}$')),
+        FilteringTextInputFormatter.allow(RegExp(r'^\d{0,3}(\.\d{0,3}){0,3}$')),
         _IPTextInputFormatter(),
       ],
       validator: (value) {
@@ -361,73 +364,6 @@ class _AjustesPageState extends State<AjustesPage> {
     agregarMsj('Se guardo correctamente');
     // Aquí puedes guardar las direcciones IP en la configuración de la aplicación
     // o realizar cualquier otra acción necesaria con ellas.
-  }
-
-  List<String> staticComidas = [
-    'Pizza',
-    'Hamburguesa',
-    'Ensalada',
-    'Pasta',
-    'Sushi',
-    'Tacos',
-    'Sopa'
-  ];
-
-  Future<List<String>?> _nota(List<String> comidas) async {
-    // Inicializar la lista de comidas seleccionadas con todas las comidas
-    List<String> selectedComidas = List.from(comidas);
-
-    return showDialog<List<String>>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Observación del plato'),
-          content: SizedBox(
-            width: double.maxFinite,
-            child: ListView.builder(
-              shrinkWrap: true,
-              itemCount: comidas.length,
-              itemBuilder: (BuildContext context, int index) {
-                final comida = comidas[index];
-                return CheckboxListTile(
-                  title: Text(comida),
-                  value: selectedComidas.contains(comida),
-                  onChanged: (bool? value) {
-                    setState(() {
-                      if (value != null) {
-                        if (value) {
-                          selectedComidas.add(comida); // Agregar comida seleccionada
-                        } else {
-                          selectedComidas.remove(comida); // Quitar comida deseleccionada
-                        }
-                      }
-                    });
-                    refresh();
-                  },
-                );
-              },
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancelar'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context, selectedComidas);
-              },
-              child: const Text('OK'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-  void refresh(){
-    setState(() {
-
-    });
   }
 }
 

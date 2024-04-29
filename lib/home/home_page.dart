@@ -60,6 +60,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   late SubOptTypes _subOptType;
   final SharedPref _pref = SharedPref();
   late  Mozo? mozo = Mozo();
+  late Piso piso = Piso();
   bool isLoading = true;
   late List<Pedido> listaPedido = [];
   late int idEstablecimiento = 0 ;
@@ -297,12 +298,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                             for (int i = 0; i < ListadoPisos.length; i++) {
                                               if (ListadoPisos[i].nombrePiso == selectedTabName) {
                                                 setState(() {
+                                                  piso = ListadoPisos[i];
                                                   pisoSelect = ListadoPisos[i].id!;
                                                   consultarMesas(pisoSelect,context);
                                                 });
                                               }
                                             }
-                                             //refresh();
+                                            //refresh();
                                           },
                                           indicatorColor: const Color( 0xFFFF562F),
                                           labelColor: const Color( 0xFFFF562F),
@@ -344,8 +346,20 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                           ),
                                           itemCount:ListadoMesas.length,
                                           itemBuilder: (_, index) {
-                                            print('piso Selecionado = ${ListadoMesas[index]} ');
-                                            return _cardMesa(ListadoMesas[index]);
+                                            return FutureBuilder(
+                                              future: Future.delayed(const Duration(milliseconds: 400)), // Cambia el tiempo de retraso según tu preferencia
+                                              builder: (context, snapshot) {
+                                                if (snapshot.connectionState == ConnectionState.waiting) {
+                                                  // Muestra un indicador de carga mientras se está realizando el retraso
+                                                  return Center(
+                                                    child: CircularProgressIndicator(),
+                                                  );
+                                                } else {
+                                                  // Cuando el retraso haya finalizado, muestra la tarjeta de la mesa
+                                                  return _cardMesa(ListadoMesas[index]);
+                                                }
+                                              },
+                                            );
                                           },
                                         );
                                       }).toList(),
@@ -815,7 +829,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                             producto.stock = detalle.cantidad_producto;
                                             listProduct.add(producto);
                                           }
-                                          impresora.printLabel(printerIP!,listProduct,3, listPedido.montoTotal!, '');
+                                          impresora.printLabel(printerIP!,listProduct,3, listPedido.montoTotal!, '', mozo!, piso);
                                           print('Imprimir');
                                         },
                                         icon: const Icon(Icons.print),
