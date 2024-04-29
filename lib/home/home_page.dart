@@ -350,6 +350,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                               future: Future.delayed(const Duration(milliseconds: 600)), // Cambia el tiempo de retraso según tu preferencia
                                               builder: (context, snapshot) {
                                                 if (snapshot.connectionState == ConnectionState.waiting) {
+                                                  // Muestra un indicador de carga mientras se está realizando el retraso
                                                   return Center(
                                                     child: CircularProgressIndicator(),
                                                   );
@@ -616,7 +617,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                             Expanded(child: Text('PD-${listPedido.correlativoPedido}')),
                             // Spacer(),
                             //Text('${_subOptType == SubOptTypes.local ? (ListadoMesas.isNotEmpty ? ListadoMesas.firstWhere((element) => element.id == listPedido.idMesa, orElse: () => Mesa()).nombreMesa : "") : listPedido.idCliente}'),
-                            Expanded(child: Text('${_subOptType == SubOptTypes.local ? (ListadoMesas.isNotEmpty ? (ListadoMesas.firstWhere((element) => element.id == listPedido.idMesa, orElse: () => Mesa()).nombreMesa ?? "") : "") : listPedido.idCliente}',overflow: TextOverflow.ellipsis,),),
+                            Expanded(child: Text('${_subOptType == SubOptTypes.local ? (ListadoMesas.isNotEmpty ? (ListadoMesas.firstWhere((element) => element.id == listPedido.idMesa, orElse: () => Mesa()).nombreMesa ?? "") : "") : listPedido.idCliente}')),
                             // Spacer(),
                             Expanded(child: Text('${listPedido.estadoPedido == 1 ? 'Registrado' : listPedido.estadoPedido == 0? 'Anulado':'pendiente'}',overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
