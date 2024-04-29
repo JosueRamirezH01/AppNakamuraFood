@@ -144,12 +144,17 @@ class Impresora {
             PosColumn(text: '${producto.stock}', width: 3),
             PosColumn(text: '${producto.nombreproducto}', width: 9),
           ]);
-          if(producto.comentario!.isNotEmpty || producto.comentario == '' )
-          printer.row([
-            PosColumn(text: 'NOTA', width: 3,styles: const PosStyles(bold: true)),
-            PosColumn(text: producto.comentario ?? '', width: 9),
-          ]);
-          printer.hr();
+          print(' IMPRESOARA COMENTARIO :  ${producto.comentario}');
+          if(producto.comentario != null ){
+            printer.row([
+              PosColumn(text: 'NOTA', width: 3,styles: const PosStyles(bold: true)),
+              PosColumn(text: '${producto.comentario}' , width: 9),
+            ]);
+            printer.hr();
+          }else{
+            printer.hr();
+          }
+
         }
       });
     }

@@ -347,7 +347,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                           itemCount:ListadoMesas.length,
                                           itemBuilder: (_, index) {
                                             return FutureBuilder(
-                                              future: Future.delayed(const Duration(milliseconds: 400)), // Cambia el tiempo de retraso según tu preferencia
+                                              future: Future.delayed(const Duration(milliseconds: 500)), // Cambia el tiempo de retraso según tu preferencia
                                               builder: (context, snapshot) {
                                                 if (snapshot.connectionState == ConnectionState.waiting) {
                                                   // Muestra un indicador de carga mientras se está realizando el retraso
