@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:intl/intl.dart';
+import 'package:restauflutter/services/login_service.dart';
 import 'package:restauflutter/utils/shared_pref.dart';
 
 import '../../model/mozo.dart';
@@ -19,13 +21,14 @@ class _AjustesPageState extends State<AjustesPage> {
   TextEditingController _printer1Controller = TextEditingController();
   TextEditingController _printer2Controller = TextEditingController();
   bool _showBarPrinter = false;
+  bool isChecked = false;
   final _formKey = GlobalKey<FormState>(); // Agregar GlobalKey<FormState>
   final SharedPref _sharedPref = SharedPref();
   var prod = ProductoServicio();
   Mozo mozo = Mozo();
   SharedPref _pref = SharedPref();
 
-
+  List<bool> checkedComidas = [];
   Future<void> UserShared() async {
     final dynamic userData = await _pref.read('user_data');
     if (userData != null) {
@@ -33,12 +36,14 @@ class _AjustesPageState extends State<AjustesPage> {
       mozo = Mozo.fromJson(userDataMap);
     }
   }
+
   @override
   void initState() {
     super.initState();
     _loadPrinters(); // Cargar las impresoras al inicializar la página
     UserShared();
   }
+
   @override
   void dispose() {
     _printer1Controller.dispose();
@@ -171,85 +176,15 @@ class _AjustesPageState extends State<AjustesPage> {
                 ),
               ),
               Divider(),
-              iconCerrar()
+              Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: iconCerrar(),
+              )
             ],
           )),
-      // body: Padding(
-      //       padding: const EdgeInsets.all(16.0),
-      //       child: Form( // Envolver la columna en un Form
-      //         key: _formKey,
-      //         child: Column(
-      //           crossAxisAlignment: CrossAxisAlignment.start,
-      //           children: [
-      //             const Text(
-      //               'Cocina',
-      //               style: TextStyle(
-      //                 fontSize: 18,
-      //                 fontWeight: FontWeight.bold,
-      //               ),
-      //             ),
-      //             _buildPrinterInputField(_printer1Controller),
-      //             Row(
-      //               children: [
-      //                 const Text(
-      //                   'Bar',
-      //                   style: TextStyle(
-      //                     fontSize: 18,
-      //                     fontWeight: FontWeight.bold,
-      //                   ),
-      //                 ),
-      //                 const Spacer(),
-      //                 Switch(
-      //                   value: _showBarPrinter,
-      //                   onChanged: (value) {
-      //                     setState(() {
-      //                       _showBarPrinter = value;
-      //                     });
-      //                   },
-      //                 ),
-      //               ],
-      //             ),
-      //             if (_showBarPrinter) _buildPrinterInputField(_printer2Controller),
-      //             const SizedBox(height: 20),
-      //
-      //             ElevatedButton(
-      //               onPressed: () {
-      //                 if (_formKey.currentState!.validate()) { // Validar el formulario
-      //                   _savePrinters();
-      //                 }
-      //               },
-      //               child: const Text('Guardar'),
-      //             ),
-      //             const SizedBox(height: 20),
-      //             Row(
-      //               mainAxisAlignment: MainAxisAlignment.start,
-      //               children: [
-      //                 Text('Actualizar Producto', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),),
-      //                 Spacer(),
-      //                 ElevatedButton(onPressed: (){
-      //                   actualziarProducto();
-      //                 }, child: Text('Actualizar'))
-      //               ],
-      //             ),
-      //             const SizedBox(height: 20),
-      //             Row(
-      //               mainAxisAlignment: MainAxisAlignment.start,
-      //               children: [
-      //                 Text('Actualizar Categoria', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),),
-      //                 Spacer(),
-      //                 ElevatedButton(onPressed: (){
-      //                   actualziarCategoria();
-      //                 }, child: Text('Actualizar'))
-      //               ],
-      //             ),
-      //             Spacer(),
-      //             Expanded(child: iconCerrar())
-      //           ],
-      //         ),
-      //       ),
-      //     ),
     );
   }
+
   Future<void> actualziarProducto() async {
     await prod.consultarProductos(context, mozo.id_establecimiento!);
     agregarMsj('Se actualizo correctamente los productos');
@@ -260,30 +195,31 @@ class _AjustesPageState extends State<AjustesPage> {
     agregarMsj('Se actualizo correctamente los productos');
   }
 
+
+
   Widget iconCerrar() {
     return GestureDetector(
       onTap: () {
-            _sharedPref.remove('user_data');
-            _sharedPref.remove('categorias');
-            _sharedPref.remove('productos');
-            _sharedPref.remove('ipBar');
-            Navigator.pushNamedAndRemoveUntil(
-                context, 'login', (route) => false);
+        // _sharedPref.remove('user_data');
+        // _sharedPref.remove('categorias');
+        // _sharedPref.remove('productos');
+        // _sharedPref.remove('ipBar');
+        // Navigator.pushNamedAndRemoveUntil(context, 'login', (route) => false);
 
-      print('todos');
-    },
+        print('todos');
+      },
       child: Padding(
-       padding: EdgeInsets.only(left: 30),
+        padding: EdgeInsets.only(left: 30),
         child: Row(
           children: [
-
             Container(
               margin: EdgeInsets.only(right: 20),
-                child: Icon(Icons.logout_outlined, size: 30,),
-              decoration: BoxDecoration(
-                color: Colors.grey,
-                borderRadius: BorderRadius.circular(20)
+              child: Icon(
+                Icons.logout_outlined,
+                size: 30,
               ),
+              decoration: BoxDecoration(
+                  color: Colors.grey, borderRadius: BorderRadius.circular(20)),
             ),
             Expanded(
               child: Text(
@@ -298,6 +234,7 @@ class _AjustesPageState extends State<AjustesPage> {
       ),
     );
   }
+
   Widget _buildPrinterInputField(TextEditingController controller) {
     return TextFormField(
       controller: controller,
@@ -306,7 +243,6 @@ class _AjustesPageState extends State<AjustesPage> {
         labelText: 'Dirección IP',
         hintText: 'Ej. 192.168.1.1',
         border: OutlineInputBorder(),
-
       ),
       inputFormatters: [
         FilteringTextInputFormatter.allow(RegExp(r'^\d{0,3}(\.\d{0,3}){0,3}$')),
@@ -330,7 +266,8 @@ class _AjustesPageState extends State<AjustesPage> {
       },
     );
   }
-  void agregarMsj(String mensaje){
+
+  void agregarMsj(String mensaje) {
     Fluttertoast.showToast(
         msg: mensaje,
         toastLength: Toast.LENGTH_SHORT,
@@ -338,9 +275,9 @@ class _AjustesPageState extends State<AjustesPage> {
         timeInSecForIosWeb: 1,
         backgroundColor: Colors.green,
         textColor: Colors.white,
-        fontSize: 16.0
-    );
+        fontSize: 16.0);
   }
+
   void _savePrinters() {
     final String printer1IP = _printer1Controller.text;
     final String printer2IP = _printer2Controller.text;
@@ -353,6 +290,10 @@ class _AjustesPageState extends State<AjustesPage> {
     agregarMsj('Se guardo correctamente');
     // Aquí puedes guardar las direcciones IP en la configuración de la aplicación
     // o realizar cualquier otra acción necesaria con ellas.
+  }
+  void refresh(){
+    setState(() {
+    });
   }
 }
 

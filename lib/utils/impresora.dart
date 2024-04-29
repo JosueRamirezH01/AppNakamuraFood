@@ -1,15 +1,19 @@
 
+import 'dart:convert';
+
 import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:esc_pos_printer/esc_pos_printer.dart';
-import 'package:flutter/material.dart';
 import 'package:restauflutter/model/producto.dart';
 import 'package:restauflutter/utils/shared_pref.dart';
+
+import '../model/mozo.dart';
+import '../model/piso.dart';
 
 class Impresora {
 
 
 
-  Future<void> printLabel(String printerIP,List<Producto>? producto, int? estado, double total, String? nombreMesa) async {
+  Future<void> printLabel(String printerIP,List<Producto>? producto, int? estado, double total, String? nombreMesa, Mozo mozo, Piso piso) async {
 
     String tipoBoucher = '';
 
@@ -30,14 +34,14 @@ class Impresora {
     final PosPrintResult res = await printer.connect(printerIP, port: 9100);
 
     if (res == PosPrintResult.success) {
-      testReceipt(producto ,printer, tipoBoucher, total, nombreMesa!);
+      testReceipt(producto ,printer, tipoBoucher, total, nombreMesa!, mozo, piso);
       printer.disconnect();
     }
 
   }
 
 
-  void testReceipt(List<Producto>? producto, NetworkPrinter printer, String tipoBoucher, double total,String nombreMesa ) {
+  void testReceipt(List<Producto>? producto, NetworkPrinter printer, String tipoBoucher, double total,String nombreMesa, Mozo mozo, Piso piso ) {
 
     // Título de la mesa
     printer.text(tipoBoucher,
@@ -47,7 +51,7 @@ class Impresora {
     printer.hr();
 
     // Detalles del mesero, hora y fecha
-    _buildDetailsPreCuenta(printer);
+    _buildDetailsPreCuenta(printer, mozo, piso);
 
     // Encabezado de la tabla
     _buildTableHeaderPreCuenta( tipoBoucher,printer );
@@ -72,8 +76,12 @@ class Impresora {
     printer.cut();
   }
 
-  void _buildDetailsPreCuenta(NetworkPrinter printer) {
-    String? email = 'SUSSAN';
+
+
+  void _buildDetailsPreCuenta(NetworkPrinter printer, Mozo mozo, Piso piso) {
+
+    String? email = '${mozo.email}';
+    String? nomPiso = '${piso.nombrePiso}';
     //String nombreUsuario = email != null ? email.substring(0, email.indexOf('@')) : '';
     DateTime now = DateTime.now();
     String horaActual = '${now.hour}:${now.minute}:${now.second}';
@@ -83,7 +91,7 @@ class Impresora {
     }
     String fechaActual = '${now.year}-${_twoDigits(now.month)}-${_twoDigits(now.day)}';
 
-    printer.text('Piso: PISO 1');
+    printer.text('Piso: $nomPiso');
     printer.text('Mesero(a): $email');
     printer.text('Hora: $horaActual');
     printer.text('Fecha: $fechaActual');
@@ -100,8 +108,8 @@ class Impresora {
     }else{
       printer.row([
         PosColumn(text: 'CANTIDAD', width: 3,styles: const PosStyles(bold: true)),  // 3 de ancho
-        PosColumn(text: 'PRODUCTO', width: 6,styles: const PosStyles(bold: true)),  // 6 de ancho
-        PosColumn(text: 'NOTA', width: 3,styles: const PosStyles(bold: true)),      // 3 de ancho
+        PosColumn(text: 'PRODUCTO', width: 9,styles: const PosStyles(bold: true)),  // 6 de ancho
+        //PosColumn(text: 'NOTA', width: 3,styles: const PosStyles(bold: true)),      // 3 de ancho
       ]);
     }
 
@@ -123,8 +131,7 @@ class Impresora {
         if(producto.stock == 0){
           printer.row([
             PosColumn(text: 'Rechazado', width: 3),
-            PosColumn(text: '${producto.nombreproducto}', width: 6),
-            PosColumn(text: producto.comentario ?? '', width: 3),
+            PosColumn(text: '${producto.nombreproducto}', width: 9),
           ]);
         }else if(producto.stock! < 0){
           printer.row([
@@ -135,11 +142,15 @@ class Impresora {
         }else{
           printer.row([
             PosColumn(text: '${producto.stock}', width: 3),
-            PosColumn(text: '${producto.nombreproducto}', width: 6),
-            PosColumn(text: producto.comentario ?? '', width: 3),
+            PosColumn(text: '${producto.nombreproducto}', width: 9),
           ]);
+          if(producto.comentario!.isNotEmpty || producto.comentario == '' )
+          printer.row([
+            PosColumn(text: 'NOTA', width: 3,styles: const PosStyles(bold: true)),
+            PosColumn(text: producto.comentario ?? '', width: 9),
+          ]);
+          printer.hr();
         }
-
       });
     }
   }

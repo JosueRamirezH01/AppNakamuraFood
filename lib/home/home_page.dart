@@ -60,6 +60,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   late SubOptTypes _subOptType;
   final SharedPref _pref = SharedPref();
   late  Mozo? mozo = Mozo();
+  late Piso piso = Piso();
   bool isLoading = true;
   late List<Pedido> listaPedido = [];
   late int idEstablecimiento = 0 ;
@@ -122,11 +123,15 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       },);
       refresh();
     });
+    refresh2();
+    refresh();
   }
 
   @override
   void dispose() {
     _tabController.dispose();
+    _tabControllerPisos.dispose();
+    _pageControllerPisosPage.dispose();
     super.dispose();
   }
 
@@ -293,12 +298,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                             for (int i = 0; i < ListadoPisos.length; i++) {
                                               if (ListadoPisos[i].nombrePiso == selectedTabName) {
                                                 setState(() {
+                                                  piso = ListadoPisos[i];
                                                   pisoSelect = ListadoPisos[i].id!;
                                                   consultarMesas(pisoSelect,context);
                                                 });
                                               }
                                             }
-                                             //refresh();
+                                            //refresh();
                                           },
                                           indicatorColor: const Color( 0xFFFF562F),
                                           labelColor: const Color( 0xFFFF562F),
@@ -811,7 +817,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                             producto.stock = detalle.cantidad_producto;
                                             listProduct.add(producto);
                                           }
-                                          impresora.printLabel(printerIP!,listProduct,3, listPedido.montoTotal!, '');
+                                          impresora.printLabel(printerIP!,listProduct,3, listPedido.montoTotal!, '', mozo!, piso);
                                           print('Imprimir');
                                         },
                                         icon: const Icon(Icons.print),

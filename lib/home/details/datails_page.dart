@@ -11,10 +11,12 @@ import 'package:restauflutter/model/mesa.dart';
 import 'package:restauflutter/model/detalle_pedido.dart';
 import 'package:restauflutter/model/mozo.dart';
 import 'package:restauflutter/model/pedido.dart';
+import 'package:restauflutter/model/piso.dart';
 import 'package:restauflutter/model/producto.dart';
 import 'package:restauflutter/services/mesas_service.dart';
 import 'package:restauflutter/services/pedido_service.dart';
 import 'package:restauflutter/services/detalle_pedido_service.dart';
+import 'package:restauflutter/services/piso_service.dart';
 import 'package:restauflutter/utils/gifComponent.dart';
 import 'package:restauflutter/utils/impresora.dart';
 import 'package:restauflutter/utils/shared_pref.dart';
@@ -43,13 +45,24 @@ class DetailsPage extends StatefulWidget {
 class _DetailsPageState extends State<DetailsPage> {
 
   TextEditingController notaController = TextEditingController();
+  var bdPisos = PisoServicio();
   var bdMesas = MesaServicio();
   var bdPedido = PedidoServicio();
   var impresora = Impresora();
   final SharedPref _pref = SharedPref();
   late  Mozo? mozo = Mozo();
+  late Piso piso = Piso();
   late int? IDPEDIDOPRUEBA = 0;
-
+  List<bool> _checkedItems = [];
+  List<String> staticComidas = [
+    'Pizza',
+    'Hamburguesa',
+    'Ensalada',
+    'Pasta',
+    'Sushi',
+    'Tacos',
+    'Sopa'
+  ];
   Future<void> UserShared() async {
     final dynamic userData = await _pref.read('user_data');
     if (userData != null) {
@@ -62,6 +75,9 @@ class _DetailsPageState extends State<DetailsPage> {
     print('Id del mozo : ${mozo?.id}');
     print('Id del establecimiento: ${mozo?.id_establecimiento}');
     print('Id de la mesa : ${selectObjmesa.id}');
+
+    piso = await bdPisos.consultarPiso(selectObjmesa.pisoId!, context);
+
   }
   //late int estado;
   List<Mesa> mesasDisponibles = [];
@@ -82,6 +98,8 @@ class _DetailsPageState extends State<DetailsPage> {
     selectObjmesa = widget.mesa!;
     detalles_pedios_tmp = widget.detallePedidoLista ;
     UserShared();
+    _checkedItems = List.filled(staticComidas.length, false);
+
   }
 
   @override
@@ -155,6 +173,8 @@ class _DetailsPageState extends State<DetailsPage> {
   }
 
 
+
+
   Widget _iconDelete(int index) {
     return GestureDetector(
       onTap: (){
@@ -168,7 +188,7 @@ class _DetailsPageState extends State<DetailsPage> {
   Widget _iconNota(int index) {
     return GestureDetector(
       onTap: () {
-        _nota(index);
+        _nota(staticComidas,index);
       },
       child: const Icon(Icons.edit, color: Colors.amber),
     );
@@ -337,34 +357,106 @@ class _DetailsPageState extends State<DetailsPage> {
       ),
     );
   }
-  Future<String?> _nota(int index){
-    // notaController.text = widget.productosSeleccionados?[index].comentario == 'null' ? '' : widget.productosSeleccionados![index].comentario!;
-    notaController.text = widget.productosSeleccionados?[index].comentario ?? '';
-    print('COMENTARIO EN NOTA ${widget.productosSeleccionados?[index].comentario}');
+  String generateSelectedOptionsString(List<String> comidas) {
+    List<String> selectedOptions = [];
+    for (int i = 0; i < _checkedItems.length; i++) {
+      if (_checkedItems[i]) {
+        selectedOptions.add(comidas[i]);
+      }
+    }
+    return selectedOptions.join(';');
+  }
+
+  // Future<String?> _nota(int index){
+  //   // notaController.text = widget.productosSeleccionados?[index].comentario == 'null' ? '' : widget.productosSeleccionados![index].comentario!;
+  //   notaController.text = widget.productosSeleccionados?[index].comentario ?? '';
+  //   print('COMENTARIO EN NOTA ${widget.productosSeleccionados?[index].comentario}');
+  //   return showDialog<String>(
+  //     context: context,
+  //     builder: (BuildContext context) => AlertDialog(
+  //       title: const Text('Observacion del plato'),
+  //       content: _textFieldNota(),
+  //       actions: <Widget>[
+  //         TextButton(
+  //           onPressed: () => Navigator.pop(context, 'Cancel'),
+  //           child: const Text('Cancel'),
+  //         ),
+  //         TextButton(
+  //           onPressed: () {
+  //             setState(() {
+  //               widget.productosSeleccionados?[index].comentario = notaController.text == '' ? null : notaController.text;
+  //               print('NOTA SETSTATE ${widget.productosSeleccionados?[index].comentario}');
+  //               print('NOTA SETSTATE Nota${notaController.text}');
+  //
+  //             });
+  //             Navigator.pop(context, 'OK');
+  //           } ,
+  //           child: const Text('OK'),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
+
+  List<String> convertStringToList(String selectedOptionsString) {
+    return selectedOptionsString.split(';');
+  }
+
+  Future<String?> _nota(List<String> comidas, index) async {
+    String? notabd = widget.productosSeleccionados?[index].comentario ?? '';
+    List<String> seleccionadosBd = convertStringToList(notabd);
+
+    _checkedItems = List.filled(comidas.length, false);
+    for (int i = 0; i < comidas.length; i++) {
+      if (seleccionadosBd.contains(comidas[i])) {
+        _checkedItems[i] = true;
+      }
+    }
     return showDialog<String>(
       context: context,
-      builder: (BuildContext context) => AlertDialog(
-        title: const Text('Observacion del plato'),
-        content: _textFieldNota(),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.pop(context, 'Cancel'),
-            child: const Text('Cancel'),
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Observaciones del Plato'),
+          content: StatefulBuilder(
+            builder: (BuildContext context, StateSetter setState) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: List.generate(comidas.length, (index) {
+                  return CheckboxListTile(
+                    title: Text(comidas[index]),
+                    value: _checkedItems[index],
+                    onChanged: (value) {
+                      setState(() {
+                        _checkedItems[index] = value ?? false;
+                      });
+                    },
+                  );
+                }),
+              );
+            },
           ),
-          TextButton(
-            onPressed: () {
-              setState(() {
-                widget.productosSeleccionados?[index].comentario = notaController.text == '' ? null : notaController.text;
-                print('NOTA SETSTATE ${widget.productosSeleccionados?[index].comentario}');
-                print('NOTA SETSTATE Nota${notaController.text}');
-
-              });
-              Navigator.pop(context, 'OK');
-            } ,
-            child: const Text('OK'),
-          ),
-        ],
-      ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  _checkedItems = List.filled(comidas.length, false);
+                });
+                Navigator.pop(context, 'Cancel');
+              },
+              child: Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                 String selectedOptionsString = generateSelectedOptionsString(comidas);
+                 widget.productosSeleccionados?[index].comentario = selectedOptionsString;
+                  print('Opciones seleccionadas: $selectedOptionsString');
+                 Navigator.pop(context, 'OK');
+              },
+              child: Text('Aceptar'),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -606,24 +698,24 @@ class _DetailsPageState extends State<DetailsPage> {
       if (ipBar == null) {
         if (prodSeleccionados.isNotEmpty){
           print('Lista de productos seleccionados:');
-          impresora.printLabel(ipCocina!,prodSeleccionados,estado, pedidoTotal, selectObjmesa.nombreMesa);
+          impresora.printLabel(ipCocina!,prodSeleccionados,estado, pedidoTotal, selectObjmesa.nombreMesa, mozo!, piso);
         }else{
           print('nada que imprimir');
         }
       } else {
         print('Productos para el bar:');
         if(ParaBar.isNotEmpty){
-          impresora.printLabel(ipBar,ParaBar,estado, pedidoTotal, selectObjmesa.nombreMesa);
+          impresora.printLabel(ipBar,ParaBar,estado, pedidoTotal, selectObjmesa.nombreMesa, mozo!, piso);
           if (ParaCocina.isNotEmpty){
             print('Lista de productos seleccionados:');
-            impresora.printLabel(ipCocina!,ParaCocina,estado, pedidoTotal, selectObjmesa.nombreMesa);
+            impresora.printLabel(ipCocina!,ParaCocina,estado, pedidoTotal, selectObjmesa.nombreMesa, mozo!, piso);
           }else{
             print('nada que imprimir');
           }
         }else{
           if (ParaCocina.isNotEmpty){
             print('Lista de productos seleccionados:');
-            impresora.printLabel(ipCocina!,ParaCocina,estado, pedidoTotal, selectObjmesa.nombreMesa);
+            impresora.printLabel(ipCocina!,ParaCocina,estado, pedidoTotal, selectObjmesa.nombreMesa, mozo!, piso);
           }else{
             print('nada que imprimir');
           }
@@ -657,7 +749,7 @@ class _DetailsPageState extends State<DetailsPage> {
 
           }
           Navigator.pop(context,2);
-          impresora.printLabel(printerIP!,widget.productosSeleccionados,3,pedidoTotal, selectObjmesa.nombreMesa);
+          impresora.printLabel(printerIP!,widget.productosSeleccionados,3,pedidoTotal, selectObjmesa.nombreMesa, mozo!, piso);
         },
 
         child: const Text(
