@@ -21,14 +21,12 @@ class _AjustesPageState extends State<AjustesPage> {
   TextEditingController _printer1Controller = TextEditingController();
   TextEditingController _printer2Controller = TextEditingController();
   bool _showBarPrinter = false;
-  bool isChecked = false;
   final _formKey = GlobalKey<FormState>(); // Agregar GlobalKey<FormState>
   final SharedPref _sharedPref = SharedPref();
   var prod = ProductoServicio();
   Mozo mozo = Mozo();
   SharedPref _pref = SharedPref();
 
-  List<bool> checkedComidas = [];
   Future<void> UserShared() async {
     final dynamic userData = await _pref.read('user_data');
     if (userData != null) {
@@ -57,7 +55,12 @@ class _AjustesPageState extends State<AjustesPage> {
 
     setState(() {
       _printer1Controller.text = printer1IP;
-      _printer2Controller.text = printer2IP;
+      if (printer2IP == '') {
+        _printer2Controller.text = printer2IP;
+      } else {
+        _showBarPrinter = true;
+        _printer2Controller.text = printer2IP;
+      }
     });
   }
 
@@ -65,7 +68,7 @@ class _AjustesPageState extends State<AjustesPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Configurar Impresoras'),
+        title: const Text('Configuracion'),
         elevation: 5,
       ),
       body: Form(
@@ -78,96 +81,128 @@ class _AjustesPageState extends State<AjustesPage> {
                     child: Column(
                       children: [
                         Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(25),
+                            color: Color.fromRGBO(217, 217, 217, 0.8),
+                          ),
                           margin: EdgeInsets.all(20),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Container(
-                                margin: EdgeInsets.only(bottom: 20),
-                                child: const Text(
-                                  'Cocina',
+                          child: Padding(
+                            padding: const EdgeInsets.all(20),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Configurar Impresoras',
                                   style: TextStyle(
-                                    fontSize: 18,
+                                    fontSize: 20,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
-                              ),
-                              _buildPrinterInputField(_printer1Controller),
-                              Row(
-                                children: [
-                                  const Text(
-                                    'Bar',
+                                Divider(),
+                                Container(
+                                  margin: EdgeInsets.only(bottom: 20),
+                                  child: const Text(
+                                    'Cocina',
                                     style: TextStyle(
-                                      fontSize: 18,
+                                      fontSize: 16,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                  const Spacer(),
-                                  Switch(
-                                    value: _showBarPrinter,
-                                    onChanged: (value) {
-                                      setState(() {
-                                        _showBarPrinter = value;
-                                      });
-                                    },
+                                ),
+                                _buildPrinterInputField(_printer1Controller),
+                                Container(
+                                  margin: EdgeInsets.only(top: 10),
+                                  child: Row(
+                                    children: [
+                                      const Text(
+                                        'Bar',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      const Spacer(),
+                                      Switch(
+                                        activeColor: Color(0xFFFF562F),
+                                        inactiveThumbColor: Colors.grey, // Color del interruptor cuando está inactivo
+                                        inactiveTrackColor: Colors.black, // Color del riel cuando está inactivo
+                                        activeTrackColor: Colors.black,
+                                        value: _showBarPrinter,
+                                        onChanged: (value) {
+                                          print(value);
+                                          setState(() {
+                                            _showBarPrinter = value;
+                                          });
+                                        },
+                                      ),
+                                    ],
                                   ),
-                                ],
-                              ),
-                              if (_showBarPrinter)
-                                _buildPrinterInputField(_printer2Controller),
-                              SizedBox(
-                                height: 20,
-                              ),
-                              ElevatedButton(
-                                onPressed: () {
-                                  if (_formKey.currentState!.validate()) {
-                                    // Validar el formulario
-                                    _savePrinters();
-                                  }
-                                },
-                                child: const Text('Guardar'),
-                              ),
-                              SizedBox(
-                                height: 20,
-                              ),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Actualizar Producto',
-                                    style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold),
+                                ),
+                                if (_showBarPrinter)
+                                  Container(margin: EdgeInsets.only(top: 10,bottom: 20),child: _buildPrinterInputField(_printer2Controller)),
+
+                                ElevatedButton(
+                                  style: ButtonStyle(
+                                      backgroundColor:
+                                      MaterialStateProperty.all(
+                                          const Color(0xFFFF562F))),
+                                  onPressed: () {
+                                    if (_formKey.currentState!.validate()) {
+                                      _savePrinters();
+                                    }
+                                  },
+                                  child: const Text(
+                                    'Guardar',
+                                    style: TextStyle(color: Colors.white),
                                   ),
-                                  Spacer(),
-                                  ElevatedButton(
-                                      onPressed: () {
-                                        actualziarProducto();
-                                      },
-                                      child: Text('Actualizar'))
-                                ],
-                              ),
-                              SizedBox(
-                                height: 20,
-                              ),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Actualizar Categoria',
-                                    style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(25),
+                            color: Color.fromRGBO(217, 217, 217, 0.8),
+                          ),
+                          margin: EdgeInsets.all(20),
+                          child: Padding(
+                            padding: const EdgeInsets.only(right: 20, left: 20,top: 10, bottom: 10),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Datos',
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
                                   ),
-                                  Spacer(),
-                                  ElevatedButton(
-                                      onPressed: () {
-                                        actualziarCategoria();
-                                      },
-                                      child: Text('Actualizar'))
-                                ],
-                              ),
-                            ],
+                                ),
+                                Divider(),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Actualizar Producto',
+                                      style: TextStyle(
+                                          fontSize: 16, fontWeight: FontWeight.bold),
+                                    ),
+                                    Spacer(),
+                                    ElevatedButton(
+                                        style: ButtonStyle(
+                                            backgroundColor:
+                                            MaterialStateProperty.all(
+                                                const Color(0xFFFF562F))),
+                                        onPressed: () {
+                                          actualziarCategoria();
+                                          actualziarProducto();
+                                          agregarMsj('Se actualizo correctamente los productos');
+                                        },
+                                        child: Text('Actualizar', style: TextStyle(color: Colors.white)))
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ],
@@ -177,7 +212,7 @@ class _AjustesPageState extends State<AjustesPage> {
               ),
               Divider(),
               Padding(
-                padding: const EdgeInsets.all(10.0),
+                padding: const EdgeInsets.all(8.0),
                 child: iconCerrar(),
               )
             ],
@@ -187,15 +222,11 @@ class _AjustesPageState extends State<AjustesPage> {
 
   Future<void> actualziarProducto() async {
     await prod.consultarProductos(context, mozo.id_establecimiento!);
-    agregarMsj('Se actualizo correctamente los productos');
   }
 
   Future<void> actualziarCategoria() async {
     await prod.consultarCategorias(context, mozo.id_establecimiento!);
-    agregarMsj('Se actualizo correctamente los productos');
   }
-
-
 
   Widget iconCerrar() {
     return GestureDetector(
@@ -205,8 +236,6 @@ class _AjustesPageState extends State<AjustesPage> {
         _sharedPref.remove('productos');
         _sharedPref.remove('ipBar');
         Navigator.pushNamedAndRemoveUntil(context, 'login', (route) => false);
-
-        print('todos');
       },
       child: Padding(
         padding: EdgeInsets.only(left: 30),
@@ -237,12 +266,53 @@ class _AjustesPageState extends State<AjustesPage> {
 
   Widget _buildPrinterInputField(TextEditingController controller) {
     return TextFormField(
+      style: TextStyle(color: Colors.black),
       controller: controller,
       keyboardType: TextInputType.text,
       decoration: InputDecoration(
-        labelText: 'Dirección IP',
-        hintText: 'Ej. 192.168.1.1',
-        border: OutlineInputBorder(),
+          labelText: 'Dirección IP',
+          hintText: 'Ej. 192.168.1.1',
+          border:OutlineInputBorder(
+              borderSide: BorderSide(
+                  color: Colors.black
+              )
+          ),
+          floatingLabelStyle: TextStyle(fontSize: 15, color: Color(0xFF000000)),
+          hintStyle: TextStyle(
+              fontSize: 15,
+              color: Color(0xFF000000)
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(20),
+            borderSide: BorderSide(
+                color: Color(0xFF000000),
+                width: 2
+            ),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(20),
+            borderSide: BorderSide(
+                color: Color(0xFF000000),
+                width: 2
+            ),
+          ),
+          contentPadding: EdgeInsets.all(10),
+          prefixIcon: Icon(Icons.print, color: Colors.black),
+          // error
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(20),
+            borderSide: BorderSide(
+                color: Color(0xFF000000),
+                width: 2
+            ),
+          ),
+          focusedErrorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(20),
+            borderSide: BorderSide(
+                color: Colors.red,
+                width: 2
+            ),
+          )
       ),
       inputFormatters: [
         FilteringTextInputFormatter.allow(RegExp(r'^\d{0,3}(\.\d{0,3}){0,3}$')),
@@ -281,8 +351,6 @@ class _AjustesPageState extends State<AjustesPage> {
   void _savePrinters() {
     final String printer1IP = _printer1Controller.text;
     final String printer2IP = _printer2Controller.text;
-
-    print('Impresora 1 (Cocina): $printer1IP');
     _sharedPref.save('ipCocina', printer1IP);
     if (_showBarPrinter) {
       _sharedPref.save('ipBar', printer2IP);
@@ -290,10 +358,6 @@ class _AjustesPageState extends State<AjustesPage> {
     agregarMsj('Se guardo correctamente');
     // Aquí puedes guardar las direcciones IP en la configuración de la aplicación
     // o realizar cualquier otra acción necesaria con ellas.
-  }
-  void refresh(){
-    setState(() {
-    });
   }
 }
 

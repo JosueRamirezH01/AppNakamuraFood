@@ -71,15 +71,8 @@ class _DetailsPageState extends State<DetailsPage> {
     }
     DateTime now = DateTime.now();
     String formattedDate = DateFormat('yyyy-MM-dd HH:mm:ss').format(now);
-    print('formato de Hora: $formattedDate');
-    print('Id del mozo : ${mozo?.id}');
-    print('Id del establecimiento: ${mozo?.id_establecimiento}');
-    print('Id de la mesa : ${selectObjmesa.id}');
-
     piso = await bdPisos.consultarPiso(selectObjmesa.pisoId!, context);
-
   }
-  //late int estado;
   List<Mesa> mesasDisponibles = [];
   List<Detalle_Pedido> detalles_pedios_tmp = [];
   late Mesa selectObjmesa;
@@ -93,8 +86,6 @@ class _DetailsPageState extends State<DetailsPage> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    print('ESTADO INICIANDO ${widget.mesa?.estadoMesa}');
-    //estado = widget.mesa!.estadoMesa!;
     selectObjmesa = widget.mesa!;
     detalles_pedios_tmp = widget.detallePedidoLista ;
     UserShared();
@@ -111,7 +102,6 @@ class _DetailsPageState extends State<DetailsPage> {
             icono(),
             if(selectObjmesa.estadoMesa != 1 && selectObjmesa.estadoMesa != 2)
               cabecera(),
-            // const SizedBox(height: 10),
             contenido(),
             debajo()
           ],
@@ -181,7 +171,6 @@ class _DetailsPageState extends State<DetailsPage> {
         _eliminar(index);
       },
       child: const Icon(Icons.delete, color: Colors.red),
-
     );
   }
 
@@ -225,7 +214,6 @@ class _DetailsPageState extends State<DetailsPage> {
                       style:  ButtonStyle(
                           elevation: MaterialStateProperty.all(2), backgroundColor: MaterialStateProperty.all(const Color(0xFF4C95DD))),
                       onPressed: () async {
-                        print('CODIGO DE PISO ${widget.mesa?.pisoId}');
                         mesasDisponibles = await bdMesas.consultarMesasDisponibles(widget.mesa?.pisoId, context);
                         mostrarMesa(mesasDisponibles);
                       },
@@ -247,9 +235,6 @@ class _DetailsPageState extends State<DetailsPage> {
                         gif();
                         List<Detalle_Pedido> detalleCompletos = await detallePedidoServicio.eliminarCantidadProductoDetallePedidoImprimir(widget.idPedido, widget.productosSeleccionados!, pedidoTotal, context);
                         detalles_pedios_tmp = await detallePedidoServicio.actualizarCantidadProductoDetallePedidoPrueba(widget.idPedido, widget.productosSeleccionados!, pedidoTotal, context);
-
-                        print('INSERTAR OBTENIDO PARA OBTENER EN EL TICKET $detalles_pedios_tmp');
-
                         if (detalles_pedios_tmp.isNotEmpty) {
                           for (var detalle in detalles_pedios_tmp) {
                             Producto? producto = await buscarNombreProductoPorId(detalle.id_producto);
@@ -263,8 +248,7 @@ class _DetailsPageState extends State<DetailsPage> {
                             }
                           }
                         }
-
-                                    // Agregar productos de detalleCompletos si no está vacío
+                        // Agregar productos de detalleCompletos si no está vacío
                         if (detalleCompletos.isNotEmpty) {
                           for (var element in detalleCompletos) {
                             Producto? producto = await buscarNombreProductoPorId(element.id_producto);
@@ -274,7 +258,6 @@ class _DetailsPageState extends State<DetailsPage> {
                             }
                           }
                         }
-
                         if (nombresProductos.isNotEmpty) {
                           imprimir(nombresProductos, 2);
                           Navigator.pop(context);
