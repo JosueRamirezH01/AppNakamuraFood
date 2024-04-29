@@ -242,29 +242,29 @@ class _AjustesPageState extends State<AjustesPage> {
 
         print('todos');
       },
-      child: Padding(
-        padding: EdgeInsets.only(left: 30),
-        child: Row(
-          children: [
-            Container(
-              margin: EdgeInsets.only(right: 20),
+      child: Row(
+        children: [
+          Container(
+            margin: EdgeInsets.only(right: 20, left: 20),
+            child: Padding(
+              padding: const EdgeInsets.all(5.0),
               child: Icon(
                 Icons.logout_outlined,
-                size: 30,
-              ),
-              decoration: BoxDecoration(
-                  color: Colors.grey, borderRadius: BorderRadius.circular(20)),
-            ),
-            Expanded(
-              child: Text(
-                'Cerrar sesión',
-                style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold), // Color del texto
+                size: 25,
               ),
             ),
-          ],
-        ),
+            decoration: BoxDecoration(
+                color: Colors.grey, borderRadius: BorderRadius.circular(20)),
+          ),
+          Expanded(
+            child: Text(
+              'Cerrar sesión',
+              style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold), // Color del texto
+            ),
+          ),
+        ],
       ),
     );
   }

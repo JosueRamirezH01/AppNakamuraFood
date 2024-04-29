@@ -96,6 +96,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   late int pisoMesas = 0 ;
   late List<Piso> ListadoPisos = [];
   late List<Mesa> ListadoMesas = [];
+  late List<Mesa> AllListadoMesas = [];
 
   late TabController _tabControllerPisos;
   late PageController _pageControllerPisosPage;
@@ -117,6 +118,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       consultarMesas(pisoSelect, context).then((value) async {
         _subOptType = SubOptTypes.local;
         listaPedido = await dbPedido.obtenerListasPedidos(_subOptType, idEstablecimiento,context);
+        AllListadoMesas = await dbMesas.consultarTodasMesas(ListadoPisos, context);
         setState(() {
           isLoading = false;
         });
@@ -165,12 +167,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       // refresh();
     });
   }
+
   Future<void> consultarMesas(int idPiso, BuildContext context) async {
     print(' piso enviado: $idPiso');
     ListadoMesas = await dbMesas.consultarMesas(idPiso, context);
     refresh();
     refresh2();
   }
+
 
   static final ButtonStyle elevatedButtonStyle = ElevatedButton.styleFrom(
       foregroundColor: const Color(0xFF000000), elevation: 5);
@@ -290,7 +294,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                           onTap: (index) {
                                             _pageControllerPisosPage.animateToPage(
                                               index,
-                                              duration: Duration(milliseconds: 500),
+                                              duration: Duration(milliseconds: 200),
                                               curve: Curves.linear,
                                             );
                                             String selectedTabName = myTabs[index].text!;
@@ -304,6 +308,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                                 });
                                               }
                                             }
+                                            pisoMesas = index;
+
                                             //refresh();
                                           },
                                           indicatorColor: const Color( 0xFFFF562F),
@@ -473,20 +479,20 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             child: Center(child: Text('Local')),
           ),
         ),
-        // ButtonSegment<SubOptTypes>(
-        //   value: SubOptTypes.llevar,
-        //   label: SizedBox(
-        //     width: 53,
-        //     child: Center(child: Text('llevar')),
-        //   ),
-        // ),
-        // ButtonSegment<SubOptTypes>(
-        //   value: SubOptTypes.delivery,
-        //   label: SizedBox(
-        //     width: 53,
-        //     child: Center(child: Text('Delivery')),
-        //   ),
-        // ),
+        ButtonSegment<SubOptTypes>(
+          value: SubOptTypes.llevar,
+          label: SizedBox(
+            width: 53,
+            child: Center(child: Text('llevar')),
+          ),
+        ),
+        ButtonSegment<SubOptTypes>(
+          value: SubOptTypes.delivery,
+          label: SizedBox(
+            width: 53,
+            child: Center(child: Text('Delivery')),
+          ),
+        ),
       ],
       selected: {_subOptType}, // Corregir _subOptTypes a _subOptType
       onSelectionChanged: (Set<SubOptTypes> newSelection) async {
@@ -617,7 +623,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                             Expanded(child: Text('PD-${listPedido.correlativoPedido}')),
                             // Spacer(),
                             //Text('${_subOptType == SubOptTypes.local ? (ListadoMesas.isNotEmpty ? ListadoMesas.firstWhere((element) => element.id == listPedido.idMesa, orElse: () => Mesa()).nombreMesa : "") : listPedido.idCliente}'),
-                            Expanded(child: Text('${_subOptType == SubOptTypes.local ? (ListadoMesas.isNotEmpty ? (ListadoMesas.firstWhere((element) => element.id == listPedido.idMesa, orElse: () => Mesa()).nombreMesa ?? "") : "") : listPedido.idCliente}')),
+                            Expanded(child: Text('${_subOptType == SubOptTypes.local ? (ListadoMesas.isNotEmpty ? (AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa, orElse: () => Mesa()).nombreMesa ?? "") : "") : listPedido.idCliente}',overflow: TextOverflow.ellipsis)),
                             // Spacer(),
                             Expanded(child: Text('${listPedido.estadoPedido == 1 ? 'Registrado' : listPedido.estadoPedido == 0? 'Anulado':'pendiente'}',overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
@@ -630,7 +636,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                         ),
                         subtitle: Row(
                           children: [
-                            Text('${_subOptType == SubOptTypes.local ? '' : listPedido.idCliente == 60 ? 'varios': listPedido.nombreCliente } '),
+                            Text('${ListadoPisos.firstWhere((element) => element.id == AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa).pisoId).nombrePiso}'),
                           ],
                         ),
                         onTap: () async {

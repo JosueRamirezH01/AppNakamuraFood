@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:mysql1/mysql1.dart';
 import 'package:restauflutter/bd/conexion.dart';
 import 'package:restauflutter/model/mesa.dart';
+import 'package:restauflutter/model/piso.dart';
 import 'package:restauflutter/utils/shared_pref.dart';
 
 
@@ -11,6 +12,52 @@ import 'package:restauflutter/utils/shared_pref.dart';
 class MesaServicio {
   final Connection _connectionSQL = Connection();
   final SharedPref _sharedPref = SharedPref();
+
+  Future<List<Mesa>> consultarTodasMesas( List<Piso> pisos, BuildContext context) async {
+    print('-------------------------');
+    print('Todas mesas');
+    MySqlConnection? conn;
+    List<Mesa> allMesas = [];
+
+    try {
+      conn = await _connectionSQL.getConnection();
+
+
+      for (Piso piso in pisos) {
+        print('Sooloooooooooooooooooo ---------- ${piso.id}');
+        const query = 'SELECT * FROM mesas WHERE piso_id = ?';
+        final results = await conn.query(query, [piso.id]);
+        print('aui muere ${results}');
+
+        if (results.isEmpty) {
+          print('No se encontraron mesas para el piso ${piso.id}.');
+        } else {
+          List<Mesa> mesas = results.map((row) => Mesa.fromJson(row.fields)).toList();
+          allMesas.addAll(mesas);
+        }
+      }
+      if (allMesas.isEmpty) {
+        print('No se encontraron mesas en ningún piso.');
+      } else {
+        final jsonMesasData = json.encode(allMesas);
+        print('Lista de mesas guardada en SharedPreferences: $jsonMesasData');
+      }
+
+      allMesas.forEach((element) {
+        print('NOMBRE : ${element.nombreMesa}, PISO ${element.pisoId}');
+      });
+
+      return allMesas;
+    } catch (e) {
+      print('Error al realizar la consulta: $e');
+      return [];
+    } finally {
+      if (conn != null) {
+        await conn.close();
+      }
+    }
+  }
+
 
   Future<List<Mesa>> consultarMesas( int idPiso, BuildContext context) async {
     MySqlConnection? conn;
