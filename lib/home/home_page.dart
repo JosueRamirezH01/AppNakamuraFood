@@ -290,8 +290,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                           onTap: (index) {
                                             _pageControllerPisosPage.animateToPage(
                                               index,
-                                              duration: Duration(milliseconds: 300),
-                                              curve: Curves.easeInOut,
+                                              duration: Duration(milliseconds: 500),
+                                              curve: Curves.linear,
                                             );
                                             String selectedTabName = myTabs[index].text!;
                                             print('Selected tab name: $selectedTabName');
@@ -347,10 +347,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                           itemCount:ListadoMesas.length,
                                           itemBuilder: (_, index) {
                                             return FutureBuilder(
-                                              future: Future.delayed(const Duration(milliseconds: 400)), // Cambia el tiempo de retraso según tu preferencia
+                                              future: Future.delayed(const Duration(milliseconds: 600)), // Cambia el tiempo de retraso según tu preferencia
                                               builder: (context, snapshot) {
                                                 if (snapshot.connectionState == ConnectionState.waiting) {
-                                                  // Muestra un indicador de carga mientras se está realizando el retraso
                                                   return Center(
                                                     child: CircularProgressIndicator(),
                                                   );
