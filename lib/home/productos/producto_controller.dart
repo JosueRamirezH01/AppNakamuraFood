@@ -51,12 +51,12 @@ class ProductoController {
         // Busca el producto correspondiente al detalle
         Producto? producto = await _getProductoPorId(detalle.id_producto);
         Producto? setproducto = Producto(
-          id: producto?.id,
-          nombreproducto: producto?.nombreproducto,
-          precioproducto: producto?.precioproducto,
-          stock: detalle.cantidad_producto,
-          comentario: detalle.comentario,
-          idPedido: detalle.id_pedido
+            id: producto?.id,
+            nombreproducto: producto?.nombreproducto,
+            precioproducto: producto?.precioproducto,
+            stock: detalle.cantidad_producto,
+            comentario: detalle.comentario,
+            idPedido: detalle.id_pedido
         );
         print('NOMBRE PRODUCTO ${producto?.nombreproducto}');
         print('CANTIDAD PRODUCTO ${detalle.cantidad_producto}');
@@ -225,27 +225,4 @@ class ProductoController {
         fontSize: 16.0
     );
   }
-
-  // Future<List<Producto>> getProductosPorCategoria(int? categoriaId) async {
-  //   try {
-  //     String productosJson = await _sharedPref.read('productos');
-  //     if (productosJson.isNotEmpty) {
-  //       List<dynamic> productosData = json.decode(productosJson);
-  //
-  //       // Filtra los productos por el ID de categoría
-  //       List<Producto> productosCategoria = productosData
-  //           .map((productoJson) => Producto.fromJson(productoJson))
-  //           .where((producto) => producto.categoria_id == categoriaId)
-  //           .toList();
-  //
-  //       return productosCategoria;
-  //     }
-  //   } catch (e) {
-  //     print('Error al obtener los productos por categoría: $e');
-  //   }
-  //   return [];
-  // }
-
 }
-
-

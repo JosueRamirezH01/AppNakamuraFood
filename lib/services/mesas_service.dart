@@ -45,7 +45,7 @@ class MesaServicio {
       conn = await _connectionSQL.getConnection();
 
       const query = 'SELECT * FROM mesas WHERE piso_id = ? AND estado_mesa = 1';
-      final results = await conn.query(query, [15]);
+      final results = await conn.query(query, [idPiso]);
       if (results.isEmpty) {
         print('No se encontraron datos en las tablas.');
         return [];
