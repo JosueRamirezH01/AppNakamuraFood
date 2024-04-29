@@ -92,9 +92,12 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   // mesas
   static  List<Tab> myTabs = <Tab>[];
   late int pisoSelect = 0;
+  late int pisoMesas = 0 ;
   late List<Piso> ListadoPisos = [];
   late List<Mesa> ListadoMesas = [];
 
+  late TabController _tabControllerPisos;
+  late PageController _pageControllerPisosPage;
 
   var impresora = Impresora();
 
@@ -119,11 +122,15 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       },);
       refresh();
     });
+    refresh2();
+    refresh();
   }
 
   @override
   void dispose() {
     _tabController.dispose();
+    _tabControllerPisos.dispose();
+    _pageControllerPisosPage.dispose();
     super.dispose();
   }
 
@@ -154,13 +161,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       }
       pisoSelect = listaPisos[0].id!;
       consultarMesas(pisoSelect,context);
-      refresh();
+      // refresh();
     });
   }
   Future<void> consultarMesas(int idPiso, BuildContext context) async {
     print(' piso enviado: $idPiso');
     ListadoMesas = await dbMesas.consultarMesas(idPiso, context);
     refresh();
+    refresh2();
   }
 
   static final ButtonStyle elevatedButtonStyle = ElevatedButton.styleFrom(
@@ -276,8 +284,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                       const SizedBox(width: 20),
                                       Expanded(
                                         child: TabBar(
+                                          controller: _tabControllerPisos,
                                           tabs: myTabs,
                                           onTap: (index) {
+                                            _pageControllerPisosPage.animateToPage(
+                                              index,
+                                              duration: Duration(milliseconds: 300),
+                                              curve: Curves.easeInOut,
+                                            );
                                             String selectedTabName = myTabs[index].text!;
                                             print('Selected tab name: $selectedTabName');
                                             for (int i = 0; i < ListadoPisos.length; i++) {
@@ -288,7 +302,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                                 });
                                               }
                                             }
-                                            refresh();
+                                             //refresh();
                                           },
                                           indicatorColor: const Color( 0xFFFF562F),
                                           labelColor: const Color( 0xFFFF562F),
@@ -302,7 +316,23 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                   ),
                                   const SizedBox(height: 10),
                                   Expanded(
-                                    child: TabBarView(
+                                    child: PageView(
+                                      controller: _pageControllerPisosPage,
+                                      onPageChanged: (value) {
+                                        _tabControllerPisos.animateTo(value);
+                                        // pisoMesas
+                                        pisoMesas = value;
+                                        print('value s ${value}');
+                                        print('----${myTabs[value].text}');
+                                        for (int i = 0; i < ListadoPisos.length; i++) {
+                                          if (ListadoPisos[i].nombrePiso == myTabs[value].text) {
+                                            setState(() {
+                                              pisoSelect = ListadoPisos[i].id!;
+                                              consultarMesas(pisoSelect,context);
+                                            });
+                                          }
+                                        }
+                                      },
                                       children: myTabs.map((Tab tab) {
                                         return GridView.builder(
                                           padding: const EdgeInsets.symmetric(
@@ -1016,6 +1046,17 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   void refresh(){
     setState(() {
 
+    });
+  }
+
+  void refresh2(){
+    setState(() {
+      _tabControllerPisos = TabController(
+          length: ListadoPisos.length,
+          vsync: this,
+          initialIndex: pisoMesas
+      );
+      _pageControllerPisosPage = PageController();
     });
   }
 }
