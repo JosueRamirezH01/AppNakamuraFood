@@ -62,7 +62,6 @@ class _AjustesPageState extends State<AjustesPage> {
         appBar: AppBar(
           title: const Text('Configurar Impresoras'),
           elevation: 5,
-
         ),
         body: Padding(
               padding: const EdgeInsets.all(16.0),
@@ -94,9 +93,19 @@ class _AjustesPageState extends State<AjustesPage> {
                           onChanged: (value) {
                             setState(() {
                               _showBarPrinter = value;
-                            });
-                          },
-                        ),
+                              prod.consultarCategoriaIpBar(
+                                  context, mozo.id_establecimiento).then((
+                                  consultaExitosa) {
+                                if (!consultaExitosa) {
+                                  setState(() {
+                                    _showBarPrinter = false;
+                                  });
+
+                                }
+                              });
+                            },
+                            );
+                          })
                       ],
                     ),
                     if (_showBarPrinter) _buildPrinterInputField(_printer2Controller),

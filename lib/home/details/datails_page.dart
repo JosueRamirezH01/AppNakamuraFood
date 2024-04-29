@@ -103,7 +103,6 @@ class _DetailsPageState extends State<DetailsPage> {
   }
 
   Widget contenido() {
-
     return NotificationListener<ScrollNotification>(
       onNotification: (notification) {
         if (notification is ScrollUpdateNotification && notification.metrics.atEdge && notification.metrics.pixels <= 0) {

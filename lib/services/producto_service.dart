@@ -83,4 +83,43 @@ class ProductoServicio {
     }
   }
 
+
+  Future<bool> consultarCategoriaIpBar(BuildContext context, int? id_establecimiento) async {
+    MySqlConnection? conn;
+    try {
+      conn = await _connectionSQL.getConnection();
+
+      const query = 'SELECT *  FROM categorias WHERE bar = ? AND establecimiento_id = ?';
+      final results = await conn.query(query, [1, id_establecimiento]);
+
+      List<Categoria> categorias = results.map((row) => Categoria.fromJson(row.fields)).toList();
+
+      if (categorias.isNotEmpty) {
+        print(categorias);
+        return true; // Si hay categorías, devuelve true
+      } else {
+        agregarMsj('Error en la configuracion de codigo de Bar de Categoria');
+        return false; // Si la lista está vacía, devuelve false
+      }
+    } catch (e) {
+      print('Error al realizar la consulta: $e');
+      return false; // Si hay algún error, devuelve false
+    } finally {
+      if (conn != null) {
+        await conn.close();
+      }
+    }
+  }
+  void agregarMsj(String mensaje){
+    Fluttertoast.showToast(
+        msg: mensaje,
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        fontSize: 16.0
+    );
+  }
+
 }
