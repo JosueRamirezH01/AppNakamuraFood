@@ -346,8 +346,20 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                           ),
                                           itemCount:ListadoMesas.length,
                                           itemBuilder: (_, index) {
-                                            print('piso Selecionado = ${ListadoMesas[index]} ');
-                                            return _cardMesa(ListadoMesas[index]);
+                                            return FutureBuilder(
+                                              future: Future.delayed(const Duration(milliseconds: 400)), // Cambia el tiempo de retraso según tu preferencia
+                                              builder: (context, snapshot) {
+                                                if (snapshot.connectionState == ConnectionState.waiting) {
+                                                  // Muestra un indicador de carga mientras se está realizando el retraso
+                                                  return Center(
+                                                    child: CircularProgressIndicator(),
+                                                  );
+                                                } else {
+                                                  // Cuando el retraso haya finalizado, muestra la tarjeta de la mesa
+                                                  return _cardMesa(ListadoMesas[index]);
+                                                }
+                                              },
+                                            );
                                           },
                                         );
                                       }).toList(),

@@ -200,11 +200,11 @@ class _AjustesPageState extends State<AjustesPage> {
   Widget iconCerrar() {
     return GestureDetector(
       onTap: () {
-        // _sharedPref.remove('user_data');
-        // _sharedPref.remove('categorias');
-        // _sharedPref.remove('productos');
-        // _sharedPref.remove('ipBar');
-        // Navigator.pushNamedAndRemoveUntil(context, 'login', (route) => false);
+        _sharedPref.remove('user_data');
+        _sharedPref.remove('categorias');
+        _sharedPref.remove('productos');
+        _sharedPref.remove('ipBar');
+        Navigator.pushNamedAndRemoveUntil(context, 'login', (route) => false);
 
         print('todos');
       },
