@@ -61,6 +61,13 @@ class _DetailsPageState extends State<DetailsPage> {
     'Pasta',
     'Sushi',
     'Tacos',
+    'Sopa',
+    'Pizza',
+    'Hamburguesa',
+    'Ensalada',
+    'Pasta',
+    'Sushi',
+    'Tacos',
     'Sopa'
   ];
   Future<void> UserShared() async {

@@ -309,8 +309,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                               }
                                             }
                                             pisoMesas = index;
-
-                                            //refresh();
                                           },
                                           indicatorColor: const Color( 0xFFFF562F),
                                           labelColor: const Color( 0xFFFF562F),
