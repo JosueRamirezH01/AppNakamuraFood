@@ -13,11 +13,9 @@ class Impresora {
 
 
 
-  Future<void> printLabel(String printerIP,List<Producto>? producto, int? estado, double total, String? nombreMesa, Mozo mozo, Piso piso) async {
+  Future<void> printLabel(String printerIP,List<Producto>? producto, int? estado, double total, String? nombreMesa, Mozo mozo, Piso piso, String motivo) async {
 
     String tipoBoucher = '';
-
-
 
     if(estado == 1){
       tipoBoucher = 'Pedido';
@@ -25,7 +23,10 @@ class Impresora {
       tipoBoucher = 'Pedidos Actualizados';
     }else if(estado == 3){
       tipoBoucher = 'Pre-Cuenta';
+    }else if(estado == 4){
+      tipoBoucher = 'Anulado';
     }
+
     //192.168.10.182
     // Crea la instancia de la impresora
     const PaperSize paper = PaperSize.mm80;
@@ -34,18 +35,25 @@ class Impresora {
     final PosPrintResult res = await printer.connect(printerIP, port: 9100);
 
     if (res == PosPrintResult.success) {
-      testReceipt(producto ,printer, tipoBoucher, total, nombreMesa!, mozo, piso);
+      testReceipt(producto ,printer, tipoBoucher, total, nombreMesa!, mozo, piso, motivo);
       printer.disconnect();
     }
 
   }
 
 
-  void testReceipt(List<Producto>? producto, NetworkPrinter printer, String tipoBoucher, double total,String nombreMesa, Mozo mozo, Piso piso ) {
+  void testReceipt(List<Producto>? producto, NetworkPrinter printer, String tipoBoucher, double total,String nombreMesa, Mozo mozo, Piso piso, String motivo ) {
 
     // Título de la mesa
-    printer.text(tipoBoucher,
-        styles: const PosStyles(bold: true, align: PosAlign.center));
+    if( tipoBoucher =='Anulado'){
+      printer.text(tipoBoucher,
+          styles: const PosStyles(bold: true, align: PosAlign.center, width: PosTextSize.size6, height: PosTextSize.size2),linesAfter: 1);
+    }else{
+      printer.text(tipoBoucher,
+          styles: const PosStyles(bold: true, align: PosAlign.center));
+
+    }
+
     printer.text(nombreMesa,
         styles: const PosStyles(bold: true, align: PosAlign.center));
     printer.hr();
@@ -60,7 +68,7 @@ class Impresora {
     _buildTableContentPreCuenta(producto, tipoBoucher, printer);
 
     // Importe total
-    if(tipoBoucher != 'Pedido' && tipoBoucher !='Pedidos Actualizados'){
+    if(tipoBoucher != 'Pedido' && tipoBoucher !='Pedidos Actualizados' && tipoBoucher !='Anulado'){
       printer.text('IMPORTE TOTAL: S/$total',
           styles: const PosStyles(bold: true), linesAfter: 1);
 
@@ -71,7 +79,12 @@ class Impresora {
       // Agradecimiento
       printer.text('******** GRACIAS POR SU VISITA ********',
           styles: const PosStyles(align: PosAlign.center), linesAfter: 1);
+    }else if (tipoBoucher =='Anulado'){
+      printer.text('');
+      printer.text('Motivo de anulacion', styles: const PosStyles(bold: true), linesAfter: 1);
+      printer.text('- : ${motivo}');
     }
+
     printer.feed(2);
     printer.cut();
   }
@@ -144,7 +157,7 @@ class Impresora {
             PosColumn(text: '${producto.stock}', width: 3),
             PosColumn(text: '${producto.nombreproducto}', width: 9),
           ]);
-          print(' IMPRESOARA COMENTARIO :  ${producto.comentario}');
+          print(' IMPRESORA COMENTARIO :  ${producto.comentario}');
           if(producto.comentario != null ){
             printer.row([
               PosColumn(text: 'NOTA', width: 3,styles: const PosStyles(bold: true)),

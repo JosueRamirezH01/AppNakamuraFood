@@ -75,7 +75,7 @@ class LoginService {
                 'id':row['id'],
                 'id_establecimiento':row['id_establecimiento'],
                 'idperfil':row["idperfil"],
-                'mombre_usuario':row["mombre_usuario"]
+                'nombre_usuario':row["nombre_usuario"]
               };
               final jsonUserData = json.encode(userData);
 
@@ -89,7 +89,7 @@ class LoginService {
             }
             await prod.consultarCategorias(context, mozo.id_establecimiento!);
             await prod.consultarProductos(context, mozo.id_establecimiento!);
-            print('DATA OBTENIDO ${mozo.email}');
+            print('DATA OBTENIDO ${mozo.nombre_usuario}');
             Navigator.pushNamedAndRemoveUntil(
                 context, 'home', (route) => false);
           }

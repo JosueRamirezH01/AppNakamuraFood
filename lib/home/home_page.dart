@@ -219,6 +219,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                             _selectedIndex = 0;
                             _tabController.animateTo(0);
                           });
+                          refresh();
                         },
                         icon: const Icon(Icons.list_alt_rounded),
                         label: const Text('Listado de pedidos'),
@@ -248,7 +249,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         ),
         body: ClipRRect(
             borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(20), topRight: Radius.circular(20)),
+                topLeft: Radius.circular(30), topRight: Radius.circular(30)),
             child: Container(
               color: Colors.white, // Fondo de color D9D9D9
               child: TabBarView(
@@ -289,6 +290,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                       const SizedBox(width: 20),
                                       Expanded(
                                         child: TabBar(
+                                          isScrollable: true,
                                           controller: _tabControllerPisos,
                                           tabs: myTabs,
                                           onTap: (index) {
@@ -319,7 +321,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                           labelStyle: const TextStyle(fontSize: 16),
                                         ),
                                       ),
-                                      const Spacer()
+                                      const SizedBox(width: 20),
+
+                                      // const SizedBox(height: 20),
+
+                                      // const Spacer()
                                     ],
                                   ),
                                   const SizedBox(height: 10),
@@ -543,6 +549,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     if (_subOptType == SubOptTypes.local) {
       buttonText = 'Mesa';
       listaFiltrada = listaPedido.where((pedido) => pedido.idUsuario == mozo?.id && pedido.idMesa != null).toList();
+      refresh();
     }
 
     return Expanded(
@@ -835,7 +842,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                             producto.stock = detalle.cantidad_producto;
                                             listProduct.add(producto);
                                           }
-                                          impresora.printLabel(printerIP!,listProduct,3, listPedido.montoTotal!, '', mozo!, piso);
+                                          impresora.printLabel(printerIP!,listProduct,3, listPedido.montoTotal!, AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa).nombreMesa , mozo!, ListadoPisos.firstWhere((element) => element.id == AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa).pisoId),'');
                                           print('Imprimir');
                                         },
                                         icon: const Icon(Icons.print),
@@ -849,8 +856,22 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                           shape: BoxShape.circle
                                       ),
                                       child: IconButton(
-                                        onPressed: () {
-                                          print('Botón presionado');
+                                        onPressed: () async {
+                                          List<Producto> listProduct= [];
+                                          List<Pedido> listCompar = listaPedido ;
+                                          String? printerIP = await _pref.read('ipCocina');
+                                          for (int i = 0; i < listadoDetalle.length; i++) {
+                                            Detalle_Pedido detalle = listadoDetalle[i];
+                                            Producto producto = ListadoProductos.firstWhere((producto) => producto.id == detalle.id_producto);
+                                            producto.stock = detalle.cantidad_producto;
+                                            listProduct.add(producto);
+                                          }
+                                          mostrarDialogoAnulacion( printerIP!, listProduct  ,listPedido ,context).then((value) async {
+                                            listaPedido = await dbPedido.obtenerListasPedidos(_subOptType, idEstablecimiento,context);
+                                            consultarMesas(pisoSelect, context);
+                                            refresh();
+                                          });
+                                          refresh();
                                         },
                                         icon: const Icon(Icons.cancel_outlined),
                                         tooltip: 'Anular',
@@ -1052,6 +1073,227 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       ),
     );
   }
+
+  Future<void> mostrarDialogoAnulacion(String printerIP, List<Producto> listProduct ,Pedido pedido, BuildContext context) async {
+    String motivo = '';
+    bool motivoVacio = false;
+    bool usarMotivoPorDefecto = false;
+
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return AlertDialog(
+              // backgroundColor: Color.fromRGBO(217, 217, 217, 1.0),
+              title: Text('Anular pedido : ${pedido.correlativoPedido}'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    children: [
+                      Checkbox(
+                        value: usarMotivoPorDefecto,
+                        onChanged: (newValue) {
+                          setState(() {
+                            usarMotivoPorDefecto = newValue!;
+                            // Si se marca el checkbox, vaciamos el motivo del TextField
+                            if (usarMotivoPorDefecto) {
+                              motivo = '';
+                              motivoVacio = false;
+                            }
+                          });
+                        },
+                      ),
+                      Text('Usar motivo por defecto'),
+                    ],
+                  ),
+                  TextField(
+                    onChanged: (value) {
+                      motivo = value;
+                      setState(() {
+                        // motivoVacio = motivo.isEmpty;
+                        motivoVacio = motivo.isEmpty && !usarMotivoPorDefecto;
+                      });
+                    },
+                    enabled: !usarMotivoPorDefecto,
+                    // decoration: InputDecoration(
+                    //   labelText: 'Motivo de anulación',
+                    //   errorText: motivoVacio ? 'Este campo no puede estar vacío' : null,
+                    //   focusedBorder: UnderlineInputBorder(
+                    //     borderSide: BorderSide(color: motivoVacio ? Colors.red : Theme.of(context).primaryColor),
+                    //   ),
+                    // ),
+                    decoration: InputDecoration(
+                        labelText: 'Motivo de anulación',
+                        hintText: 'Ej. Abandono de mesa',
+                        errorText: motivoVacio ? 'Este campo no puede estar vacío' : null,
+                        border:OutlineInputBorder(
+                            borderSide: BorderSide(
+                                color: Colors.black
+                            )
+                        ),
+                        floatingLabelStyle: TextStyle(fontSize: 15, color: Color(0xFF000000)),
+                        hintStyle: TextStyle(
+                            fontSize: 15,
+                            color: Color(0xFF000000)
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(20),
+                          borderSide: BorderSide(
+                              color: Color(0xFF000000),
+                              width: 2
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(20),
+                          borderSide: BorderSide(
+                              color: motivoVacio ? Colors.red : Color(0xFF000000),
+                              width: 2
+                          ),
+                        ),
+                        contentPadding: EdgeInsets.all(10),
+                        // prefixIcon: Icon(Icons.print, color: Colors.black),
+                        // error
+                        errorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(20),
+                          borderSide: BorderSide(
+                              color: motivoVacio ? Colors.red : Color(0xFF000000),
+                              width: 2
+                          ),
+                        ),
+                        focusedErrorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(20),
+                          borderSide: BorderSide(
+                              color: motivoVacio ? Colors.red : Color(0xFF000000),
+                              width: 2
+                          ),
+                        ),
+                      disabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        borderSide: BorderSide(
+                            color: Colors.grey,
+                            width: 2
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              actions: <Widget>[
+                TextButton(
+                  style: ButtonStyle(
+                    backgroundColor: MaterialStateProperty.all( Color.fromRGBO(217, 217, 217, 0.8) ),
+                  ),
+                  child: Text('Cancelar',style: TextStyle(color: Colors.black),),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+                TextButton(
+                  style: ButtonStyle(
+                    backgroundColor: MaterialStateProperty.all( Colors.redAccent ),
+                  ),
+                  child: Text('Anular',style: TextStyle(color: Colors.white),),
+                  onPressed: () {
+                    // if (motivo.isEmpty) {
+                    //   setState(() {
+                    //     motivoVacio = true;
+                    //   });
+                    // } else {
+                    //   impresora.printLabel( printerIP, listProduct ,4, pedido.montoTotal!, AllListadoMesas.firstWhere((element) => element.id == pedido.idMesa).nombreMesa, mozo!, ListadoPisos.firstWhere((element) => element.id == AllListadoMesas.firstWhere((element) => element.id == pedido.idMesa).pisoId),motivo);
+                    //   dbMesas.actualizarMesa(pedido.idMesa, 1, context);
+                    //   dbPedido.anularPedido(motivo, mozo!, pedido.idPedido!, context);
+                    //   Navigator.of(context).pop();
+                    //   refresh();
+                    // }
+                    String motivoFinal = usarMotivoPorDefecto ? 'Motivo por defecto' : motivo;
+
+                    if (motivoFinal.isEmpty && !usarMotivoPorDefecto) {
+                      setState(() {
+                        motivoVacio = true;
+                      });
+                    } else {
+                      impresora.printLabel(
+                          printerIP, listProduct, 4, pedido.montoTotal!, AllListadoMesas.firstWhere((element) => element.id == pedido.idMesa).nombreMesa, mozo!,
+                          ListadoPisos.firstWhere((element) => element.id == AllListadoMesas.firstWhere((element) => element.id == pedido.idMesa).pisoId),
+                          motivoFinal);
+                      dbMesas.actualizarMesa(pedido.idMesa, 1, context);
+                      dbPedido.anularPedido(motivoFinal, mozo!, pedido.idPedido!, context);
+                      refresh();
+                      Navigator.of(context).pop();
+                      refresh();
+                      Navigator.pop(context);
+                      refresh();
+                    }
+                    refresh();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+
+  // void mostrarDialogoAnulacion( int idPedido , BuildContext context) async {
+  //   String motivo = '';
+  //   bool motivoVacio = false;
+  //
+  //   return showDialog(
+  //     context: context,
+  //     builder: (BuildContext context) {
+  //       return StatefulBuilder(
+  //         builder: (BuildContext context, StateSetter setState) {
+  //           return AlertDialog(
+  //             title: Text('Anular pedido'),
+  //             content: TextField(
+  //               onChanged: (value) {
+  //                 motivo = value;
+  //                 setState(() {
+  //                   motivoVacio = motivo.isEmpty;
+  //                 });
+  //               },
+  //               decoration: InputDecoration(
+  //                 labelText: 'Motivo de anulación',
+  //                 errorText: motivoVacio ? 'Este campo no puede estar vacío' : null,
+  //                 focusedBorder: UnderlineInputBorder(
+  //                   borderSide: BorderSide(color: motivoVacio ? Colors.red : Theme.of(context).primaryColor),
+  //                 ),
+  //               ),
+  //             ),
+  //             actions: <Widget>[
+  //               TextButton(
+  //                 child: Text('Cancelar'),
+  //                 onPressed: () {
+  //                   Navigator.of(context).pop();
+  //                 },
+  //               ),
+  //               TextButton(
+  //                 child: Text('Anular'),
+  //                 onPressed: () {
+  //                   if (motivo.isEmpty) {
+  //                     setState(() {
+  //                       motivoVacio = true;
+  //                     });
+  //
+  //                     dbPedido.anularPedido(motivo, mozo!, idPedido, context);
+  //
+  //                   } else {
+  //                     // Si el motivo no está vacío, anular el pedido
+  //                     Navigator.of(context).pop(motivo);
+  //                   }
+  //                 },
+  //               ),
+  //             ],
+  //           );
+  //         },
+  //       );
+  //     },
+  //   );
+  // }
 
   Widget _buildAnimatedContent({required Key key, required Widget child}) {
     return AnimatedSwitcher(

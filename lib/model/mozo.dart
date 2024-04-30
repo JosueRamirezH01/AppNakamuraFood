@@ -10,14 +10,14 @@ class Mozo {
   String? email;
   int? id_establecimiento;
   int? idperfil;
-  String? mombre_usuario;
+  String? nombre_usuario;
 
   Mozo({
     this.id,
     this.id_establecimiento,
     this.email,
     this.idperfil,
-    this.mombre_usuario
+    this.nombre_usuario
 
   });
 
@@ -26,7 +26,7 @@ class Mozo {
     id: json["id"],
       email: json["email"],
       idperfil:json["idperfil"],
-      mombre_usuario:json["mombre_usuario"]
+      nombre_usuario:json["nombre_usuario"]
   );
 
   Map<String, dynamic> toJson() => {
@@ -34,7 +34,7 @@ class Mozo {
     "id": id,
     "email": email,
     "idperfil": idperfil,
-    "mombre_usuario": mombre_usuario
+    "nombre_usuario": nombre_usuario
 
   };
 }

@@ -3,6 +3,7 @@ import 'package:mysql1/mysql1.dart';
 import 'package:restauflutter/bd/conexion.dart';
 import 'package:restauflutter/home/home_page.dart';
 import 'package:restauflutter/model/detalle_pedido.dart';
+import 'package:restauflutter/model/mozo.dart';
 import 'package:restauflutter/model/pedido.dart';
 import 'package:restauflutter/utils/shared_pref.dart';
 
@@ -93,8 +94,7 @@ class PedidoServicio {
     }
   }
 
-//UPDATE pedidos  SET  id_pedido = 57 WHERE   p.id_pedido = 818;
-   Future<int> crearPedidoPrueba( Pedido pedido, BuildContext context) async {
+  Future<int> crearPedidoPrueba( Pedido pedido, BuildContext context) async {
     MySqlConnection? conn;
     try {
       conn = await _connectionSQL.getConnection();
@@ -155,7 +155,6 @@ class PedidoServicio {
     }
   }
 
-
   Future<List<Pedido>> obtenerListasPedidos( SubOptTypes variable, int idEstablecimiento,BuildContext context) async {
     MySqlConnection? conn;
     try {
@@ -179,6 +178,30 @@ class PedidoServicio {
     } catch (e) {
       print('Error al realizar la consulta: $e');
       return [];
+    } finally {
+      if (conn != null) {
+        await conn.close();
+      }
+    }
+  }
+
+  Future<int?> anularPedido(String motivo, Mozo mozo, int idPedido, BuildContext context) async {
+    MySqlConnection? conn;
+    try {
+      conn = await _connectionSQL.getConnection();
+
+      const query = 'UPDATE pedidos SET id_mesa = ?, estado_pedido = ? ,motivo = ? ,anulado_por = ? WHERE id_pedido = ?';
+      final results = await conn.query(query, [null,0, motivo, mozo.nombre_usuario, idPedido ]);
+      if (results.affectedRows == 1) {
+        print('Pedido actualizado correctamente.');
+        return idPedido;
+      } else {
+        print('No se pudo actualizar el pedido.');
+        return null;
+      }
+    } catch (e) {
+      print('Error al realizar la consulta de actualización: $e');
+      return null;
     } finally {
       if (conn != null) {
         await conn.close();
