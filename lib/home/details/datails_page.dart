@@ -688,24 +688,24 @@ class _DetailsPageState extends State<DetailsPage> {
       if (ipBar == null) {
         if (prodSeleccionados.isNotEmpty){
           print('Lista de productos seleccionados:');
-          impresora.printLabel(ipCocina!,prodSeleccionados,estado, pedidoTotal, selectObjmesa.nombreMesa, mozo!, piso);
+          impresora.printLabel(ipCocina!,prodSeleccionados,estado, pedidoTotal, selectObjmesa.nombreMesa, mozo!, piso,'');
         }else{
           print('nada que imprimir');
         }
       } else {
         print('Productos para el bar:');
         if(ParaBar.isNotEmpty){
-          impresora.printLabel(ipBar,ParaBar,estado, pedidoTotal, selectObjmesa.nombreMesa, mozo!, piso);
+          impresora.printLabel(ipBar,ParaBar,estado, pedidoTotal, selectObjmesa.nombreMesa, mozo!, piso,'');
           if (ParaCocina.isNotEmpty){
             print('Lista de productos seleccionados:');
-            impresora.printLabel(ipCocina!,ParaCocina,estado, pedidoTotal, selectObjmesa.nombreMesa, mozo!, piso);
+            impresora.printLabel(ipCocina!,ParaCocina,estado, pedidoTotal, selectObjmesa.nombreMesa, mozo!, piso,'');
           }else{
             print('nada que imprimir');
           }
         }else{
           if (ParaCocina.isNotEmpty){
             print('Lista de productos seleccionados:');
-            impresora.printLabel(ipCocina!,ParaCocina,estado, pedidoTotal, selectObjmesa.nombreMesa, mozo!, piso);
+            impresora.printLabel(ipCocina!,ParaCocina,estado, pedidoTotal, selectObjmesa.nombreMesa, mozo!, piso,'');
           }else{
             print('nada que imprimir');
           }
@@ -739,7 +739,7 @@ class _DetailsPageState extends State<DetailsPage> {
 
           }
           Navigator.pop(context,2);
-          impresora.printLabel(printerIP!,widget.productosSeleccionados,3,pedidoTotal, selectObjmesa.nombreMesa, mozo!, piso);
+          impresora.printLabel(printerIP!,widget.productosSeleccionados,3,pedidoTotal, selectObjmesa.nombreMesa, mozo!, piso,'');
         },
 
         child: const Text(

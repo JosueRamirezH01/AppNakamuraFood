@@ -178,7 +178,7 @@ class _AjustesPageState extends State<AjustesPage> {
                           ),
                           margin: EdgeInsets.all(20),
                           child: Padding(
-                            padding: const EdgeInsets.only(right: 20, left: 20,top: 10, bottom: 10),
+                            padding: const EdgeInsets.only(right: 20, left: 20,top: 15, bottom: 15),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [

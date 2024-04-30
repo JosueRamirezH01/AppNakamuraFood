@@ -89,7 +89,7 @@ class LoginService {
             }
             await prod.consultarCategorias(context, mozo.id_establecimiento!);
             await prod.consultarProductos(context, mozo.id_establecimiento!);
-            print('DATA OBTENIDO ${mozo.email}');
+            print('DATA OBTENIDO ${mozo.nombre_usuario}');
             Navigator.pushNamedAndRemoveUntil(
                 context, 'home', (route) => false);
           }
