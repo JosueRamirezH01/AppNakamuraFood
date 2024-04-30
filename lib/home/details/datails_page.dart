@@ -82,6 +82,7 @@ class _DetailsPageState extends State<DetailsPage> {
   }
   List<Mesa> mesasDisponibles = [];
   List<Detalle_Pedido> detalles_pedios_tmp = [];
+  List<Piso> listaPisos =[];
   late Mesa selectObjmesa;
   PedidoServicio pedidoServicio= PedidoServicio();
   MesaServicio mesaServicio = MesaServicio();
@@ -221,7 +222,10 @@ class _DetailsPageState extends State<DetailsPage> {
                       style:  ButtonStyle(
                           elevation: MaterialStateProperty.all(2), backgroundColor: MaterialStateProperty.all(const Color(0xFF4C95DD))),
                       onPressed: () async {
-                        mesasDisponibles = await bdMesas.consultarMesasDisponibles(widget.mesa?.pisoId, context);
+                        //mesasDisponibles = await bdMesas.consultarMesasDisponibles(widget.mesa?.pisoId, context);
+                        listaPisos = await bdPisos.consultarPisos(mozo!.id_establecimiento!, context);
+                        mesasDisponibles = await bdMesas.consultarTodasMesas(listaPisos, context);
+
                         mostrarMesa(mesasDisponibles);
                       },
                       child: const Text(
@@ -409,19 +413,27 @@ class _DetailsPageState extends State<DetailsPage> {
           title: Text('Observaciones del Plato'),
           content: StatefulBuilder(
             builder: (BuildContext context, StateSetter setState) {
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                children: List.generate(comidas.length, (index) {
-                  return CheckboxListTile(
-                    title: Text(comidas[index]),
-                    value: _checkedItems[index],
-                    onChanged: (value) {
-                      setState(() {
-                        _checkedItems[index] = value ?? false;
-                      });
-                    },
-                  );
-                }),
+              return Container(
+                height: MediaQuery.of(context).size.height * 0.5,
+                child: Scrollbar(
+                  thumbVisibility: true,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: List.generate(comidas.length, (index) {
+                        return CheckboxListTile(
+                          title: Text(comidas[index]),
+                          value: _checkedItems[index],
+                          onChanged: (value) {
+                            setState(() {
+                              _checkedItems[index] = value ?? false;
+                            });
+                          },
+                        );
+                      }),
+                    ),
+                  ),
+                ),
               );
             },
           ),
@@ -526,7 +538,7 @@ class _DetailsPageState extends State<DetailsPage> {
                 items: mesas.map<DropdownMenuItem<Mesa>>(
                       (Mesa mesa) => DropdownMenuItem<Mesa>(
                     value: mesa,
-                    child: Text('${mesa.nombreMesa}'),
+                    child: Text('${mesa.nombreMesa} -> ${listaPisos.firstWhere((element) => element.id == mesa.pisoId).nombrePiso}'),
                   ),
                 ).toList(),
               );

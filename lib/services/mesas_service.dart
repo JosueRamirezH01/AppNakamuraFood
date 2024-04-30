@@ -14,8 +14,6 @@ class MesaServicio {
   final SharedPref _sharedPref = SharedPref();
 
   Future<List<Mesa>> consultarTodasMesas( List<Piso> pisos, BuildContext context) async {
-    print('-------------------------');
-    print('Todas mesas');
     MySqlConnection? conn;
     List<Mesa> allMesas = [];
 
@@ -24,28 +22,11 @@ class MesaServicio {
 
 
       for (Piso piso in pisos) {
-        print('Sooloooooooooooooooooo ---------- ${piso.id}');
         const query = 'SELECT * FROM mesas WHERE piso_id = ?';
         final results = await conn.query(query, [piso.id]);
-        print('aui muere ${results}');
-
-        if (results.isEmpty) {
-          print('No se encontraron mesas para el piso ${piso.id}.');
-        } else {
           List<Mesa> mesas = results.map((row) => Mesa.fromJson(row.fields)).toList();
           allMesas.addAll(mesas);
-        }
       }
-      if (allMesas.isEmpty) {
-        print('No se encontraron mesas en ningún piso.');
-      } else {
-        final jsonMesasData = json.encode(allMesas);
-        print('Lista de mesas guardada en SharedPreferences: $jsonMesasData');
-      }
-
-      allMesas.forEach((element) {
-        print('NOMBRE : ${element.nombreMesa}, PISO ${element.pisoId}');
-      });
 
       return allMesas;
     } catch (e) {
