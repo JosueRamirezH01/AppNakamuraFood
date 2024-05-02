@@ -634,6 +634,8 @@ class _DetailsPageState extends State<DetailsPage> {
               montoTotal: pedidoTotal, // ✔️
               fechaPedido: parsedDateTime.toUtc(), // ✔️
               estadoPedido: 1, // ✔️
+              created_at: parsedDateTime.toUtc(),
+              updated_at: parsedDateTime.toUtc()
             );
             // Ya crea el pedido
 

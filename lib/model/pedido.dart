@@ -19,7 +19,9 @@ class Pedido {
   String? motivo;
   String? anuladoPor;
   String? nombreCliente;
-  
+  DateTime? created_at;
+  DateTime? updated_at;
+
   Pedido({
     this.idPedido,
     this.idEntorno,
@@ -36,6 +38,8 @@ class Pedido {
     this.motivo,
     this.anuladoPor,
     this.nombreCliente,
+    this.created_at,
+    this.updated_at
   });
 
   factory Pedido.fromJson(Map<String, dynamic> json) => Pedido(
@@ -54,6 +58,8 @@ class Pedido {
     motivo: json['motivo'],
     anuladoPor: json['anulado_por'],
     nombreCliente: json['nombrecliente'],
+    created_at: json['created_at'],
+    updated_at: json['updated_at']
   );
 
   Map<String, dynamic> toJson() => {
@@ -72,5 +78,7 @@ class Pedido {
     'motivo': motivo,
     'anulado_por': anuladoPor,
     'nombrecliente': nombreCliente,
+    'updated_at': updated_at,
+    'created_at': created_at
   };
 }

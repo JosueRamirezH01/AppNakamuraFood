@@ -121,7 +121,7 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
                     duration: Duration(milliseconds: 300),
                     curve: Curves.easeInOut,
                   );
-                  List<Producto> productosCategoria = await _con.getProductosPorCategoria(_con.categorias[index].id);
+                  List<Producto> productosCategoria = await _con.getProductosPorCategoria(_con.categorias[index]);
                   setState(() {
                     _con.productos = productosCategoria;
                   });
@@ -133,7 +133,7 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
                   controller: _pageController,
                   onPageChanged: (index) async {
                     _tabController.animateTo(index);
-                    List<Producto> productosCategoria = await _con.getProductosPorCategoria(_con.categorias[index].id);
+                    List<Producto> productosCategoria = await _con.getProductosPorCategoria(_con.categorias[index]);
                     setState(() {
                       _con.productos = productosCategoria;
                     });

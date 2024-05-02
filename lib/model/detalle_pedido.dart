@@ -14,6 +14,7 @@ class Detalle_Pedido {
   double? precio_producto;
   String? comentario;
   int? estado_detalle;
+  DateTime? updated_at;
 
   Detalle_Pedido({
     this.id_pedido_detalle,
@@ -25,7 +26,8 @@ class Detalle_Pedido {
     this.cantidad_real,
     this.precio_producto,
     this.comentario,
-    this.estado_detalle
+    this.estado_detalle,
+    this.updated_at
   });
 
   factory Detalle_Pedido.fromJson(Map<String, dynamic> json) => Detalle_Pedido(
@@ -38,7 +40,9 @@ class Detalle_Pedido {
     cantidad_real: json["cantidad_real"],
       precio_producto: double.tryParse(json["precio_producto"]?.toString() ?? "0.0"),
     comentario: json["comentario"].toString(),
-    estado_detalle: json["estado_detalle"]
+    estado_detalle: json["estado_detalle"],
+    updated_at: json["updated_at"],
+
   );
 
 
@@ -52,7 +56,8 @@ class Detalle_Pedido {
     "cantidad_real": cantidad_real,
     "precio_producto": precio_producto,
    "comentario": comentario,
-    "estado_detalle": estado_detalle
+    "estado_detalle": estado_detalle,
+    "updated_at": updated_at
   };
 
   // Future<void> convertirComentarioBlobAString() async {

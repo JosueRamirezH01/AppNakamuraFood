@@ -20,7 +20,7 @@ class ProductoServicio {
       conn = await _connectionSQL.getConnection();
 
       // Consulta para obtener todos los datos de las tablas categorias y productos
-      const query = 'SELECT *  FROM categorias WHERE establecimiento_id = ?';
+      const query = 'SELECT *  FROM categorias WHERE establecimiento_id = ?  AND estado = 1';
       final results = await conn.query(query,[id_establecimiento]);
       if (results.isEmpty) {
         Fluttertoast.showToast(
@@ -35,6 +35,11 @@ class ProductoServicio {
         print('No se encontraron datos en las tablas.');
       } else {
         List<Categoria> categorias = results.map((row) => Categoria.fromJson(row.fields)).toList();
+        int todosIndex = categorias.indexWhere((categoria) => categoria.nombre?.toLowerCase() == 'todos');
+        if (todosIndex != -1) {
+          Categoria todosCategoria = categorias.removeAt(todosIndex);
+          categorias.insert(0, todosCategoria);
+        }
         final jsonCategoriasData = json.encode(categorias);
         _sharedPref.save('categorias', jsonCategoriasData);
         print('Lista de categorías guardada en SharedPreferences:');
@@ -54,7 +59,7 @@ class ProductoServicio {
     try {
       conn = await _connectionSQL.getConnection();
       // Consulta para obtener todos los datos de las tablas categorias y productos
-      const query = 'SELECT id,nombreproducto, foto, precioproducto, stock, categoria_id, codigo_interno FROM productos WHERE establecimiento_id = ?';
+      const query = 'SELECT id,nombreproducto, foto, precioproducto, stock, categoria_id, codigo_interno FROM productos WHERE establecimiento_id = ? AND estado = 1';
       final results = await conn.query(query,[id_establecimiento]);
       if (results.isEmpty) {
         Fluttertoast.showToast(
@@ -69,7 +74,6 @@ class ProductoServicio {
         print('No se encontraron datos en las tablas.');
       } else {
         List<Producto> producto = results.map((row) => Producto.fromJson(row.fields)).toList();
-
         final jsonProductoData = json.encode(producto);
         _sharedPref.save('productos', jsonProductoData);
 

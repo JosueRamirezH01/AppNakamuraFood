@@ -98,7 +98,7 @@ class PedidoServicio {
     MySqlConnection? conn;
     try {
       conn = await _connectionSQL.getConnection();
-      const query = 'INSERT INTO pedidos ( id_entorno, id_cliente,id_usuario, id_tipo_ped, id_mesa, id_establecimiento, id_serie_pedido, Monto_total, fecha_pedido, estado_pedido) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+      const query = 'INSERT INTO pedidos ( id_entorno, id_cliente,id_usuario, id_tipo_ped, id_mesa, id_establecimiento, id_serie_pedido, Monto_total, fecha_pedido, estado_pedido, created_at, updated_at) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
       final results = await conn.query( query, [
           pedido.idEntorno,
           pedido.idCliente,
@@ -110,6 +110,9 @@ class PedidoServicio {
           pedido.montoTotal,
           pedido.fechaPedido,
           pedido.estadoPedido,
+          pedido.created_at,
+        pedido.updated_at
+
         ]
       );
       if (results.affectedRows == 0) {

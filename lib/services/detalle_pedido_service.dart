@@ -194,6 +194,7 @@ class DetallePedidoServicio {
             precio_producto: producto.precioproducto,
             comentario: producto.comentario,
             estado_detalle: 1,
+
           );
 
           await conn.query(
@@ -271,8 +272,8 @@ class DetallePedidoServicio {
 
       }
 
-      await conn.query('UPDATE pedidos SET Monto_total = ? WHERE id_pedido = ?',
-          [pedidoTotal, pedidoid]);
+      await conn.query('UPDATE pedidos SET Monto_total = ?, updated_at= ? WHERE id_pedido = ?',
+          [pedidoTotal, DateTime.now().toUtc(),pedidoid]);
       print('LISTA DE INSERTAR AL ACTUALIZAR EL PEDIDO $detallesPedido');
       return detallesPedido;
     }catch (e) {

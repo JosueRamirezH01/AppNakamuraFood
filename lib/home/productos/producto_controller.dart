@@ -110,10 +110,8 @@ class ProductoController {
         milliseconds: 800); // set the duration that you want call search() after that.
     searchOnStoppedTyping.cancel();
     refresh();
-
     searchOnStoppedTyping = Timer(duration, () {
       productName = text;
-
       refresh();
       _getProductos();
       print('TEXTO COMPLETO $text');
@@ -166,7 +164,7 @@ class ProductoController {
               .toList();
         } else {
           // Si no se proporciona ningún texto de búsqueda, reinicia la lista de productos
-          productos = await getProductosPorCategoria(categorias.isNotEmpty ? categorias.first.id : null);
+          productos = await getProductosPorCategoria(categorias.isNotEmpty ? categorias.first  : null);
         }
       }
     } catch (e) {
@@ -177,13 +175,13 @@ class ProductoController {
 
 //RegExp(r'^[a-z]{2}\d+|\d+$')
 
-  Future<List<Producto>> getProductosPorCategoria(int? categoriaId) async {
+  Future<List<Producto>> getProductosPorCategoria(Categoria? categoria) async {
     try {
       String productosJson = await _sharedPref.read('productos');
       if (productosJson.isNotEmpty) {
         List<dynamic> productosData = json.decode(productosJson);
 
-        if (categoriaId == 1) {
+        if (categoria!.nombre!.toLowerCase() == 'todos') {
           List<Producto> productosCategoria = productosData
               .map((productoJson) => Producto.fromJson(productoJson))
               .toList();
@@ -192,7 +190,7 @@ class ProductoController {
         // Filtra los productos por el ID de categoría
         List<Producto> productosCategoria = productosData
             .map((productoJson) => Producto.fromJson(productoJson))
-            .where((producto) => producto.categoria_id == categoriaId)
+            .where((producto) => producto.categoria_id == categoria.id)
             .toList();
 
         return productosCategoria;
