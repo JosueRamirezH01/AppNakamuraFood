@@ -150,6 +150,7 @@ class ProductoController {
             final isNumeric = RegExp(r'^[0-9]+$').hasMatch(productName);
             final isAlphaNumeric = RegExp(r'^[0-9a-zA-Z]+$').hasMatch(productName);
 
+
             if (isNumeric) {
               // Si el término de búsqueda es un número, buscar por código interno
               return codigoInterno.toLowerCase() == productName.toLowerCase();
