@@ -113,16 +113,16 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     _subOptType = SubOptTypes.local;
 
     UserShared().then((_) {
-      // Una vez que UserShared() haya terminado de ejecutarse y se haya actualizado idEstablecimiento, entonces llamamos a las funciones de consulta.
-      consultarPisos(idEstablecimiento, context);
-      consultarMesas(pisoSelect, context).then((value) async {
-        _subOptType = SubOptTypes.local;
-        listaPedido = await dbPedido.obtenerListasPedidos(_subOptType, idEstablecimiento,context);
-        AllListadoMesas = await dbMesas.consultarTodasMesas(ListadoPisos, context);
-        setState(() {
-          isLoading = false;
-        });
-      },);
+      consultarPisos(idEstablecimiento, context).then((value) {
+        consultarMesas(pisoSelect, context).then((value) async {
+          _subOptType = SubOptTypes.local;
+          listaPedido = await dbPedido.obtenerListasPedidos(_subOptType, idEstablecimiento,context);
+          AllListadoMesas = await dbMesas.consultarTodasMesas(ListadoPisos, context);
+          setState(() {
+            isLoading = false;
+          });
+        },);
+      });
       refresh();
     });
     refresh2();
@@ -154,15 +154,34 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
   Future<void> consultarPisos(int idEstablecimiento, BuildContext context) async {
     List<Piso> listaPisos = await dbPisos.consultarPisos(idEstablecimiento, context);
-    print(listaPisos);
+    // List<Mesa> allMesasTmp = await dbMesas.consultarTodasMesas(listaPisos, context);
+    AllListadoMesas = await dbMesas.consultarTodasMesas(listaPisos, context);
+    print('mesa ${AllListadoMesas}');
+
+    AllListadoMesas.forEach((element) {
+      print('mesas desde piso--${element.nombreMesa}');
+    });
+
+    Set<int> pisosConMesas = AllListadoMesas.map((mesa) => mesa.pisoId!).toSet();
+    List<Piso> pisosConMesasList = listaPisos.where((piso) => pisosConMesas.contains(piso.id)).toList();
+
+    List<Piso> pisosFiltrados = [];
+    for (var piso in pisosConMesasList) {
+      var mesasEnEstePiso = AllListadoMesas.where((mesa) => mesa.pisoId == piso.id);
+      if (mesasEnEstePiso.any((mesa) => mesa.estadoMesa != 0) || mesasEnEstePiso.isEmpty) {
+        pisosFiltrados.add(piso);
+      }
+    }
+    // print('--- Filtrado :- ${pisosConMesasList}');
+    print(pisosFiltrados);
     setState(() {
       myTabs.clear();
-      for (int i = 0; i < listaPisos.length; i++) {
-        myTabs.add(Tab(text: listaPisos[i].nombrePiso));
-        ListadoPisos.add(listaPisos[i]);
-        print(' pisos: ${listaPisos[i]}');
+      for (int i = 0; i < pisosFiltrados.length; i++) {
+        myTabs.add(Tab(text: pisosFiltrados[i].nombrePiso));
+        ListadoPisos.add(pisosFiltrados[i]);
+        print(' pisos: ${pisosFiltrados[i]}');
       }
-      pisoSelect = listaPisos[0].id!;
+      pisoSelect = pisosFiltrados[0].id!;
       consultarMesas(pisoSelect,context);
       // refresh();
     });
@@ -230,10 +249,23 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     ),
                     ElevatedButton.icon(
                       onPressed: () {
-                        setState(() {
-                          _selectedIndex = 1;
-                          _tabController.animateTo(1);
+                        consultarPisos(idEstablecimiento, context).then((value) {
+                          consultarMesas(pisoSelect, context).then((value) async {
+                            _subOptType = SubOptTypes.local;
+                            listaPedido = await dbPedido.obtenerListasPedidos(_subOptType, idEstablecimiento,context);
+                            AllListadoMesas = await dbMesas.consultarTodasMesas(ListadoPisos, context);
+                            setState(() {
+                              isLoading = false;
+                            });
+                          },);
+                          setState(() {
+                            _selectedIndex = 1;
+                            _tabController.animateTo(1);
+                            pisoMesas = 0;
+                          });
+                          refresh();
                         });
+
                       },
                       icon: const Icon(Icons.shopping_cart_outlined),
                       label: const Text('POS'),
@@ -354,19 +386,18 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                             crossAxisCount: 2,
                                             childAspectRatio: 0.7,
                                           ),
-                                          itemCount:ListadoMesas.length,
+                                          itemCount:ListadoMesas.where((mesa) => mesa.estadoMesa != 0).length,
                                           itemBuilder: (_, index) {
                                             return FutureBuilder(
                                               future: Future.delayed(const Duration(milliseconds: 600)), // Cambia el tiempo de retraso según tu preferencia
                                               builder: (context, snapshot) {
+                                                List<Mesa> mesasFiltradas = ListadoMesas.where((mesa) => mesa.estadoMesa != 0).toList();
                                                 if (snapshot.connectionState == ConnectionState.waiting) {
-                                                  // Muestra un indicador de carga mientras se está realizando el retraso
                                                   return Center(
                                                     child: CircularProgressIndicator(),
                                                   );
                                                 } else {
-                                                  // Cuando el retraso haya finalizado, muestra la tarjeta de la mesa
-                                                  return _cardMesa(ListadoMesas[index]);
+                                                  return _cardMesa(mesasFiltradas[index]);
                                                 }
                                               },
                                             );

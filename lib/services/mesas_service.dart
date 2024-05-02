@@ -13,19 +13,22 @@ class MesaServicio {
   final Connection _connectionSQL = Connection();
   final SharedPref _sharedPref = SharedPref();
 
-  Future<List<Mesa>> consultarTodasMesas( List<Piso> pisos, BuildContext context) async {
+  Future<List<Mesa>> consultarTodasMesas(List<Piso> pisos, BuildContext context) async {
     MySqlConnection? conn;
     List<Mesa> allMesas = [];
 
     try {
       conn = await _connectionSQL.getConnection();
 
-
       for (Piso piso in pisos) {
         const query = 'SELECT * FROM mesas WHERE piso_id = ?';
         final results = await conn.query(query, [piso.id]);
-          List<Mesa> mesas = results.map((row) => Mesa.fromJson(row.fields)).toList();
+        List<Mesa> mesas = results.map((row) => Mesa.fromJson(row.fields)).toList();
+        if (mesas.isNotEmpty) {
           allMesas.addAll(mesas);
+        } else {
+          print('No hay mesas en el piso ${piso.id}, pasando al siguiente piso.');
+        }
       }
 
       return allMesas;
@@ -38,7 +41,6 @@ class MesaServicio {
       }
     }
   }
-
   Future<bool> consultarMesa( int idMesa, BuildContext context) async {
     MySqlConnection? conn;
     try {
