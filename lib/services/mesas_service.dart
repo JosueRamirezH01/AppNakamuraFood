@@ -39,6 +39,38 @@ class MesaServicio {
     }
   }
 
+  Future<bool> consultarMesa( int idMesa, BuildContext context) async {
+    MySqlConnection? conn;
+    try {
+      conn = await _connectionSQL.getConnection();
+
+      const query = 'SELECT * FROM mesas WHERE id = ?';
+      final results = await conn.query(query, [idMesa]);
+      if (results.isEmpty) {
+        print('No se encontraron datos en las tablas.');
+        return false;
+      } else {
+        Mesa mesa = Mesa.fromJson(results.first.fields);
+        print('---------${mesa.estadoMesa}');
+        final jsonMesasData = json.encode(mesa);
+        print('Lista de pisos guardada en SharedPreferences: $jsonMesasData');
+        if(mesa.estadoMesa == 1){
+          return true;
+        }else{
+          return false;
+        }
+
+      }
+    } catch (e) {
+      print('Error al realizar la consulta: $e');
+      return false;
+    } finally {
+      if (conn != null) {
+        await conn.close();
+      }
+    }
+  }
+
 
   Future<List<Mesa>> consultarMesas( int idPiso, BuildContext context) async {
     MySqlConnection? conn;
@@ -53,7 +85,6 @@ class MesaServicio {
       } else {
         List<Mesa> mesas = results.map((row) => Mesa.fromJson(row.fields)).toList();
         final jsonMesasData = json.encode(mesas);
-        //_sharedPref.save('pisos', jsonPisosData);
         print('Lista de pisos guardada en SharedPreferences: $jsonMesasData');
         return mesas;
       }

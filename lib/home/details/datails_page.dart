@@ -222,11 +222,14 @@ class _DetailsPageState extends State<DetailsPage> {
                       style:  ButtonStyle(
                           elevation: MaterialStateProperty.all(2), backgroundColor: MaterialStateProperty.all(const Color(0xFF4C95DD))),
                       onPressed: () async {
+                        gif();
                         //mesasDisponibles = await bdMesas.consultarMesasDisponibles(widget.mesa?.pisoId, context);
                         listaPisos = await bdPisos.consultarPisos(mozo!.id_establecimiento!, context);
                         mesasDisponibles = await bdMesas.consultarTodasMesas(listaPisos, context);
+                        List<Mesa> mesasDisponiblesFiltradas = mesasDisponibles.where((mesa) => mesa.estadoMesa == 1).toList();
+                        Navigator.pop(context);
 
-                        mostrarMesa(mesasDisponibles);
+                        mostrarMesa(mesasDisponiblesFiltradas);
                       },
                       child: const Text(
                         'Cambiar Mesa',
@@ -552,16 +555,27 @@ class _DetailsPageState extends State<DetailsPage> {
               child: const Text('Cancelar'),
             ),
             TextButton(
-              onPressed: () {
-                int? idPedido = IDPEDIDOPRUEBA == 0 ? widget.idPedido : IDPEDIDOPRUEBA;
-                bdPedido.actualizarPedido(idPedido, nuevaMesaId!, context).then((_) async {
-                  bdMesas.actualizarMesa(nuevaMesaId!, 3, context);
-                  bdMesas.actualizarMesa(widget.mesa!.id, 1, context);
-                  widget.mesa?.id = nuevaMesaId ;
-                  widget.mesa?.nombreMesa = nomMesa;
-                  Navigator.pop(context);
-                  Navigator.pop(context, idPedido);
-                });
+              onPressed: () async{
+                if(nomMesa == null){
+                  mostrarMensaje('Debes seleccionar una mesa');
+                }else {
+                  bool disponible = await bdMesas.consultarMesa(nuevaMesaId!, context);
+                  if(disponible == true){
+                    int? idPedido = IDPEDIDOPRUEBA == 0 ? widget.idPedido : IDPEDIDOPRUEBA;
+                    bdPedido.actualizarPedido(idPedido, nuevaMesaId!, context).then((_) async {
+                      bdMesas.actualizarMesa(nuevaMesaId!, 3, context);
+                      bdMesas.actualizarMesa(widget.mesa!.id, 1, context);
+                      widget.mesa?.id = nuevaMesaId ;
+                      widget.mesa?.nombreMesa = nomMesa;
+                      Navigator.pop(context);
+                      Navigator.pop(context, idPedido);
+                    });
+                  }else {
+                    mostrarMensaje('La mesa esta ocupada');
+                  }
+
+                }
+
               },
               child: const Text('Confirmar'),
             ),
