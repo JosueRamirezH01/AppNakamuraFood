@@ -93,7 +93,7 @@ class Impresora {
 
   void _buildDetailsPreCuenta(NetworkPrinter printer, Mozo mozo, Piso piso) {
 
-    String? email = '${mozo.email}';
+    String? email = '${mozo.nombre_usuario}';
     String? nomPiso = '${piso.nombrePiso}';
     //String nombreUsuario = email != null ? email.substring(0, email.indexOf('@')) : '';
     DateTime now = DateTime.now();
