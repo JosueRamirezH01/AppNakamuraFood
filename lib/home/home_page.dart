@@ -175,6 +175,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     // print('--- Filtrado :- ${pisosConMesasList}');
     print(pisosFiltrados);
     setState(() {
+      ListadoPisos.clear();
       myTabs.clear();
       for (int i = 0; i < pisosFiltrados.length; i++) {
         myTabs.add(Tab(text: pisosFiltrados[i].nombrePiso));
@@ -183,6 +184,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       }
       pisoSelect = pisosFiltrados[0].id!;
       consultarMesas(pisoSelect,context);
+      refresh2();
+
       // refresh();
     });
   }
