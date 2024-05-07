@@ -1240,9 +1240,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                       dbPedido.anularPedido(motivoFinal, mozo!, pedido.idPedido!, context);
                       refresh();
                       Navigator.of(context).pop();
-                      refresh();
                       Navigator.pop(context);
-                      refresh();
                     }
                     refresh();
                   },

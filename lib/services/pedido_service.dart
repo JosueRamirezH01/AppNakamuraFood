@@ -4,6 +4,7 @@ import 'package:restauflutter/bd/conexion.dart';
 import 'package:restauflutter/home/home_page.dart';
 import 'package:restauflutter/model/detalle_pedido.dart';
 import 'package:restauflutter/model/mozo.dart';
+import 'package:restauflutter/model/nota.dart';
 import 'package:restauflutter/model/pedido.dart';
 import 'package:restauflutter/utils/shared_pref.dart';
 
@@ -205,6 +206,33 @@ class PedidoServicio {
     } catch (e) {
       print('Error al realizar la consulta de actualización: $e');
       return null;
+    } finally {
+      if (conn != null) {
+        await conn.close();
+      }
+    }
+  }
+
+
+
+  Future<List<Nota>> obtenerListasNota(int idEstablecimiento,BuildContext context) async {
+    MySqlConnection? conn;
+    try {
+      conn = await _connectionSQL.getConnection();
+
+      const query = 'SELECT * FROM notas where id_establecimiento = ? ';
+      final results = await conn.query(query,[idEstablecimiento] );
+      if (results.isEmpty) {
+        print('No se encontraron datos en las tablas.');
+        return [];
+      } else {
+        List<Nota> listaNota = results.map((row) => Nota.fromJson(row.fields)).toList();
+        print('ID del pedido recuperado: $listaNota');
+        return listaNota;
+      }
+    } catch (e) {
+      print('Error al realizar la consulta: $e');
+      return [];
     } finally {
       if (conn != null) {
         await conn.close();
