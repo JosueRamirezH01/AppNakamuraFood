@@ -14,7 +14,7 @@ class PisoServicio {
     MySqlConnection? conn;
     try {
       conn = await _connectionSQL.getConnection();
-      const query = 'SELECT * FROM pisos WHERE id_establecimiento = ?';
+      const query = 'SELECT DISTINCT p.* FROM pisos p JOIN mesas m ON p.id = m.piso_id WHERE m.estado_mesa = 1 AND id_establecimiento = ?';
       final results = await conn.query(query, [idEstablecimiento]);
         List<Piso> pisos =
             results.map((row) => Piso.fromJson(row.fields)).toList();
@@ -36,7 +36,7 @@ class PisoServicio {
     MySqlConnection? conn;
     try {
       conn = await _connectionSQL.getConnection();
-      const query = 'SELECT * FROM `pisos` WHERE id = ?';
+      const query = 'SELECT * FROM `pisos` WHERE id = ? ';
       final results = await conn.query(query, [idmesapiso]);
         Map<String, dynamic> pisoData = results.first.fields;
         Piso piso = Piso.fromJson(pisoData);

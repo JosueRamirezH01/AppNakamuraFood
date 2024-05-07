@@ -4,7 +4,7 @@ class Connection {
     String host = '137.184.54.213';
     String user = 'atonGloR';
     String password = '£4dAGE310N';
-    String db = 'bd_restaurant';
+    String db = 'bd_restau';
     int port = 3306;
     Connection();
 
