@@ -113,16 +113,16 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     _subOptType = SubOptTypes.local;
 
     UserShared().then((_) {
-      consultarPisos(idEstablecimiento, context).then((value) {
-        consultarMesas(pisoSelect, context).then((value) async {
-          _subOptType = SubOptTypes.local;
-          listaPedido = await dbPedido.obtenerListasPedidos(_subOptType, idEstablecimiento,context);
-          AllListadoMesas = await dbMesas.consultarTodasMesas(ListadoPisos, context);
-          setState(() {
-            isLoading = false;
-          });
-        },);
-      });
+      // Una vez que UserShared() haya terminado de ejecutarse y se haya actualizado idEstablecimiento, entonces llamamos a las funciones de consulta.
+      consultarPisos(idEstablecimiento, context);
+      consultarMesas(pisoSelect, context).then((value) async {
+        _subOptType = SubOptTypes.local;
+        listaPedido = await dbPedido.obtenerListasPedidos(_subOptType, idEstablecimiento,context);
+        AllListadoMesas = await dbMesas.consultarTodasMesas(ListadoPisos, context);
+        setState(() {
+          isLoading = false;
+        });
+      },);
       refresh();
     });
     refresh2();
@@ -154,39 +154,18 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
   Future<void> consultarPisos(int idEstablecimiento, BuildContext context) async {
     List<Piso> listaPisos = await dbPisos.consultarPisos(idEstablecimiento, context);
-    // List<Mesa> allMesasTmp = await dbMesas.consultarTodasMesas(listaPisos, context);
-    AllListadoMesas = await dbMesas.consultarTodasMesas(listaPisos, context);
-    print('mesa ${AllListadoMesas}');
-
-    AllListadoMesas.forEach((element) {
-      print('mesas desde piso--${element.nombreMesa}');
-    });
-
-    Set<int> pisosConMesas = AllListadoMesas.map((mesa) => mesa.pisoId!).toSet();
-    List<Piso> pisosConMesasList = listaPisos.where((piso) => pisosConMesas.contains(piso.id)).toList();
-
-    List<Piso> pisosFiltrados = [];
-    for (var piso in pisosConMesasList) {
-      var mesasEnEstePiso = AllListadoMesas.where((mesa) => mesa.pisoId == piso.id);
-      if (mesasEnEstePiso.any((mesa) => mesa.estadoMesa != 0) || mesasEnEstePiso.isEmpty) {
-        pisosFiltrados.add(piso);
-      }
-    }
-    // print('--- Filtrado :- ${pisosConMesasList}');
-    print(pisosFiltrados);
+    print('LISTADO DE PISOS ------- ${listaPisos}');
     setState(() {
-      ListadoPisos.clear();
       myTabs.clear();
-      for (int i = 0; i < pisosFiltrados.length; i++) {
-        myTabs.add(Tab(text: pisosFiltrados[i].nombrePiso));
-        ListadoPisos.add(pisosFiltrados[i]);
-        print(' pisos: ${pisosFiltrados[i]}');
+      ListadoPisos.clear();
+      for (int i = 0; i < listaPisos.length; i++) {
+        myTabs.add(Tab(text: listaPisos[i].nombrePiso));
+        ListadoPisos.add(listaPisos[i]);
+        print(' pisos: ${listaPisos[i]}');
       }
-      pisoSelect = pisosFiltrados[0].id!;
+      pisoSelect = listaPisos[0].id!;
       consultarMesas(pisoSelect,context);
       refresh2();
-
-      // refresh();
     });
   }
 
@@ -194,7 +173,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     print(' piso enviado: $idPiso');
     ListadoMesas = await dbMesas.consultarMesas(idPiso, context);
     refresh();
-    refresh2();
+    //refresh2();
   }
 
 
@@ -266,6 +245,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                             _tabController.animateTo(1);
                             pisoMesas = 0;
                           });
+                          print('PISOSMESAS $pisoMesas}');
                           refresh();
                         });
 
@@ -345,7 +325,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                                 });
                                               }
                                             }
-                                            pisoMesas = index;
+
+                                            setState(() {
+                                              pisoMesas = 0;
+                                            });
                                           },
                                           indicatorColor: const Color( 0xFFFF562F),
                                           labelColor: const Color( 0xFFFF562F),
@@ -379,6 +362,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                             });
                                           }
                                         }
+                                        setState(() {
+                                          pisoMesas = 0;
+                                        });
                                       },
                                       children: myTabs.map((Tab tab) {
                                         return GridView.builder(
@@ -389,18 +375,18 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                             crossAxisCount: 2,
                                             childAspectRatio: 0.7,
                                           ),
-                                          itemCount:ListadoMesas.where((mesa) => mesa.estadoMesa != 0).length,
+                                          itemCount:ListadoMesas.length,
                                           itemBuilder: (_, index) {
                                             return FutureBuilder(
                                               future: Future.delayed(const Duration(milliseconds: 600)), // Cambia el tiempo de retraso según tu preferencia
                                               builder: (context, snapshot) {
-                                                List<Mesa> mesasFiltradas = ListadoMesas.where((mesa) => mesa.estadoMesa != 0).toList();
                                                 if (snapshot.connectionState == ConnectionState.waiting) {
                                                   return Center(
                                                     child: CircularProgressIndicator(),
                                                   );
                                                 } else {
-                                                  return _cardMesa(mesasFiltradas[index]);
+                                                  // Cuando el retraso haya finalizado, muestra la tarjeta de la mesa
+                                                  return _cardMesa(ListadoMesas[index]);
                                                 }
                                               },
                                             );
@@ -1345,6 +1331,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
   void refresh2(){
     setState(() {
+      print('CONSULTA DE CANTDAD DE PISOS  ${ListadoPisos.length}');
       _tabControllerPisos = TabController(
           length: ListadoPisos.length,
           vsync: this,

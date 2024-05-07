@@ -273,7 +273,7 @@ class _DetailsPageState extends State<DetailsPage> {
                           imprimir(nombresProductos, 2);
                           Navigator.pop(context);
                         } else {
-                          mostrarMensajeActualizado('No hay productos que Actualizar');
+                          mostrarMensajeActualizado('No hay productos que Actualizar', true);
                           Navigator.pop(context);
                         }
                       },
@@ -903,13 +903,15 @@ class _DetailsPageState extends State<DetailsPage> {
       fontSize: 16.0,
     );
   }
-  void mostrarMensajeActualizado(String mensaje) {
+  void mostrarMensajeActualizado(String mensaje, bool esRojo ) {
+    Color backgroundColor = esRojo ? Colors.red : Colors.green;
+
     Fluttertoast.showToast(
       msg: mensaje,
       toastLength: Toast.LENGTH_SHORT,
       gravity: ToastGravity.BOTTOM,
       timeInSecForIosWeb: 1,
-      backgroundColor: Colors.green,
+      backgroundColor: backgroundColor,
       textColor: Colors.white,
       fontSize: 16.0,
     );
