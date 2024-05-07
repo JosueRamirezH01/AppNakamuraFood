@@ -118,12 +118,14 @@ class Impresora {
         PosColumn(text: 'P.UNIT', width: 2,styles: const PosStyles(bold: true)),      // 3 de ancho
         PosColumn(text: 'TOTAL', width: 2,styles: const PosStyles(bold: true)),      // 3 de ancho
       ]);
+      printer.hr();
     }else{
       printer.row([
         PosColumn(text: 'CANTIDAD', width: 3,styles: const PosStyles(bold: true)),  // 3 de ancho
-        PosColumn(text: 'PRODUCTO', width: 9,styles: const PosStyles(bold: true)),  // 6 de ancho
-        //PosColumn(text: 'NOTA', width: 3,styles: const PosStyles(bold: true)),      // 3 de ancho
+        PosColumn(text: 'PRODUCTO', width: 6,styles: const PosStyles(bold: true)),  // 6 de ancho
+        PosColumn(text: 'NOTA', width: 3,styles: const PosStyles(bold: true)),      // 3 de ancho
       ]);
+      printer.hr();
     }
 
   }
@@ -144,32 +146,55 @@ class Impresora {
         if(producto.stock == 0){
           printer.row([
             PosColumn(text: 'Rechazado', width: 3),
-            PosColumn(text: '${producto.nombreproducto}', width: 9),
+            PosColumn(text: '${producto.nombreproducto}', width: 6),
+            PosColumn(text: producto.comentario ?? '', width: 3),
           ]);
+          printer.hr();
         }else if(producto.stock! < 0){
           printer.row([
             PosColumn(text: '${producto.stock}', width: 3),
             PosColumn(text: '${producto.nombreproducto}', width: 6),
             PosColumn(text: 'excluidos', width: 3),
           ]);
+          printer.hr();
         }else{
-          printer.row([
-            PosColumn(text: '${producto.stock}', width: 3),
-            PosColumn(text: '${producto.nombreproducto}', width: 9),
-          ]);
-          print(' IMPRESORA COMENTARIO :  ${producto.comentario}');
-          if(producto.comentario != null ){
+          if (producto.comentario != null){
+            List<String> lines = producto.comentario!.split(';');
             printer.row([
-              PosColumn(text: 'NOTA', width: 3,styles: const PosStyles(bold: true)),
-              PosColumn(text: '${producto.comentario}' , width: 9),
+              PosColumn(text: '${producto.stock}', width: 3),
+              PosColumn(text: '${producto.nombreproducto}', width: 6),
+              PosColumn(text: lines[0].trim(), width: 3),
+            ]);
+            for (int i = 1; i < lines.length; i++) {
+              printer.row([
+                PosColumn(text: '', width: 3),
+                PosColumn(text: '', width: 6),
+                PosColumn(text: lines[i].trim(), width: 3),
+              ]);
+            }
+            printer.hr();
+          }else {
+            printer.row([
+              PosColumn(text: '${producto.stock}', width: 3),
+              PosColumn(text: '${producto.nombreproducto}', width: 6),
+              PosColumn(text: '', width: 3),
             ]);
             printer.hr();
-          }else{
-            printer.hr();
           }
-
+          //
         }
       });
     }
   }
 }
+
+// print(' IMPRESORA COMENTARIO :  ${producto.comentario}');
+// if(producto.comentario != null ){
+// printer.row([
+// PosColumn(text: 'NOTA', width: 3,styles: const PosStyles(bold: true)),
+// PosColumn(text: '${producto.comentario}' , width: 9),
+// ]);
+// printer.hr();
+// }else{
+// printer.hr();
+// }
