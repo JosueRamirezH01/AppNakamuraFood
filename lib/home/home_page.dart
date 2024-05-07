@@ -1238,11 +1238,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                           motivoFinal);
                       dbMesas.actualizarMesa(pedido.idMesa, 1, context);
                       dbPedido.anularPedido(motivoFinal, mozo!, pedido.idPedido!, context);
-                      refresh();
                       Navigator.of(context).pop();
-                      refresh();
                       Navigator.pop(context);
-                      refresh();
                     }
                     refresh();
                   },
