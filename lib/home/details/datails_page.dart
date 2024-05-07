@@ -7,6 +7,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:restauflutter/model/mesa.dart';
 import 'package:restauflutter/model/detalle_pedido.dart';
 import 'package:restauflutter/model/mozo.dart';
+import 'package:restauflutter/model/nota.dart';
 import 'package:restauflutter/model/pedido.dart';
 import 'package:restauflutter/model/piso.dart';
 import 'package:restauflutter/model/producto.dart';
@@ -51,22 +52,8 @@ class _DetailsPageState extends State<DetailsPage> {
   late Piso piso = Piso();
   late int? IDPEDIDOPRUEBA = 0;
   List<bool> _checkedItems = [];
-  List<String> staticComidas = [
-    'Pizza',
-    'Hamburguesa',
-    'Ensalada',
-    'Pasta',
-    'Sushi',
-    'Tacos',
-    'Sopa',
-    'Pizza',
-    'Hamburguesa',
-    'Ensalada',
-    'Pasta',
-    'Sushi',
-    'Tacos',
-    'Sopa'
-  ];
+  List<Nota> listaNota = [];
+
   Future<void> UserShared() async {
     final dynamic userData = await _pref.read('user_data');
     if (userData != null) {
@@ -94,7 +81,7 @@ class _DetailsPageState extends State<DetailsPage> {
     selectObjmesa = widget.mesa!;
     detalles_pedios_tmp = widget.detallePedidoLista ;
     UserShared();
-    _checkedItems = List.filled(staticComidas.length, false);
+    _checkedItems = List.filled(listaNota.length, false);
 
   }
 
@@ -181,8 +168,9 @@ class _DetailsPageState extends State<DetailsPage> {
 
   Widget _iconNota(int index) {
     return GestureDetector(
-      onTap: () {
-        _nota(staticComidas,index);
+      onTap: () async {
+        listaNota = await bdPedido.obtenerListasNota(mozo!.id_establecimiento!, context);
+        _nota(listaNota,index);
       },
       child: const Icon(Icons.edit, color: Colors.amber),
     );
@@ -351,11 +339,11 @@ class _DetailsPageState extends State<DetailsPage> {
       ),
     );
   }
-  String generateSelectedOptionsString(List<String> comidas) {
+  String generateSelectedOptionsString(List<Nota> comidas) {
     List<String> selectedOptions = [];
     for (int i = 0; i < _checkedItems.length; i++) {
       if (_checkedItems[i]) {
-        selectedOptions.add(comidas[i]);
+        selectedOptions.add(comidas[i].descripcion_nota!);
       }
     }
     return selectedOptions.join(';');
@@ -396,13 +384,13 @@ class _DetailsPageState extends State<DetailsPage> {
     return selectedOptionsString.split(';');
   }
 
-  Future<String?> _nota(List<String> comidas, index) async {
+  Future<String?> _nota(List<Nota> comidas, index) async {
     String? notabd = widget.productosSeleccionados?[index].comentario ?? '';
     List<String> seleccionadosBd = convertStringToList(notabd);
 
     _checkedItems = List.filled(comidas.length, false);
     for (int i = 0; i < comidas.length; i++) {
-      if (seleccionadosBd.contains(comidas[i])) {
+      if (seleccionadosBd.contains(comidas[i].descripcion_nota)) {
         _checkedItems[i] = true;
       }
     }
@@ -422,7 +410,7 @@ class _DetailsPageState extends State<DetailsPage> {
                       mainAxisSize: MainAxisSize.min,
                       children: List.generate(comidas.length, (index) {
                         return CheckboxListTile(
-                          title: Text(comidas[index]),
+                          title: Text(comidas[index].descripcion_nota!),
                           value: _checkedItems[index],
                           onChanged: (value) {
                             setState(() {
@@ -479,6 +467,7 @@ class _DetailsPageState extends State<DetailsPage> {
               if (index != -1) {
                 // Eliminar el producto de la lista
                 setState(() {
+
                   widget.productosSeleccionados!.removeAt(index);
                 });
                 // Actualizar los productos seleccionados en el widget padre si es necesario

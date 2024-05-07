@@ -12,6 +12,7 @@ class Detalle_Pedido {
   int? cantidad_exacta;
   int? cantidad_real;
   double? precio_producto;
+  double? precio_unitario;
   String? comentario;
   int? estado_detalle;
   DateTime? updated_at;
@@ -24,6 +25,7 @@ class Detalle_Pedido {
     this.cantidad_actualizada,
     this.cantidad_exacta,
     this.cantidad_real,
+    this.precio_unitario,
     this.precio_producto,
     this.comentario,
     this.estado_detalle,
@@ -39,6 +41,7 @@ class Detalle_Pedido {
     cantidad_exacta: json["cantidad_exacta"],
     cantidad_real: json["cantidad_real"],
       precio_producto: double.tryParse(json["precio_producto"]?.toString() ?? "0.0"),
+    precio_unitario: double.tryParse(json["precio_producto"]?.toString() ?? "0.0"),
     comentario: json["comentario"].toString(),
     estado_detalle: json["estado_detalle"],
     updated_at: json["updated_at"],
@@ -55,17 +58,11 @@ class Detalle_Pedido {
     "cantidad_exacta": cantidad_exacta,
     "cantidad_real": cantidad_real,
     "precio_producto": precio_producto,
+    "precio_unitario": precio_unitario,
    "comentario": comentario,
     "estado_detalle": estado_detalle,
     "updated_at": updated_at
   };
-
-  // Future<void> convertirComentarioBlobAString() async {
-  //   if (comentarioBlob != null) {
-  //     // Convierte los bytes a una cadena de texto utilizando utf8.decode
-  //     comentario = utf8.decode(comentarioBlob!);
-  //   }
-  // }
 
 
 }

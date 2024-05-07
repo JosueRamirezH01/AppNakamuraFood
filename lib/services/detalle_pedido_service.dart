@@ -24,12 +24,13 @@ class DetallePedidoServicio {
             id_producto,
             cantidad_producto,
             cantidad_real,
+            precio_unitario,
             precio_producto,
             comentario,
             estado_detalle,
             created_at,
             updated_at ) VALUES (
-              ?, ?, ?, ?, ?, ?, ?, ?, ?
+              ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
             )
         ''',
             [
@@ -37,6 +38,7 @@ class DetallePedidoServicio {
               producto.id, // id prodcuto
               producto.stock, // cantidad producto
               producto.stock, // cantidad real
+              producto.precioproducto! / producto.stock!,
               producto.precioproducto, // precio producto
               producto.comentario, // comentario
               1, // estado detalle
@@ -191,6 +193,7 @@ class DetallePedidoServicio {
             id_producto: producto.id,
             cantidad_producto: producto.stock,
             cantidad_real: producto.stock,
+            precio_unitario: producto.precioproducto! / producto.stock!,
             precio_producto: producto.precioproducto,
             comentario: producto.comentario,
             estado_detalle: 1,
@@ -198,12 +201,13 @@ class DetallePedidoServicio {
           );
 
           await conn.query(
-              'INSERT INTO pedido_detalles (id_pedido, id_producto, cantidad_producto, cantidad_real, precio_producto, comentario, estado_detalle, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+              'INSERT INTO pedido_detalles (id_pedido, id_producto, cantidad_producto, cantidad_real, precio_unitario,precio_producto, comentario, estado_detalle, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?,?)',
               [
                 nuevoDetalle.id_pedido,
                 nuevoDetalle.id_producto,
                 nuevoDetalle.cantidad_producto,
                 nuevoDetalle.cantidad_producto,
+                nuevoDetalle.precio_unitario,
                 nuevoDetalle.precio_producto,
                 nuevoDetalle.comentario,
                 nuevoDetalle.estado_detalle,
