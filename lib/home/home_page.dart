@@ -16,6 +16,7 @@ import 'package:restauflutter/services/detalle_pedido_service.dart';
 import 'package:restauflutter/services/mesas_service.dart';
 import 'package:restauflutter/services/pedido_service.dart';
 import 'package:restauflutter/services/piso_service.dart';
+import 'package:restauflutter/utils/gifComponent.dart';
 import 'package:restauflutter/utils/impresora.dart';
 import 'package:restauflutter/utils/shared_pref.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -216,11 +217,30 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                       ),
                       child: ElevatedButton.icon(
                         onPressed: () {
-                          setState(() {
-                            _selectedIndex = 0;
-                            _tabController.animateTo(0);
+
+                          consultarPisos(idEstablecimiento, context).then((value) {
+                            consultarMesas(pisoSelect, context).then((value) async {
+                              _subOptType = SubOptTypes.local;
+                              listaPedido = await dbPedido.obtenerListasPedidos(_subOptType, idEstablecimiento,context);
+                              AllListadoMesas = await dbMesas.consultarTodasMesas(ListadoPisos, context);
+                              setState(() {
+                                isLoading = false;
+                              });
+                            },);
+                            setState(() {
+                              _selectedIndex = 0;
+                              _tabController.animateTo(0);
+                              pisoMesas = 0;
+                            });
+                            print('PISOSMESAS $pisoMesas}');
+                            refresh();
                           });
-                          refresh();
+
+                          // setState(() {
+                          //   _selectedIndex = 0;
+                          //   _tabController.animateTo(0);
+                          // });
+                          // refresh();
                         },
                         icon: const Icon(Icons.list_alt_rounded),
                         label: const Text('Listado de pedidos'),
@@ -666,6 +686,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                         ),
                         onTap: () async {
                           List<Detalle_Pedido> listadoDetalle = await dbDetallePedido.obtenerDetallePedidoLastCreate(listPedido.idPedido, context);
+
+                          listadoDetalle.forEach((element) {
+                            print('Los home ${element.comentario} tipo : ${element.comentario.runtimeType}');
+                          });
+
                           pedido(listPedido, listadoDetalle);
                         },
                       );
@@ -1011,6 +1036,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           int? idPedido = await dbPedido.consultarMesasDisponibilidad(mozo!.id, mesa.id,context);
           if(idPedido != null){
             List<Detalle_Pedido> detallePedido =  await dbPedido.consultaObtenerDetallePedido(idPedido, context);
+            // sin usarse
             MesaDetallePedido mesaDetallePedido = MesaDetallePedido(mesa, detallePedido);
             Navigator.pushNamed(context, 'home/productos', arguments: mesaDetallePedido);
           }else {
@@ -1111,6 +1137,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                   Row(
                     children: [
                       Checkbox(
+                        activeColor: Color( 0xFFFF562F),
                         value: usarMotivoPorDefecto,
                         onChanged: (newValue) {
                           setState(() {
@@ -1225,6 +1252,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     //   Navigator.of(context).pop();
                     //   refresh();
                     // }
+
+
                     String motivoFinal = usarMotivoPorDefecto ? 'Motivo por defecto' : motivo;
 
                     if (motivoFinal.isEmpty && !usarMotivoPorDefecto) {
@@ -1252,64 +1281,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     );
   }
 
-
-  // void mostrarDialogoAnulacion( int idPedido , BuildContext context) async {
-  //   String motivo = '';
-  //   bool motivoVacio = false;
-  //
-  //   return showDialog(
-  //     context: context,
-  //     builder: (BuildContext context) {
-  //       return StatefulBuilder(
-  //         builder: (BuildContext context, StateSetter setState) {
-  //           return AlertDialog(
-  //             title: Text('Anular pedido'),
-  //             content: TextField(
-  //               onChanged: (value) {
-  //                 motivo = value;
-  //                 setState(() {
-  //                   motivoVacio = motivo.isEmpty;
-  //                 });
-  //               },
-  //               decoration: InputDecoration(
-  //                 labelText: 'Motivo de anulación',
-  //                 errorText: motivoVacio ? 'Este campo no puede estar vacío' : null,
-  //                 focusedBorder: UnderlineInputBorder(
-  //                   borderSide: BorderSide(color: motivoVacio ? Colors.red : Theme.of(context).primaryColor),
-  //                 ),
-  //               ),
-  //             ),
-  //             actions: <Widget>[
-  //               TextButton(
-  //                 child: Text('Cancelar'),
-  //                 onPressed: () {
-  //                   Navigator.of(context).pop();
-  //                 },
-  //               ),
-  //               TextButton(
-  //                 child: Text('Anular'),
-  //                 onPressed: () {
-  //                   if (motivo.isEmpty) {
-  //                     setState(() {
-  //                       motivoVacio = true;
-  //                     });
-  //
-  //                     dbPedido.anularPedido(motivo, mozo!, idPedido, context);
-  //
-  //                   } else {
-  //                     // Si el motivo no está vacío, anular el pedido
-  //                     Navigator.of(context).pop(motivo);
-  //                   }
-  //                 },
-  //               ),
-  //             ],
-  //           );
-  //         },
-  //       );
-  //     },
-  //   );
-  // }
-
   Widget _buildAnimatedContent({required Key key, required Widget child}) {
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 500),
@@ -1336,5 +1307,16 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       );
       _pageControllerPisosPage = PageController();
     });
+  }
+
+  Future gif(){
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return CustomAlertDialog(
+          gifPath: 'assets/gif/download.gif', // Ajusta la ruta de tu GIF
+        );
+      },
+    );
   }
 }

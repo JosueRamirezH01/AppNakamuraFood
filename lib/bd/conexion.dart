@@ -4,9 +4,10 @@ class Connection {
     String host = '137.184.54.213';
     String user = 'atonGloR';
     String password = '£4dAGE310N';
-    String db = 'bd_elivhu';
+    String db = 'prueba_mobil';
     int port = 3306;
     Connection();
+
 
     Future<MySqlConnection> getConnection() async {
         var settings = ConnectionSettings(

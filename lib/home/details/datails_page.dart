@@ -11,6 +11,7 @@ import 'package:restauflutter/model/nota.dart';
 import 'package:restauflutter/model/pedido.dart';
 import 'package:restauflutter/model/piso.dart';
 import 'package:restauflutter/model/producto.dart';
+import 'package:restauflutter/services/entorno_service.dart';
 import 'package:restauflutter/services/mesas_service.dart';
 import 'package:restauflutter/services/pedido_service.dart';
 import 'package:restauflutter/services/detalle_pedido_service.dart';
@@ -70,6 +71,8 @@ class _DetailsPageState extends State<DetailsPage> {
   late Mesa selectObjmesa;
   PedidoServicio pedidoServicio= PedidoServicio();
   MesaServicio mesaServicio = MesaServicio();
+  var entornoService = EntornoService();
+
   DetallePedidoServicio detallePedidoServicio = DetallePedidoServicio();
   late Pedido newpedido = Pedido();
   late double pedidoTotal ;
@@ -83,6 +86,11 @@ class _DetailsPageState extends State<DetailsPage> {
     UserShared();
     _checkedItems = List.filled(listaNota.length, false);
 
+  }
+
+  Future<int> _getEntornoId() async {
+    int entornoId = await entornoService.consultarEntorno(context);
+    return entornoId;
   }
 
   @override
@@ -154,9 +162,6 @@ class _DetailsPageState extends State<DetailsPage> {
     );
   }
 
-
-
-
   Widget _iconDelete(int index) {
     return GestureDetector(
       onTap: (){
@@ -177,11 +182,11 @@ class _DetailsPageState extends State<DetailsPage> {
   }
   Widget icono(){
     return const Padding(
-      padding: EdgeInsets.only(top: 15, bottom: 15),
+      padding: EdgeInsets.only(top: 10, bottom: 10),
       child: Divider(
-        indent: 120,
-        endIndent: 120,
-        thickness: 5,
+        indent: 150,
+        endIndent: 150,
+        thickness: 4,
       ),
     );
   }
@@ -349,37 +354,6 @@ class _DetailsPageState extends State<DetailsPage> {
     return selectedOptions.join(';');
   }
 
-  // Future<String?> _nota(int index){
-  //   // notaController.text = widget.productosSeleccionados?[index].comentario == 'null' ? '' : widget.productosSeleccionados![index].comentario!;
-  //   notaController.text = widget.productosSeleccionados?[index].comentario ?? '';
-  //   print('COMENTARIO EN NOTA ${widget.productosSeleccionados?[index].comentario}');
-  //   return showDialog<String>(
-  //     context: context,
-  //     builder: (BuildContext context) => AlertDialog(
-  //       title: const Text('Observacion del plato'),
-  //       content: _textFieldNota(),
-  //       actions: <Widget>[
-  //         TextButton(
-  //           onPressed: () => Navigator.pop(context, 'Cancel'),
-  //           child: const Text('Cancel'),
-  //         ),
-  //         TextButton(
-  //           onPressed: () {
-  //             setState(() {
-  //               widget.productosSeleccionados?[index].comentario = notaController.text == '' ? null : notaController.text;
-  //               print('NOTA SETSTATE ${widget.productosSeleccionados?[index].comentario}');
-  //               print('NOTA SETSTATE Nota${notaController.text}');
-  //
-  //             });
-  //             Navigator.pop(context, 'OK');
-  //           } ,
-  //           child: const Text('OK'),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
-
   List<String> convertStringToList(String selectedOptionsString) {
     return selectedOptionsString.split(';');
   }
@@ -410,6 +384,7 @@ class _DetailsPageState extends State<DetailsPage> {
                       mainAxisSize: MainAxisSize.min,
                       children: List.generate(comidas.length, (index) {
                         return CheckboxListTile(
+                          activeColor: Color( 0xFFFF562F),
                           title: Text(comidas[index].descripcion_nota!),
                           value: _checkedItems[index],
                           onChanged: (value) {
@@ -427,22 +402,28 @@ class _DetailsPageState extends State<DetailsPage> {
           ),
           actions: [
             TextButton(
+              style: ButtonStyle(
+                backgroundColor: MaterialStateProperty.all( Color.fromRGBO(217, 217, 217, 0.8) ),
+              ),
               onPressed: () {
                 setState(() {
                   _checkedItems = List.filled(comidas.length, false);
                 });
                 Navigator.pop(context, 'Cancel');
               },
-              child: Text('Cancelar'),
+              child: Text('Cancelar',style: TextStyle(color: Colors.black)),
             ),
             ElevatedButton(
+              style: ButtonStyle(
+                backgroundColor: MaterialStateProperty.all(Color(0xFF634FD2)),
+              ),
               onPressed: () {
                  String selectedOptionsString = generateSelectedOptionsString(comidas);
                  widget.productosSeleccionados?[index].comentario = selectedOptionsString;
                   print('Opciones seleccionadas: $selectedOptionsString');
                  Navigator.pop(context, 'OK');
               },
-              child: Text('Aceptar'),
+              child: Text('Aceptar',style: TextStyle(color: Colors.white),),
             ),
           ],
         );
@@ -535,12 +516,18 @@ class _DetailsPageState extends State<DetailsPage> {
           ),
           actions: <Widget>[
             TextButton(
+              style: ButtonStyle(
+                backgroundColor: MaterialStateProperty.all( Color.fromRGBO(217, 217, 217, 0.8) ),
+              ),
               onPressed: () {
                 Navigator.pop(context);
               },
-              child: const Text('Cancelar'),
+              child: const Text('Cancelar',style: TextStyle(color: Colors.black)),
             ),
             TextButton(
+              style: ButtonStyle(
+                backgroundColor: MaterialStateProperty.all( Color(0xFF4C95DD)),
+              ),
               onPressed: () async{
                 if(nomMesa == null){
                   mostrarMensaje('Debes seleccionar una mesa');
@@ -563,7 +550,7 @@ class _DetailsPageState extends State<DetailsPage> {
                 }
 
               },
-              child: const Text('Confirmar'),
+              child: const Text('Confirmar',style: TextStyle(color: Colors.white)),
             ),
           ],
         );
@@ -581,6 +568,7 @@ class _DetailsPageState extends State<DetailsPage> {
         onPressed: () async {
           print('---> Boton pedido');
           String? printerIP = await _pref.read('ipCocina');
+          int entornoId = await _getEntornoId();
           DateTime now = DateTime.now();
           String formattedDate = DateFormat('yyyy-MM-dd HH:mm:ss').format(now);
           DateTime parsedDateTime = DateFormat('yyyy-MM-dd HH:mm:ss').parse(formattedDate);
@@ -610,7 +598,7 @@ class _DetailsPageState extends State<DetailsPage> {
             gif();
             // crear el pedido
             newpedido = Pedido(
-              idEntorno: 1, // 1-> demo || 2-> producion
+              idEntorno: entornoId , // 1-> demo || 2-> producion
               idCliente: 60, // 60 clientes varios
               idUsuario: mozo?.id, // ID DEL MOSO ✔️
               idTipoPedido: 1, // 1-> local || 2-> llevar || 3->delivery ✖️
@@ -780,7 +768,11 @@ class _DetailsPageState extends State<DetailsPage> {
         width: MediaQuery.of(context).size.width * 0.9,
         height: MediaQuery.of(context).size.height * 0.08,
         decoration: const BoxDecoration(
-            borderRadius: BorderRadius.all(Radius.circular(20)), color: Color(0xFF99CFB5)),
+            border: Border.fromBorderSide(BorderSide(width: 2)),
+            borderRadius: BorderRadius.all(Radius.circular(20)), color: Color(0xFF99CFB5)
+
+          // borderRadius: BorderRadius.all(Radius.circular(20)), color: Color(0xFF99CFB5)
+        ),
         child: Row(
           children: [
             // const SizedBox(width: 5),

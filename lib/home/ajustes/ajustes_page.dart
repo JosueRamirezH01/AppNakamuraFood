@@ -1,12 +1,8 @@
 import 'dart:convert';
-
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:intl/intl.dart';
-import 'package:restauflutter/services/login_service.dart';
+import 'package:restauflutter/services/entorno_service.dart';
 import 'package:restauflutter/utils/shared_pref.dart';
 
 import '../../model/mozo.dart';
@@ -21,9 +17,12 @@ class _AjustesPageState extends State<AjustesPage> {
   TextEditingController _printer1Controller = TextEditingController();
   TextEditingController _printer2Controller = TextEditingController();
   bool _showBarPrinter = false;
+  bool _stateProduccion = false;
+  bool _ifChange = false;
   final _formKey = GlobalKey<FormState>(); // Agregar GlobalKey<FormState>
   final SharedPref _sharedPref = SharedPref();
   var prod = ProductoServicio();
+  var entornoService = EntornoService();
   Mozo mozo = Mozo();
   SharedPref _pref = SharedPref();
 
@@ -38,7 +37,8 @@ class _AjustesPageState extends State<AjustesPage> {
   @override
   void initState() {
     super.initState();
-    _loadPrinters(); // Cargar las impresoras al inicializar la página
+    _loadSettings();
+    _loadPrinters();
     UserShared();
   }
 
@@ -64,6 +64,20 @@ class _AjustesPageState extends State<AjustesPage> {
     });
   }
 
+  void _loadSettings() async {
+    int entornoId = await entornoService.consultarEntorno(context);
+    if (entornoId == 2){
+      setState(() {
+        _stateProduccion = true;
+      });
+    }else{
+      setState(() {
+        _stateProduccion = false;
+      });
+    }
+
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -77,145 +91,210 @@ class _AjustesPageState extends State<AjustesPage> {
             children: [
               Expanded(
                 child: Container(
-                  child: SingleChildScrollView(
-                    child: Column(
-                      children: [
-                        Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(25),
-                            color: Color.fromRGBO(217, 217, 217, 0.8),
-                          ),
-                          margin: EdgeInsets.all(20),
-                          child: Padding(
-                            padding: const EdgeInsets.all(20),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Configurar Impresoras',
-                                  style: TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                Divider(),
-                                Container(
-                                  margin: EdgeInsets.only(bottom: 20),
-                                  child: const Text(
-                                    'Cocina',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                                _buildPrinterInputField(_printer1Controller),
-                                Container(
-                                  margin: EdgeInsets.only(top: 10),
-                                  child: Row(
+                  child: Scrollbar(
+                    thumbVisibility: true,
+                    child: SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(30),
+                              color: Color.fromRGBO(217, 217, 217, 0.8),
+                            ),
+                            margin: EdgeInsets.all(20),
+                            child: Padding(
+                              padding: const EdgeInsets.only(right: 20, left: 20,top: 5, bottom: 5),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
                                     children: [
                                       const Text(
-                                        'Bar',
+                                        'Estado : ',
                                         style: TextStyle(
                                           fontSize: 16,
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
+                                      // SizedBox(width: 20),
+                                      Container(
+                                        decoration: BoxDecoration(
+                                            color: _stateProduccion ? Color(0xFFFF562F) : Colors.grey,
+                                            borderRadius: BorderRadius.all(Radius.circular(20))
+                                        ),
+                                        child: Padding(
+                                          padding: const EdgeInsets.only(top: 2,bottom: 2,left: 10,right: 10),
+                                          child: Text(
+                                            _stateProduccion? 'Produccion':'Demo',
+                                            style: TextStyle(
+                                              color: _stateProduccion ? Colors.white : Colors.black,
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
                                       const Spacer(),
                                       Switch(
-                                        activeColor: Color(0xFFFF562F),
-                                        inactiveThumbColor: Colors.grey, // Color del interruptor cuando está inactivo
-                                        inactiveTrackColor: Colors.black, // Color del riel cuando está inactivo
-                                        activeTrackColor: Colors.black,
-                                        value: _showBarPrinter,
-                                        onChanged: (value) {
-                                          print(value);
-                                          setState(() {
-                                            _showBarPrinter = value;
-                                            prod.consultarCategoriaIpBar(
-                                                context, mozo.id_establecimiento).then((
-                                                consultaExitosa) {
-                                              if (!consultaExitosa) {
-                                                setState(() {
-                                                  _showBarPrinter = false;
-                                                });
-                                              }
-                                            }
-                                              );
-                                          });
-                                        },
+                                          activeColor: Color(0xFFFF562F),
+                                          inactiveThumbColor: _stateProduccion ? Color(0xFFFF562F) : Colors.grey ,
+                                          inactiveTrackColor: Colors.black,
+                                          activeTrackColor: Colors.black,
+                                          // thumbColor: ,
+                                          value: _stateProduccion,
+                                          onChanged: null
                                       ),
                                     ],
                                   ),
-                                ),
-                                if (_showBarPrinter)
-                                  Container(margin: EdgeInsets.only(top: 10,bottom: 20),child: _buildPrinterInputField(_printer2Controller)),
-
-                                ElevatedButton(
-                                  style: ButtonStyle(
-                                      backgroundColor:
-                                      MaterialStateProperty.all(
-                                          const Color(0xFFFF562F))),
-                                  onPressed: () {
-                                    if (_formKey.currentState!.validate()) {
-                                      // Validar el formulario
-                                      _savePrinters();
-                                    }
-                                  },
-                                  child: const Text(
-                                    'Guardar',
-                                    style: TextStyle(color: Colors.white),
-                                  ), // Color(0xFF111111)
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           ),
-                        ),
-                        Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(25),
-                            color: Color.fromRGBO(217, 217, 217, 0.8),
-                          ),
-                          margin: EdgeInsets.all(20),
-                          child: Padding(
-                            padding: const EdgeInsets.only(right: 20, left: 20,top: 15, bottom: 15),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Datos',
-                                  style: TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                Divider(),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Actualizar Producto',
-                                      style: TextStyle(
-                                          fontSize: 16, fontWeight: FontWeight.bold),
+                          Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(25),
+                              color: Color.fromRGBO(217, 217, 217, 0.8),
+                            ),
+                            margin: EdgeInsets.all(20),
+                            child: Padding(
+                              padding: const EdgeInsets.all(20),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Configurar Impresoras',
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
                                     ),
-                                    Spacer(),
-                                    ElevatedButton(
-                                        style: ButtonStyle(
-                                            backgroundColor:
-                                            MaterialStateProperty.all(
-                                                const Color(0xFFFF562F))),
-                                        onPressed: () {
-                                          actualziarCategoria();
-                                          actualziarProducto();
-                                        },
-                                        child: Text('Actualizar', style: TextStyle(color: Colors.white)))
-                                  ],
-                                ),
-                              ],
+                                  ),
+                                  Divider(),
+                                  Container(
+                                    margin: EdgeInsets.only(bottom: 20),
+                                    child: const Text(
+                                      'Cocina',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                  _buildPrinterInputField(_printer1Controller),
+                                  Container(
+                                    margin: EdgeInsets.only(top: 10),
+                                    child: Row(
+                                      children: [
+                                        const Text(
+                                          'Bar',
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        const Spacer(),
+                                        Switch(
+                                          activeColor: Color(0xFFFF562F),
+                                          inactiveThumbColor: Colors.grey, // Color del interruptor cuando está inactivo
+                                          inactiveTrackColor: Colors.black, // Color del riel cuando está inactivo
+                                          activeTrackColor: Colors.black,
+                                          value: _showBarPrinter,
+                                          onChanged: (value) {
+                                            final barEnableData = {
+                                              'barEnableData': value
+                                            };
+                                            final jsonBarEnableData = json.encode(barEnableData);
+                                            print('Json entorno : ${jsonBarEnableData}');
+                                            _sharedPref.save('bar_enable_data', jsonBarEnableData);
+
+                                            print(value);
+                                            setState(() {
+                                              _showBarPrinter = value;
+                                              prod.consultarCategoriaIpBar(
+                                                  context, mozo.id_establecimiento).then((
+                                                  consultaExitosa) {
+                                                if (!consultaExitosa) {
+                                                  setState(() {
+                                                    _showBarPrinter = false;
+                                                  });
+                                                }
+                                              }
+                                              );
+                                            });
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  if (_showBarPrinter)
+                                    Container(margin: EdgeInsets.only(top: 10,bottom: 20),child: _buildPrinterInputField(_printer2Controller)),
+
+                                  ElevatedButton(
+                                    style: ButtonStyle(
+                                      // backgroundColor: MaterialStateProperty.all(const Color(0xFFFF562F))
+                                      backgroundColor: _ifChange ? MaterialStateProperty.all(const Color(0xFFFF562F)) : MaterialStateProperty.all(Colors.grey),
+                                    ),
+
+                                    onPressed: () {
+                                      if (_formKey.currentState!.validate()) {
+                                        // Validar el formulario
+                                        _savePrinters();
+                                      }
+                                    },
+                                    child: const Text(
+                                      'Guardar',
+                                      style: TextStyle(color: Colors.white),
+                                    ), // Color(0xFF111111)
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                          Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(25),
+                              color: Color.fromRGBO(217, 217, 217, 0.8),
+                            ),
+                            margin: EdgeInsets.all(20),
+                            child: Padding(
+                              padding: const EdgeInsets.only(right: 20, left: 20,top: 15, bottom: 15),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Datos',
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Divider(),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Actualizar Producto',
+                                        style: TextStyle(
+                                            fontSize: 16, fontWeight: FontWeight.bold),
+                                      ),
+                                      Spacer(),
+                                      ElevatedButton(
+                                          style: ButtonStyle(
+                                              backgroundColor:
+                                              MaterialStateProperty.all(
+                                                  const Color(0xFFFF562F))),
+                                          onPressed: () {
+                                            actualziarCategoria();
+                                            actualziarProducto();
+                                          },
+                                          child: Text('Actualizar', style: TextStyle(color: Colors.white)))
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -224,7 +303,6 @@ class _AjustesPageState extends State<AjustesPage> {
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: iconCerrar(),
-
               )
             ],
           )),

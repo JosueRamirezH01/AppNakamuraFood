@@ -41,7 +41,13 @@ class LoginService {
         print(
             'No se encontraron usuarios con el correo electrónico proporcionado.');
       } else {
+        const query2 = 'SELECT id_entorno FROM `empresas` WHERE 1';
+        final results2 = await conn.query(query2);
+
+        final entorno = results2.first['id_entorno'];
+        print('- Entorno ${entorno}');
         final perfilId = results.first['idperfil'];
+
         final hashFromDatabase = results
             .first['password']; // Obtén el hash almacenado en la base de datos
         final isValid = await FlutterBcrypt.verify(
@@ -77,12 +83,27 @@ class LoginService {
                 'idperfil':row["idperfil"],
                 'nombre_usuario':row["nombre_usuario"]
               };
+
               final jsonUserData = json.encode(userData);
 
               // Guarda la cadena JSON en SharedPreferences bajo una sola clave
               _sharedPreferences.save('user_data', jsonUserData);
             }
+
+            final entornoData = {
+              'entorno': entorno
+            };
+            final jsonEntornoData = json.encode(entornoData);
+            print('Json entorno : ${jsonEntornoData}');
+            _sharedPreferences.save('entorno_data', jsonEntornoData);
+
             final dynamic userData = await _sharedPreferences.read('user_data');
+            // final dynamic entornoDatar = await _sharedPreferences.read('entorno_data');
+            //
+            // final Map<String, dynamic> entornoDataMap = json.decode(entornoDatar);
+            // final entornor = entornoDataMap['entorno'];
+            // print('Entorno wazaaaa: $entornor');
+
             if (userData != null) {
               final Map<String, dynamic> userDataMap = json.decode(userData);
               mozo = Mozo.fromJson(userDataMap);

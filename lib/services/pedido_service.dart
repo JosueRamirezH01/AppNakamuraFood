@@ -39,6 +39,7 @@ class PedidoServicio {
     }
   }
 
+  // el bingo
   Future<List<Detalle_Pedido>> consultaObtenerDetallePedido( int? idPedido, BuildContext context) async {
     MySqlConnection? conn;
     try {
@@ -50,7 +51,13 @@ class PedidoServicio {
         print('No se encontraron datos en las tablas.');
         return [];
       } else {
-        List<Detalle_Pedido> detallePedido = results.map((row) => Detalle_Pedido.fromJson(row.fields)).toList();
+        // List<Detalle_Pedido> detallePedido = results.map((row) => Detalle_Pedido.fromJson(row.fields)).toList();
+        List<Detalle_Pedido> detallePedido = results.map((row) {
+          Detalle_Pedido detalle = Detalle_Pedido.fromJson(row.fields);
+          detalle.comentario = detalle.comentario == null ? null : _extraerTextoComentario(detalle.comentario);
+          return detalle;
+        }).toList();
+
         print('Detalles del pedido recuperados:');
         for (var detalle in detallePedido) {
           print('ID del detalle de pedido: ${detalle.id_pedido_detalle}');
@@ -239,4 +246,26 @@ class PedidoServicio {
       }
     }
   }
+
+  String? _extraerTextoComentario(String? comentarioHtml) {
+    if (comentarioHtml == null) {
+      return null;
+    }
+
+    final RegExp exp = RegExp(r"<[^>]*>", multiLine: true, caseSensitive: true);
+    String textoLimpio = comentarioHtml.replaceAll(exp, ';').trim();
+
+    if (textoLimpio.startsWith(';')) {
+      textoLimpio = textoLimpio.substring(1);
+    }
+
+    if (textoLimpio.endsWith(';')) {
+      textoLimpio = textoLimpio.substring(0, textoLimpio.length - 1);
+    }
+
+    textoLimpio = textoLimpio.replaceAll(RegExp(r';+'), ';');
+
+    return textoLimpio;
+  }
+
 }

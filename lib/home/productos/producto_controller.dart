@@ -79,6 +79,7 @@ class ProductoController {
     return await dbDetallePedido.consultaObtenerDetallePedido(mesa.id, context);
   }
 
+  // Sin usar
   Future<List<Detalle_Pedido>> obtenerDetallePedidoLastCreate(int idPedido) async {
     return await dbDetallePedido.obtenerDetallePedidoLastCreate(idPedido, context);
   }
