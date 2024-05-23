@@ -902,34 +902,36 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                         color: Colors.white,
                                       ),
                                     ),
-                                    Container(
-                                      decoration: const BoxDecoration(
-                                          color: Colors.redAccent,
-                                          shape: BoxShape.circle
-                                      ),
-                                      child: IconButton(
-                                        onPressed: () async {
-                                          List<Producto> listProduct= [];
-                                          List<Pedido> listCompar = listaPedido ;
-                                          String? printerIP = await _pref.read('ipCocina');
-                                          for (int i = 0; i < listadoDetalle.length; i++) {
-                                            Detalle_Pedido detalle = listadoDetalle[i];
-                                            Producto producto = ListadoProductos.firstWhere((producto) => producto.id == detalle.id_producto);
-                                            producto.stock = detalle.cantidad_producto;
-                                            listProduct.add(producto);
-                                          }
-                                          mostrarDialogoAnulacion( printerIP!, listProduct  ,listPedido ,context).then((value) async {
-                                            listaPedido = await dbPedido.obtenerListasPedidos(_subOptType, idEstablecimiento,context);
-                                            consultarMesas(pisoSelect, context);
-                                            refresh();
-                                          });
-                                          refresh();
-                                        },
-                                        icon: const Icon(Icons.cancel_outlined),
-                                        tooltip: 'Anular',
-                                        color: Colors.white,
-                                      ),
-                                    ),
+
+                                    // --BT ANULAR
+                                    // Container(
+                                    //   decoration: const BoxDecoration(
+                                    //       color: Colors.redAccent,
+                                    //       shape: BoxShape.circle
+                                    //   ),
+                                    //   child: IconButton(
+                                    //     onPressed: () async {
+                                    //       List<Producto> listProduct= [];
+                                    //       List<Pedido> listCompar = listaPedido ;
+                                    //       String? printerIP = await _pref.read('ipCocina');
+                                    //       for (int i = 0; i < listadoDetalle.length; i++) {
+                                    //         Detalle_Pedido detalle = listadoDetalle[i];
+                                    //         Producto producto = ListadoProductos.firstWhere((producto) => producto.id == detalle.id_producto);
+                                    //         producto.stock = detalle.cantidad_producto;
+                                    //         listProduct.add(producto);
+                                    //       }
+                                    //       mostrarDialogoAnulacion( printerIP!, listProduct  ,listPedido ,context).then((value) async {
+                                    //         listaPedido = await dbPedido.obtenerListasPedidos(_subOptType, idEstablecimiento,context);
+                                    //         consultarMesas(pisoSelect, context);
+                                    //         refresh();
+                                    //       });
+                                    //       refresh();
+                                    //     },
+                                    //     icon: const Icon(Icons.cancel_outlined),
+                                    //     tooltip: 'Anular',
+                                    //     color: Colors.white,
+                                    //   ),
+                                    // ),
                                   ],
                                 ),
                                 Text(
