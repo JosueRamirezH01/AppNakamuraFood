@@ -18,6 +18,24 @@ class DetallePedidoServicio {
       print('Id de pedido creado${idPedido}');
 
       for (Producto producto in productos) {
+        List<String> partesComentario = [];
+        if (producto.comentario != null && producto.comentario!.isNotEmpty) {
+          partesComentario = producto.comentario!.split(';');
+        }
+
+        print('Los D--> ${producto.comentario} tipo : ${producto.comentario.runtimeType}');
+
+        String? comentarioHTML = '';
+        if (partesComentario.isNotEmpty) {
+          comentarioHTML = partesComentario.map((parte) {
+            return '<span class="badge badge-pill badge-danger" id="texto-comentario">${parte.trim()}</span>';
+          }).join('');
+        }
+
+        if (comentarioHTML.isEmpty) {
+          comentarioHTML = null;
+        }
+
         final results = await conn.query('''
           INSERT INTO pedido_detalles (
             id_pedido,
@@ -40,7 +58,7 @@ class DetallePedidoServicio {
               producto.stock, // cantidad real
               producto.precioproducto! / producto.stock!,
               producto.precioproducto, // precio producto
-              producto.comentario, // comentario
+              comentarioHTML,//producto.comentario, // comentario
               1, // estado detalle
               DateTime.now().toUtc(),
               DateTime.now().toUtc()
@@ -61,6 +79,8 @@ class DetallePedidoServicio {
           Detalle_Pedido detallePedido = pedidoDetalleResult
               .map((row) => Detalle_Pedido.fromJson(row.fields))
               .first;
+          print('COmentario bd = ${detallePedido.comentario} tipo: ${detallePedido.comentario.runtimeType}');
+          detallePedido.comentario = detallePedido.comentario == null ? null : _extraerTextoComentario(detallePedido.comentario);
           detallesPedido.add(detallePedido);
           print('Detalle insertado correctamente para el producto ${producto
               .nombreproducto}');
@@ -69,6 +89,10 @@ class DetallePedidoServicio {
               .nombreproducto}');
         }
       }
+
+      detallesPedido.forEach((element) {
+        print('Los cbdl ${element.comentario} tipo : ${element.comentario.runtimeType}');
+      });
       print('LISTA DE DETALLES DE PEDIDOS AL CREAR ${detallesPedido[0].id_pedido}');
       return detallesPedido;
     } catch (e) {
@@ -81,12 +105,7 @@ class DetallePedidoServicio {
     }
   }
 
-  Future<List<Detalle_Pedido>> eliminarCantidadProductoDetallePedidoImprimir(
-      int? pedidoid,
-      List<Producto> productos,
-      double pedidoTotal,
-      BuildContext context
-      ) async {
+  Future<List<Detalle_Pedido>> eliminarCantidadProductoDetallePedidoImprimir( int? pedidoid,List<Producto> productos,double pedidoTotal, BuildContext context) async {
     MySqlConnection? conn;
     List<Detalle_Pedido> detallesPedido = [];
     try {
@@ -96,8 +115,11 @@ class DetallePedidoServicio {
       SELECT * FROM pedido_detalles WHERE id_pedido = ?
       ''', [pedidoid]);
 
-      List<Detalle_Pedido> listaBD = resultst.map((row) =>
-          Detalle_Pedido.fromJson(row.fields)).toList();
+      List<Detalle_Pedido> listaBD = resultst.map((row) {
+        Detalle_Pedido detalle = Detalle_Pedido.fromJson(row.fields);
+        detalle.comentario = detalle.comentario == null ? null : _extraerTextoComentario(detalle.comentario);
+        return detalle;
+      }).toList();
 
 
       for (var detalle in listaBD) {
@@ -138,12 +160,8 @@ class DetallePedidoServicio {
 
 
 
-  Future<List<Detalle_Pedido>> actualizarCantidadProductoDetallePedidoPrueba(
-      int? pedidoid,
-      List<Producto> productos,
-      double pedidoTotal,
-      BuildContext context
-      ) async {
+  // bingo 1
+  Future<List<Detalle_Pedido>> actualizarCantidadProductoDetallePedidoPrueba(int? pedidoid, List<Producto> productos, double pedidoTotal, BuildContext context) async {
     MySqlConnection? conn;
     List<Detalle_Pedido> detallesPedido = [];
     detallesPedido.clear();
@@ -159,8 +177,14 @@ class DetallePedidoServicio {
       SELECT * FROM pedido_detalles WHERE id_pedido = ?
       ''', [pedidoid]);
 
-      List<Detalle_Pedido> listaBD = resultst.map((row) =>
-          Detalle_Pedido.fromJson(row.fields)).toList();
+      // List<Detalle_Pedido> listaBD = resultst.map((row) =>
+      //     Detalle_Pedido.fromJson(row.fields)).toList();
+
+      List<Detalle_Pedido> listaBD = resultst.map((row) {
+        Detalle_Pedido detalle = Detalle_Pedido.fromJson(row.fields);
+        detalle.comentario = detalle.comentario == null ? null : _extraerTextoComentario(detalle.comentario);
+        return detalle;
+      }).toList();
 
       print('LISTADO OBTENIDO POR LA CONSULTA $listaBD');
 
@@ -173,6 +197,7 @@ class DetallePedidoServicio {
             break;
           }
         }
+
         if (!found) {
           print('ID OBTENIDO PARA ELIMINAR: ${detalle.id_pedido_detalle}');
           await conn.query(
@@ -188,6 +213,27 @@ class DetallePedidoServicio {
         print('LISTA $existingDetail');
         producto.comentario = producto.comentario == 'null'? null : producto.comentario;
         if (existingDetail.isEmpty) {
+
+          //---------------------------
+          List<String> partesComentario = [];
+          if (producto.comentario != null && producto.comentario!.isNotEmpty) {
+            partesComentario = producto.comentario!.split(';');
+          }
+
+          print('Los Dactualizar--> ${producto.comentario} tipo : ${producto.comentario.runtimeType}');
+
+          String? comentarioHTML = '';
+          if (partesComentario.isNotEmpty) {
+            comentarioHTML = partesComentario.map((parte) {
+              return '<span class="badge badge-pill badge-danger" id="texto-comentario">${parte.trim()}</span>';
+            }).join('');
+          }
+
+          if (comentarioHTML.isEmpty) {
+            comentarioHTML = null;
+          }
+          //---------------------------
+
           Detalle_Pedido nuevoDetalle = Detalle_Pedido(
             id_pedido: pedidoid,
             id_producto: producto.id,
@@ -195,7 +241,7 @@ class DetallePedidoServicio {
             cantidad_real: producto.stock,
             precio_unitario: producto.precioproducto! / producto.stock!,
             precio_producto: producto.precioproducto,
-            comentario: producto.comentario,
+            comentario: comentarioHTML,
             estado_detalle: 1,
 
           );
@@ -214,11 +260,13 @@ class DetallePedidoServicio {
                 DateTime.now().toUtc(),
                 DateTime.now().toUtc()
               ]);
+          nuevoDetalle.comentario = nuevoDetalle.comentario == null ? null : _extraerTextoComentario(nuevoDetalle.comentario);
           detallesPedido.add(nuevoDetalle);
         } else {
+
           var detailRow = existingDetail.first;
           int cantidadProductoExistente = detailRow['cantidad_producto'];
-          String? nomComent = detailRow['comentario']?.toString();
+          String? nomComent = _extraerTextoComentario(detailRow['comentario']?.toString());
           int productoRestado = producto.stock! - cantidadProductoExistente;
           print('Cantidad Restado $productoRestado');
           print(' COMENTARIO ACTUALZIADO ${producto.comentario}');
@@ -245,20 +293,61 @@ class DetallePedidoServicio {
             );
             detallesPedido.add(nuevoDetalle2);
           }else if(nomComent != producto.comentario){
+
+            //---------------------------
+            List<String> partesComentario = [];
+            if (producto.comentario != null && producto.comentario!.isNotEmpty) {
+              partesComentario = producto.comentario!.split(';');
+            }
+
+            print('Los Dactualizar--> ${producto.comentario} tipo : ${producto.comentario.runtimeType}');
+
+            String? comentarioHTML = '';
+            if (partesComentario.isNotEmpty) {
+              comentarioHTML = partesComentario.map((parte) {
+                return '<span class="badge badge-pill badge-danger" id="texto-comentario">${parte.trim()}</span>';
+              }).join('');
+            }
+
+            if (comentarioHTML.isEmpty) {
+              comentarioHTML = null;
+            }
+            //---------------------------
+
             Detalle_Pedido nuevoDetalle2 = Detalle_Pedido(
               id_pedido: pedidoid,
               id_producto: producto.id,
               cantidad_producto: producto.stock,
               cantidad_real: producto.stock,
               precio_producto: producto.precioproducto,
-              comentario: producto.comentario,
+              // comentario: producto.comentario,
+              comentario: comentarioHTML,
               estado_detalle: 1,
             );
+
+            nuevoDetalle2.comentario = nuevoDetalle2.comentario == null ? null : _extraerTextoComentario(nuevoDetalle2.comentario);
             detallesPedido.add(nuevoDetalle2);
           }
 
+          //---------------------------
+          List<String> partesComentario = [];
+          if (producto.comentario != null && producto.comentario!.isNotEmpty) {
+            partesComentario = producto.comentario!.split(';');
+          }
 
+          print('Los Dactualizar--> ${producto.comentario} tipo : ${producto.comentario.runtimeType}');
 
+          String? comentarioHTML = '';
+          if (partesComentario.isNotEmpty) {
+            comentarioHTML = partesComentario.map((parte) {
+              return '<span class="badge badge-pill badge-danger" id="texto-comentario">${parte.trim()}</span>';
+            }).join('');
+          }
+
+          if (comentarioHTML.isEmpty) {
+            comentarioHTML = null;
+          }
+          //---------------------------
 
           double precio = producto.precioproducto! * producto.stock!;
           await conn.query(
@@ -267,7 +356,7 @@ class DetallePedidoServicio {
                 producto.stock,
                 producto.stock,
                 precio,
-                producto.comentario,
+                comentarioHTML,
                 DateTime.now().toUtc(),
                 pedidoid,
                 producto.id
@@ -282,7 +371,7 @@ class DetallePedidoServicio {
       return detallesPedido;
     }catch (e) {
       print('Error al realizar la consulta: $e');
-      return []; // Retorna 0 si ocurre algún error
+      return [];
     } finally {
       if (conn != null) {
         await conn.close();
@@ -327,8 +416,7 @@ class DetallePedidoServicio {
     }
   }
 
-
-
+  // no actualizar
   Future<List<Detalle_Pedido>> obtenerDetallePedidoLastCreate(int? idPedido,  BuildContext context) async {
     MySqlConnection? conn;
     try {
@@ -352,6 +440,25 @@ class DetallePedidoServicio {
     }
   }
 
+  String? _extraerTextoComentario(String? comentarioHtml) {
+    if (comentarioHtml == null) {
+      return null;
+    }
 
+    final RegExp exp = RegExp(r"<[^>]*>", multiLine: true, caseSensitive: true);
+    String textoLimpio = comentarioHtml.replaceAll(exp, ';').trim();
+
+    if (textoLimpio.startsWith(';')) {
+      textoLimpio = textoLimpio.substring(1);
+    }
+
+    if (textoLimpio.endsWith(';')) {
+      textoLimpio = textoLimpio.substring(0, textoLimpio.length - 1);
+    }
+
+    textoLimpio = textoLimpio.replaceAll(RegExp(r';+'), ';');
+
+    return textoLimpio;
+  }
 
 }

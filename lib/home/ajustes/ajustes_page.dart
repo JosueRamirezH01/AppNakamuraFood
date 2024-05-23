@@ -5,8 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:intl/intl.dart';
-import 'package:restauflutter/services/login_service.dart';
+import 'package:restauflutter/services/entorno_service.dart';
 import 'package:restauflutter/utils/shared_pref.dart';
 
 import '../../model/mozo.dart';
@@ -22,9 +21,12 @@ class _AjustesPageState extends State<AjustesPage> {
   TextEditingController _printer2Controller = TextEditingController();
   late FocusNode _printerNode = FocusNode();
   bool _showBarPrinter = false;
+  bool _stateProduccion = false;
+  bool _ifChange = false;
   final _formKey = GlobalKey<FormState>(); // Agregar GlobalKey<FormState>
   final SharedPref _sharedPref = SharedPref();
   var prod = ProductoServicio();
+  var entornoService = EntornoService();
   Mozo mozo = Mozo();
   SharedPref _pref = SharedPref();
 
@@ -39,7 +41,8 @@ class _AjustesPageState extends State<AjustesPage> {
   @override
   void initState() {
     super.initState();
-    _loadPrinters(); // Cargar las impresoras al inicializar la página
+    _loadSettings();
+    _loadPrinters();
     UserShared();
   }
 
@@ -65,6 +68,20 @@ class _AjustesPageState extends State<AjustesPage> {
     });
   }
 
+  void _loadSettings() async {
+    int entornoId = await entornoService.consultarEntorno(context);
+    if (entornoId == 2){
+      setState(() {
+        _stateProduccion = true;
+      });
+    }else{
+      setState(() {
+        _stateProduccion = false;
+      });
+    }
+
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -72,19 +89,71 @@ class _AjustesPageState extends State<AjustesPage> {
         title: const Text('Configuracion'),
         elevation: 5,
       ),
-      body: GestureDetector(
-        onTap: (){
-          _printerNode.unfocus();
-        },
-        child: Form(
-            key: _formKey,
-            child: Column(
-              children: [
-                Expanded(
-                  child: Container(
+      body: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              Expanded(
+                child: Container(
+                  child: Scrollbar(
+                    thumbVisibility: true,
                     child: SingleChildScrollView(
                       child: Column(
                         children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(30),
+                              color: Color.fromRGBO(217, 217, 217, 0.8),
+                            ),
+                            margin: EdgeInsets.all(20),
+                            child: Padding(
+                              padding: const EdgeInsets.only(right: 20, left: 20,top: 5, bottom: 5),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      const Text(
+                                        'Estado : ',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      // SizedBox(width: 20),
+                                      Container(
+                                        decoration: BoxDecoration(
+                                            color: _stateProduccion ? Color(0xFFFF562F) : Colors.grey,
+                                            borderRadius: BorderRadius.all(Radius.circular(20))
+                                        ),
+                                        child: Padding(
+                                          padding: const EdgeInsets.only(top: 2,bottom: 2,left: 10,right: 10),
+                                          child: Text(
+                                            _stateProduccion? 'Produccion':'Demo',
+                                            style: TextStyle(
+                                              color: _stateProduccion ? Colors.white : Colors.black,
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      const Spacer(),
+                                      Switch(
+                                          activeColor: Color(0xFFFF562F),
+                                          inactiveThumbColor: _stateProduccion ? Color(0xFFFF562F) : Colors.grey ,
+                                          inactiveTrackColor: Colors.black,
+                                          activeTrackColor: Colors.black,
+                                          // thumbColor: ,
+                                          value: _stateProduccion,
+                                          onChanged: null
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
                           Container(
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(25),
@@ -134,6 +203,13 @@ class _AjustesPageState extends State<AjustesPage> {
                                           activeTrackColor: Colors.black,
                                           value: _showBarPrinter,
                                           onChanged: (value) {
+                                            final barEnableData = {
+                                              'barEnableData': value
+                                            };
+                                            final jsonBarEnableData = json.encode(barEnableData);
+                                            print('Json entorno : ${jsonBarEnableData}');
+                                            _sharedPref.save('bar_enable_data', jsonBarEnableData);
+
                                             print(value);
                                             setState(() {
                                               _showBarPrinter = value;
@@ -146,7 +222,7 @@ class _AjustesPageState extends State<AjustesPage> {
                                                   });
                                                 }
                                               }
-                                                );
+                                              );
                                             });
                                           },
                                         ),
@@ -155,11 +231,13 @@ class _AjustesPageState extends State<AjustesPage> {
                                   ),
                                   if (_showBarPrinter)
                                     Container(margin: EdgeInsets.only(top: 10,bottom: 20),child: _buildPrinterInputField(_printer2Controller)),
+
                                   ElevatedButton(
                                     style: ButtonStyle(
-                                        backgroundColor:
-                                        MaterialStateProperty.all(
-                                            const Color(0xFFFF562F))),
+                                      // backgroundColor: MaterialStateProperty.all(const Color(0xFFFF562F))
+                                      backgroundColor: _ifChange ? MaterialStateProperty.all(const Color(0xFFFF562F)) : MaterialStateProperty.all(Colors.grey),
+                                    ),
+
                                     onPressed: () {
                                       if (_formKey.currentState!.validate()) {
                                         // Validar el formulario
@@ -224,15 +302,14 @@ class _AjustesPageState extends State<AjustesPage> {
                     ),
                   ),
                 ),
-                Divider(),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: iconCerrar(),
-
-                )
-              ],
-            )),
-      ),
+              ),
+              Divider(),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: iconCerrar(),
+              )
+            ],
+          )),
     );
   }
 
@@ -286,7 +363,6 @@ class _AjustesPageState extends State<AjustesPage> {
 
   Widget _buildPrinterInputField(TextEditingController controller) {
     return TextFormField(
-      focusNode: _printerNode,
       style: TextStyle(color: Colors.black),
       controller: controller,
       keyboardType: TextInputType.text,
