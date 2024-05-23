@@ -25,6 +25,7 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
   int selectedIndex = 0;
   late TabController _tabController;
   late PageController _pageController;
+  final FocusNode _productoFocus = FocusNode();
   @override
   void initState() {
     // TODO: implement initState
@@ -101,65 +102,66 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
             //   },
             // ),
           ),
-          body:  Column(
-            children: [
-              const SizedBox(height: 10),
-              _textFieldSearch(),
-              const SizedBox(height: 10),
-              TabBar(
-                isScrollable: true,
-                controller: _tabController,
-                indicatorColor: Color(0xFFFF562F),
-                tabs: List<Widget>.generate(_con.categorias.length, (index) {
-                  return Tab(
-                    child: Text(_con.categorias[index].nombre ?? '', style: TextStyle(color: Color(0xFF1f1f1f)),),
-                  );
-                }),
-                onTap: (index) async {
-                  _pageController.animateToPage(
-                    index,
-                    duration: Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                  );
-                  List<Producto> productosCategoria = await _con.getProductosPorCategoria(_con.categorias[index]);
-                  setState(() {
-                    _con.productos = productosCategoria;
-                  });
-                },
-              ),
-              const SizedBox(height: 10),
-              Expanded(
-                child: PageView.builder(
-                  controller: _pageController,
-                  onPageChanged: (index) async {
-                    _tabController.animateTo(index);
+          body: Column(
+              children: [
+                const SizedBox(height: 10),
+                _textFieldSearch(),
+                const SizedBox(height: 10),
+                TabBar(
+                  isScrollable: true,
+                  controller: _tabController,
+                  indicatorColor: Color(0xFFFF562F),
+                  tabs: List<Widget>.generate(_con.categorias.length, (index) {
+                    return Tab(
+                      child: Text(_con.categorias[index].nombre ?? '', style: TextStyle(color: Color(0xFF1f1f1f)),),
+                    );
+                  }),
+                  onTap: (index) async {
+                    _productoFocus.unfocus();
+                    _pageController.animateToPage(
+                      index,
+                      duration: Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                    );
                     List<Producto> productosCategoria = await _con.getProductosPorCategoria(_con.categorias[index]);
                     setState(() {
                       _con.productos = productosCategoria;
                     });
                   },
-                  itemCount: _con.categorias.length,
-                  itemBuilder: (context, index) {
-                    return GridView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        childAspectRatio: 0.7,
-                      ),
-                      itemCount: _con.productos.length,
-                      itemBuilder: (_, index) {
-                        if (index < _con.productos.length) {
-                          Producto producto = _con.productos[index];
-                          return _cardProduct(producto);
-                        } else {
-                          return const SizedBox(); // Otra opción es devolver un widget vacío si el índice está fuera de rango
-                        }
-                      },
-                    );
-                  },
                 ),
-              ),
-            ],
+                const SizedBox(height: 10),
+                Expanded(
+                  child: PageView.builder(
+                    controller: _pageController,
+                    onPageChanged: (index) async {
+                      _tabController.animateTo(index);
+                      List<Producto> productosCategoria = await _con.getProductosPorCategoria(_con.categorias[index]);
+                      setState(() {
+                        _con.productos = productosCategoria;
+                      });
+                    },
+                    itemCount: _con.categorias.length,
+                    itemBuilder: (context, index) {
+                      return GridView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          childAspectRatio: 0.7,
+                        ),
+                        itemCount: _con.productos.length,
+                        itemBuilder: (_, index) {
+                          if (index < _con.productos.length) {
+                            Producto producto = _con.productos[index];
+                            return _cardProduct(producto);
+                          } else {
+                            return const SizedBox(); // Otra opción es devolver un widget vacío si el índice está fuera de rango
+                          }
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ],
           ),
             floatingActionButton: Container(
               width: MediaQuery.of(context).size.width,
@@ -172,6 +174,7 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
                     backgroundColor: MaterialStateProperty.all<Color>(Colors.grey[300]!),
                   ),
                   onPressed: () async {
+                    _productoFocus.unfocus();
                     pedido();
                   },
                   child:  Row(
@@ -262,6 +265,7 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
   Widget _cardProduct(Producto producto) {
     return GestureDetector(
       onTap: () {
+        _productoFocus.unfocus();
         setState(() {
           if(_con.mesa.estadoMesa != 2){
             if (_con.productosSeleccionados?.any((p) => p.nombreproducto == producto.nombreproducto) ?? false) {
@@ -360,6 +364,7 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20),
       child: TextField(
+        focusNode: _productoFocus,
         onChanged: _con.onChangeText,
         decoration: InputDecoration(
             hintText: 'Buscar',

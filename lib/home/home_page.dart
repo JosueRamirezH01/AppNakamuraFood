@@ -1,4 +1,5 @@
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
@@ -16,7 +17,6 @@ import 'package:restauflutter/services/detalle_pedido_service.dart';
 import 'package:restauflutter/services/mesas_service.dart';
 import 'package:restauflutter/services/pedido_service.dart';
 import 'package:restauflutter/services/piso_service.dart';
-import 'package:restauflutter/utils/gifComponent.dart';
 import 'package:restauflutter/utils/impresora.dart';
 import 'package:restauflutter/utils/shared_pref.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -66,6 +66,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   late List<Pedido> listaPedido = [];
   late int idEstablecimiento = 0 ;
   late List<Producto> ListadoProductos = [];
+  StreamController<List<Mesa>> _mesasStreamController = StreamController<List<Mesa>>();
 
 
   Future<void> UserShared() async {
@@ -177,6 +178,16 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     //refresh2();
   }
 
+  Stream<List<Mesa>> consultarMesasStream(int idPiso, BuildContext context) async* {
+    while (true) {
+      // Consultar las mesas y emitir el resultado a través del stream
+      List<Mesa> mesas = await dbMesas.consultarMesas(idPiso, context);
+      yield mesas;
+      await Future.delayed(const Duration(seconds: 5)); // Esperar 5 segundos antes de la próxima consulta
+      refresh();
+    }
+  }
+
 
   static final ButtonStyle elevatedButtonStyle = ElevatedButton.styleFrom(
       foregroundColor: const Color(0xFF000000), elevation: 5);
@@ -268,7 +279,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                           print('PISOSMESAS $pisoMesas}');
                           refresh();
                         });
-
                       },
                       icon: const Icon(Icons.shopping_cart_outlined),
                       label: const Text('POS'),
@@ -345,7 +355,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                                 });
                                               }
                                             }
-
                                             setState(() {
                                               pisoMesas = 0;
                                             });
@@ -370,7 +379,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                       controller: _pageControllerPisosPage,
                                       onPageChanged: (value) {
                                         _tabControllerPisos.animateTo(value);
-                                        // pisoMesas
                                         pisoMesas = value;
                                         print('value s ${value}');
                                         print('----${myTabs[value].text}');
@@ -378,7 +386,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                           if (ListadoPisos[i].nombrePiso == myTabs[value].text) {
                                             setState(() {
                                               pisoSelect = ListadoPisos[i].id!;
-                                              consultarMesas(pisoSelect,context);
                                             });
                                           }
                                         }
@@ -387,29 +394,31 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                         });
                                       },
                                       children: myTabs.map((Tab tab) {
-                                        return GridView.builder(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 10, vertical: 10),
-                                          gridDelegate:
-                                          const SliverGridDelegateWithFixedCrossAxisCount(
-                                            crossAxisCount: 2,
-                                            childAspectRatio: 0.7,
-                                          ),
-                                          itemCount:ListadoMesas.length,
-                                          itemBuilder: (_, index) {
-                                            return FutureBuilder(
-                                              future: Future.delayed(const Duration(milliseconds: 600)), // Cambia el tiempo de retraso según tu preferencia
-                                              builder: (context, snapshot) {
-                                                if (snapshot.connectionState == ConnectionState.waiting) {
-                                                  return Center(
-                                                    child: CircularProgressIndicator(),
-                                                  );
-                                                } else {
-                                                  // Cuando el retraso haya finalizado, muestra la tarjeta de la mesa
-                                                  return _cardMesa(ListadoMesas[index]);
-                                                }
-                                              },
-                                            );
+                                        return StreamBuilder<List<Mesa>>(
+                                          stream: consultarMesasStream(pisoSelect, context),
+                                          builder: (context, snapshot) {
+                                            if (snapshot.hasData) {
+                                              List<Mesa>? mesas = snapshot.data;
+                                              return GridView.builder(
+                                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                                                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                                  crossAxisCount: 2,
+                                                  childAspectRatio: 0.7,
+                                                ),
+                                                itemCount: mesas?.length,
+                                                itemBuilder: (_, index) {
+                                                  return _cardMesa(mesas![index]);
+                                                },
+                                              );
+                                            } else if (snapshot.hasError) {
+                                              return Center(
+                                                child: Text('Error: ${snapshot.error}'),
+                                              );
+                                            } else {
+                                              return Center(
+                                                child: CircularProgressIndicator(),
+                                              );
+                                            }
                                           },
                                         );
                                       }).toList(),
@@ -681,7 +690,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                         ),
                         subtitle: Row(
                           children: [
-                            Text('${ListadoPisos.firstWhere((element) => element.id == AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa).pisoId).nombrePiso}'),
+                            Text('${ListadoPisos.firstWhere((element) => element.id == AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa).pisoId).nombrePiso}' ),
                           ],
                         ),
                         onTap: () async {
@@ -1252,8 +1261,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     //   Navigator.of(context).pop();
                     //   refresh();
                     // }
-
-
                     String motivoFinal = usarMotivoPorDefecto ? 'Motivo por defecto' : motivo;
 
                     if (motivoFinal.isEmpty && !usarMotivoPorDefecto) {
@@ -1267,6 +1274,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                           motivoFinal);
                       dbMesas.actualizarMesa(pedido.idMesa, 1, context);
                       dbPedido.anularPedido(motivoFinal, mozo!, pedido.idPedido!, context);
+                      // refresh();
                       Navigator.of(context).pop();
                       Navigator.pop(context);
                     }
@@ -1307,16 +1315,5 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       );
       _pageControllerPisosPage = PageController();
     });
-  }
-
-  Future gif(){
-    return showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return CustomAlertDialog(
-          gifPath: 'assets/gif/download.gif', // Ajusta la ruta de tu GIF
-        );
-      },
-    );
   }
 }

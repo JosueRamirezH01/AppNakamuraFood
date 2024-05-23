@@ -13,7 +13,7 @@ class PisoServicio {
     MySqlConnection? conn;
     try {
       conn = await _connectionSQL.getConnection();
-      const query = 'SELECT DISTINCT p.* FROM pisos p JOIN mesas m ON p.id = m.piso_id WHERE m.estado_mesa = 1 AND id_establecimiento = ?';
+      const query = 'SELECT DISTINCT p.* FROM pisos p WHERE EXISTS ( SELECT 1 FROM mesas m WHERE m.piso_id = p.id AND id_establecimiento = ? AND m.estado_mesa != 0)';
       final results = await conn.query(query, [idEstablecimiento]);
         List<Piso> pisos =
             results.map((row) => Piso.fromJson(row.fields)).toList();
