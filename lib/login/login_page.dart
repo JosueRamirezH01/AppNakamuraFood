@@ -18,7 +18,6 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
   final FocusNode _emailFocus = FocusNode();
   final FocusNode _passwordFocus = FocusNode();
   final LoginController _con = LoginController();
@@ -129,7 +128,7 @@ class _LoginPageState extends State<LoginPage> {
                       await dbSQL.consultarUsuarios(email,password,context);
                     }, style: const ButtonStyle(
                       backgroundColor: MaterialStatePropertyAll(Colors.deepOrange),
-                    ), child: const Text('Iniciar Sesion', style: TextStyle(color: Colors.white, fontSize: 20),),),
+                    ), child: const Text('Iniciar Session', style: TextStyle(color: Colors.white, fontSize: 20),),),
                   ),
                 ],
               ),
