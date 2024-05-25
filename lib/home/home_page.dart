@@ -2,9 +2,11 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:restauflutter/model/detalle_pedido.dart';
 import 'package:restauflutter/model/mesa.dart';
@@ -19,7 +21,6 @@ import 'package:restauflutter/services/pedido_service.dart';
 import 'package:restauflutter/services/piso_service.dart';
 import 'package:restauflutter/utils/impresora.dart';
 import 'package:restauflutter/utils/shared_pref.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 List<Color> colores = [
   const Color(0xFF8EFF72), // verde
@@ -66,8 +67,40 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   late List<Pedido> listaPedido = [];
   late int idEstablecimiento = 0 ;
   late List<Producto> ListadoProductos = [];
-  StreamController<List<Mesa>> _mesasStreamController = StreamController<List<Mesa>>();
 
+  StreamSubscription<List<ConnectivityResult>>? subscription;
+  bool isDeviceConnected = false;
+  bool isAlertSet = false;
+  bool wifi = false;
+  bool datos = false;
+  void getConnectivity() {
+    subscription = Connectivity().onConnectivityChanged.listen(
+          (List<ConnectivityResult> result) async {
+        isDeviceConnected = await InternetConnectionChecker().hasConnection;
+        wifi = result.contains(ConnectivityResult.wifi);
+        datos = result.contains(ConnectivityResult.mobile);
+        print('Resultado de la consulta de conectividad WIFI: $datos');
+        if (!isDeviceConnected && !isAlertSet) {
+          if (mounted) {
+            showDialogBox('No Connection', 'Please check your internet connectivity');
+            setState(() => isAlertSet = true);
+          }
+        }
+        if(!wifi && !isAlertSet ){
+          if (mounted) {
+            showDialogBox('No WiFi', 'WiFi is not connected.');
+            setState(() => isAlertSet = true);
+          }
+        }
+        if(datos && !isAlertSet ){
+          if (mounted) {
+            showDialogBox('Mobile Data Active', 'Please turn off your mobile data.');
+            setState(() => isAlertSet = true);
+          }
+        }
+      },
+    );
+  }
 
   Future<void> UserShared() async {
     final dynamic userData = await _pref.read('user_data');
@@ -113,7 +146,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     _tabController.addListener(_handleTabSelection);
     _listSize = 10;
     _subOptType = SubOptTypes.local;
-
+    getConnectivity();
     UserShared().then((_) {
       // Una vez que UserShared() haya terminado de ejecutarse y se haya actualizado idEstablecimiento, entonces llamamos a las funciones de consulta.
       consultarPisos(idEstablecimiento, context);
@@ -136,6 +169,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     _tabController.dispose();
     _tabControllerPisos.dispose();
     _pageControllerPisosPage.dispose();
+    subscription?.cancel();
     super.dispose();
   }
 
@@ -1336,4 +1370,38 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       _pageControllerPisosPage = PageController();
     });
   }
+
+
+  void showDialogBox(String title, String content) => showCupertinoDialog<String>(
+    context: context,
+    builder: (BuildContext context) => CupertinoAlertDialog(
+      title: Text(title),
+      content: Text(content),
+      actions: <Widget>[
+        TextButton(
+          onPressed: () async {
+            Navigator.pop(context, 'Cancel');
+            setState(() => isAlertSet = false);
+            isDeviceConnected = await InternetConnectionChecker().hasConnection;
+            if (!isDeviceConnected && isAlertSet == false) {
+              showDialogBox('No Connection', 'Please check your internet connectivity');
+              setState(() => isAlertSet = true);
+            }
+            if (!wifi && isAlertSet == false) {
+              showDialogBox('No WiFi', 'WiFi is not connected.');
+              setState(() => isAlertSet = true);
+            }
+            if (datos && isAlertSet == false) {
+              showDialogBox('Mobile Data Active', 'Please turn off your mobile data.');
+              setState(() => isAlertSet = true);
+            }
+
+          },
+          child: const Text('OK'),
+        ),
+      ],
+    ),
+  );
+
+
 }

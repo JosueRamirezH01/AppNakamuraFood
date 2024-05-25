@@ -6,8 +6,8 @@ class Connection {
     String password = '£4dAGE310N';
     String db = 'elivhu_prueba';
     int port = 3306;
-    Connection();
 
+    Connection();
 
     Future<MySqlConnection> getConnection() async {
         var settings = ConnectionSettings(

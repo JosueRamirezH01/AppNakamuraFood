@@ -18,7 +18,6 @@ class Mozo {
     this.email,
     this.idperfil,
     this.nombre_usuario
-
   });
 
   factory Mozo.fromJson(Map<String, dynamic> json) => Mozo(
