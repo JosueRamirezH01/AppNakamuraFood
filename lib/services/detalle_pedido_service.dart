@@ -1,9 +1,14 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:mysql1/mysql1.dart';
 import 'package:restauflutter/bd/conexion.dart';
 import 'package:restauflutter/model/detalle_pedido.dart';
+import 'package:restauflutter/model/mozo.dart';
+import 'package:restauflutter/model/nota.dart';
 import 'package:restauflutter/model/pedido.dart';
 import 'package:restauflutter/model/producto.dart';
+import 'package:restauflutter/services/pedido_service.dart';
 import 'package:restauflutter/utils/shared_pref.dart';
 
 class DetallePedidoServicio {
@@ -13,28 +18,38 @@ class DetallePedidoServicio {
   Future<List<Detalle_Pedido>> crearDetallePedidoPrueba(int idPedido, List<Producto> productos, BuildContext context) async {
     MySqlConnection? conn;
     List<Detalle_Pedido> detallesPedido = [];
+    List<Nota> listaNota = [];
+    late  Mozo? mozo = Mozo();
+    var bdPedido = PedidoServicio();
+
+    final dynamic userData = await _sharedPref.read('user_data');
+    if (userData != null) {
+      final Map<String, dynamic> userDataMap = json.decode(userData);
+      mozo = Mozo.fromJson(userDataMap);
+    }
+
     try {
       conn = await _connectionSQL.getConnection();
       print('Id de pedido creado${idPedido}');
+      listaNota = await bdPedido.obtenerListasNota(mozo.id_establecimiento!, context);
 
       for (Producto producto in productos) {
-        List<String> partesComentario = [];
-        if (producto.comentario != null && producto.comentario!.isNotEmpty) {
-          partesComentario = producto.comentario!.split(';');
-        }
-
-        print('Los D--> ${producto.comentario} tipo : ${producto.comentario.runtimeType}');
-
-        String? comentarioHTML = '';
-        if (partesComentario.isNotEmpty) {
-          comentarioHTML = partesComentario.map((parte) {
-            return '<span class="badge badge-pill badge-danger" id="texto-comentario">${parte.trim()}</span>';
-          }).join('');
-        }
-
-        if (comentarioHTML.isEmpty) {
-          comentarioHTML = null;
-        }
+        // List<String> partesComentario = [];
+        // if (producto.comentario != null && producto.comentario!.isNotEmpty) {
+        //   partesComentario = producto.comentario!.split(';');
+        // }
+        //
+        // print('Los D--> ${producto.comentario} tipo : ${producto.comentario.runtimeType}');
+        String? comentarioHTML = limpiarPuntoComa(listaNota,producto);;
+        // if (partesComentario.isNotEmpty) {
+        //   comentarioHTML = partesComentario.map((parte) {
+        //     return '<span class="badge badge-pill badge-danger" id="texto-comentario-${listaNota.firstWhere((element) => element.descripcion_nota == parte.trim()).id_nota}">${parte.trim()}</span>';
+        //   }).join('');
+        // }
+        //
+        // if (comentarioHTML.isEmpty) {
+        //   comentarioHTML = null;
+        // }
 
         final results = await conn.query('''
           INSERT INTO pedido_detalles (
@@ -158,12 +173,22 @@ class DetallePedidoServicio {
     }
   }
 
-
-
   // bingo 1
-  Future<List<Detalle_Pedido>> actualizarCantidadProductoDetallePedidoPrueba(int? pedidoid, List<Producto> productos, double pedidoTotal, BuildContext context) async {
+  Future<List<Detalle_Pedido>>  actualizarCantidadProductoDetallePedidoPrueba(int? pedidoid, List<Producto> productos, double pedidoTotal, BuildContext context) async {
     MySqlConnection? conn;
     List<Detalle_Pedido> detallesPedido = [];
+
+    List<Nota> listaNota = [];
+    listaNota.clear();
+    late  Mozo? mozo = Mozo();
+    var bdPedido = PedidoServicio();
+
+    final dynamic userData = await _sharedPref.read('user_data');
+    if (userData != null) {
+      final Map<String, dynamic> userDataMap = json.decode(userData);
+      mozo = Mozo.fromJson(userDataMap);
+    }
+
     detallesPedido.clear();
     print('-------------- ID PEDIDO ${pedidoid}');
     print('-------------- PRODUCTOS ${productos}');
@@ -172,7 +197,7 @@ class DetallePedidoServicio {
     try {
 
       conn = await _connectionSQL.getConnection();
-
+      listaNota = await bdPedido.obtenerListasNota(mozo.id_establecimiento!, context);
       final resultst = await conn.query('''
       SELECT * FROM pedido_detalles WHERE id_pedido = ?
       ''', [pedidoid]);
@@ -188,8 +213,9 @@ class DetallePedidoServicio {
 
       print('LISTADO OBTENIDO POR LA CONSULTA $listaBD');
 
-
       for (var detalle in listaBD) {
+
+        print('P-Comentario ${detalle.comentario} Tipo :${detalle.comentario.runtimeType }');
         bool found = false;
         for (var product in productos) {
           if (product.id == detalle.id_producto) {
@@ -210,28 +236,40 @@ class DetallePedidoServicio {
         var existingDetail = await conn.query(
             'SELECT id_pedido_detalle, cantidad_producto, comentario FROM pedido_detalles WHERE id_pedido = ? AND id_producto = ?',
             [pedidoid, producto.id]);
+
         print('LISTA $existingDetail');
-        producto.comentario = producto.comentario == 'null'? null : producto.comentario;
+
+        print('Comentario cero ${producto.comentario} ${producto.comentario.runtimeType}');
+
+        // producto.comentario = producto.comentario == 'null' ? null : producto.comentario;
+        producto.comentario = (producto.comentario == 'null' || producto.comentario?.length == 0) ? null : producto.comentario;
+
+        print('Comentario inicio ${producto.comentario} ${producto.comentario.runtimeType}');
+        // if (producto.comentario?.length == ''){
+        //   producto.comentario = null;
+        // }
+        print('Comentario medio ${producto.comentario} ${producto.comentario.runtimeType}');
+        // si existingDetail
         if (existingDetail.isEmpty) {
 
           //---------------------------
-          List<String> partesComentario = [];
-          if (producto.comentario != null && producto.comentario!.isNotEmpty) {
-            partesComentario = producto.comentario!.split(';');
-          }
+          // List<String> partesComentario = [];
+          // if (producto.comentario != null && producto.comentario!.isNotEmpty) {
+          //   partesComentario = producto.comentario!.split(';');
+          // }
+          //
+          // print('Los Dactualizar--> ${producto.comentario} tipo : ${producto.comentario.runtimeType}');
 
-          print('Los Dactualizar--> ${producto.comentario} tipo : ${producto.comentario.runtimeType}');
-
-          String? comentarioHTML = '';
-          if (partesComentario.isNotEmpty) {
-            comentarioHTML = partesComentario.map((parte) {
-              return '<span class="badge badge-pill badge-danger" id="texto-comentario">${parte.trim()}</span>';
-            }).join('');
-          }
-
-          if (comentarioHTML.isEmpty) {
-            comentarioHTML = null;
-          }
+          String? comentarioHTML = limpiarPuntoComa(listaNota,producto);
+          // if (partesComentario.isNotEmpty) {
+          //   comentarioHTML = partesComentario.map((parte) {
+          //     return '<span class="badge badge-pill badge-danger" id="texto-comentario-${listaNota.firstWhere((element) => element.descripcion_nota == parte.trim()).id_nota}">${parte.trim()}</span>';
+          //   }).join('');
+          // }
+          //
+          // if (comentarioHTML.isEmpty) {
+          //   comentarioHTML = null;
+          // }
           //---------------------------
 
           Detalle_Pedido nuevoDetalle = Detalle_Pedido(
@@ -267,6 +305,9 @@ class DetallePedidoServicio {
           var detailRow = existingDetail.first;
           int cantidadProductoExistente = detailRow['cantidad_producto'];
           String? nomComent = _extraerTextoComentario(detailRow['comentario']?.toString());
+
+          print('nomComent : ${nomComent} ${nomComent.runtimeType} ');
+
           int productoRestado = producto.stock! - cantidadProductoExistente;
           print('Cantidad Restado $productoRestado');
           print(' COMENTARIO ACTUALZIADO ${producto.comentario}');
@@ -294,24 +335,28 @@ class DetallePedidoServicio {
             detallesPedido.add(nuevoDetalle2);
           }else if(nomComent != producto.comentario){
 
+            print('Comparacion --C');
+            print('Com Base : ${nomComent} - ${nomComent.runtimeType}');
+            print('Com Sist : ${producto.comentario} - ${producto.comentario.runtimeType}');
+
             //---------------------------
-            List<String> partesComentario = [];
-            if (producto.comentario != null && producto.comentario!.isNotEmpty) {
-              partesComentario = producto.comentario!.split(';');
-            }
+            // List<String> partesComentario = [];
+            // if (producto.comentario != null && producto.comentario!.isNotEmpty) {
+            //   partesComentario = producto.comentario!.split(';');
+            // }
+            //
+            // print('Los Dactualizar--> ${producto.comentario} tipo : ${producto.comentario.runtimeType}');
 
-            print('Los Dactualizar--> ${producto.comentario} tipo : ${producto.comentario.runtimeType}');
+            String? comentarioHTML = limpiarPuntoComa(listaNota,producto);
+            // if (partesComentario.isNotEmpty) {
+            //   comentarioHTML = partesComentario.map((parte) {
+            //     return '<span class="badge badge-pill badge-danger" id="texto-comentario-${listaNota.firstWhere((element) => element.descripcion_nota == parte.trim()).id_nota}">${parte.trim()}</span>';
+            //   }).join('');
+            // }
 
-            String? comentarioHTML = '';
-            if (partesComentario.isNotEmpty) {
-              comentarioHTML = partesComentario.map((parte) {
-                return '<span class="badge badge-pill badge-danger" id="texto-comentario">${parte.trim()}</span>';
-              }).join('');
-            }
-
-            if (comentarioHTML.isEmpty) {
-              comentarioHTML = null;
-            }
+            // if (comentarioHTML.isEmpty) {
+            //   comentarioHTML = null;
+            // }
             //---------------------------
 
             Detalle_Pedido nuevoDetalle2 = Detalle_Pedido(
@@ -330,23 +375,23 @@ class DetallePedidoServicio {
           }
 
           //---------------------------
-          List<String> partesComentario = [];
-          if (producto.comentario != null && producto.comentario!.isNotEmpty) {
-            partesComentario = producto.comentario!.split(';');
-          }
+          // List<String> partesComentario = [];
+          // if (producto.comentario != null && producto.comentario!.isNotEmpty) {
+          //   partesComentario = producto.comentario!.split(';');
+          // }
+          //
+          // print('Los Dactualizar--> ${producto.comentario} tipo : ${producto.comentario.runtimeType}');
 
-          print('Los Dactualizar--> ${producto.comentario} tipo : ${producto.comentario.runtimeType}');
-
-          String? comentarioHTML = '';
-          if (partesComentario.isNotEmpty) {
-            comentarioHTML = partesComentario.map((parte) {
-              return '<span class="badge badge-pill badge-danger" id="texto-comentario">${parte.trim()}</span>';
-            }).join('');
-          }
-
-          if (comentarioHTML.isEmpty) {
-            comentarioHTML = null;
-          }
+          String? comentarioHTML = limpiarPuntoComa(listaNota,producto);
+          // if (partesComentario.isNotEmpty) {
+          //   comentarioHTML = partesComentario.map((parte) {
+          //     return '<span class="badge badge-pill badge-danger" id="texto-comentario-${listaNota.firstWhere((element) => element.descripcion_nota == parte.trim()).id_nota}">${parte.trim()}</span>';
+          //   }).join('');
+          // }
+          //
+          // if (comentarioHTML.isEmpty) {
+          //   comentarioHTML = null;
+          // }
           //---------------------------
 
           double precio = producto.precioproducto! * producto.stock!;
@@ -378,9 +423,6 @@ class DetallePedidoServicio {
       }
     }
   }
-
-
-
 
   Future<int> consultaObtenerDetallePedido(int? idMesa,  BuildContext context) async {
     MySqlConnection? conn;
@@ -461,4 +503,21 @@ class DetallePedidoServicio {
     return textoLimpio;
   }
 
+  String? limpiarPuntoComa(List<Nota> listaNota, Producto producto){
+    List<String> partesComentario = [];
+    if (producto.comentario != null && producto.comentario!.isNotEmpty) {
+      partesComentario = producto.comentario!.split(';');
+
+      print('Los Dactualizar--> ${producto.comentario} tipo : ${producto.comentario.runtimeType}');
+
+      String? comentarioHTML = '';
+      if (partesComentario.isNotEmpty) {
+        comentarioHTML = partesComentario.map((parte) {
+          return '<span class="badge badge-pill badge-danger" id="texto-comentario-${listaNota.firstWhere((element) => element.descripcion_nota == parte.trim()).id_nota}">${parte.trim()}</span>';
+        }).join('');
+      }
+      return comentarioHTML;
+    }
+    return null;
+  }
 }

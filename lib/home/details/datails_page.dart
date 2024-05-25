@@ -264,9 +264,11 @@ class _DetailsPageState extends State<DetailsPage> {
                         }
                         if (nombresProductos.isNotEmpty) {
                           imprimir(nombresProductos, 2);
+                          print('Hay productos que Actualizar');
                           Navigator.pop(context);
                         } else {
                           mostrarMensajeActualizado('No hay productos que Actualizar', true);
+                          print('No hay productos que Actualizar');
                           Navigator.pop(context);
                         }
                       },

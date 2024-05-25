@@ -4,7 +4,7 @@ class Connection {
     String host = '137.184.54.213';
     String user = 'atonGloR';
     String password = '£4dAGE310N';
-    String db = 'prueba_mobil';
+    String db = 'elivhu_prueba';
     int port = 3306;
     Connection();
 
@@ -19,7 +19,7 @@ class Connection {
         );
         try {
             final conn = await MySqlConnection.connect(settings);
-            print('Conexión establecida correctamente');
+            // print('Conexión establecida correctamente');
             return conn;
         } catch (e) {
             print('Error al establecer la conexión: $e');

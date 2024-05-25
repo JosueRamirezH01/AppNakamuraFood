@@ -55,7 +55,7 @@ class MesaServicio {
         Mesa mesa = Mesa.fromJson(results.first.fields);
         print('---------${mesa.estadoMesa}');
         final jsonMesasData = json.encode(mesa);
-        print('Lista de pisos guardada en SharedPreferences: $jsonMesasData');
+        // print('Lista de pisos guardada en SharedPreferences: $jsonMesasData');
         if(mesa.estadoMesa == 1){
           return true;
         }else{
@@ -87,7 +87,7 @@ class MesaServicio {
       } else {
         List<Mesa> mesas = results.map((row) => Mesa.fromJson(row.fields)).toList();
         final jsonMesasData = json.encode(mesas);
-        print('Lista de pisos guardada en SharedPreferences: $jsonMesasData');
+        // print('Lista de pisos guardada en SharedPreferences: $jsonMesasData');
         return mesas;
       }
     } catch (e) {

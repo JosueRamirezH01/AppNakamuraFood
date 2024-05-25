@@ -403,6 +403,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                                                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                                                   crossAxisCount: 2,
+
                                                   childAspectRatio: 0.7,
                                                 ),
                                                 itemCount: mesas?.length,
@@ -595,7 +596,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
     if (_subOptType == SubOptTypes.local) {
       buttonText = 'Mesa';
-      listaFiltrada = listaPedido.where((pedido) => pedido.idUsuario == mozo?.id && pedido.idMesa != null).toList();
+      listaFiltrada = listaPedido.where((pedido) => pedido.idUsuario == mozo?.id && pedido.estadoPedido != 0).toList();
       refresh();
     }
 
@@ -890,10 +891,27 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                           List<Producto> listProduct= [];
                                           for (int i = 0; i < listadoDetalle.length; i++) {
                                             Detalle_Pedido detalle = listadoDetalle[i];
-                                            Producto producto = ListadoProductos.firstWhere((producto) => producto.id == detalle.id_producto);
-                                            producto.stock = detalle.cantidad_producto;
+                                            Producto originalProducto = ListadoProductos.firstWhere((producto) => producto.id == detalle.id_producto);
+
+                                            Producto producto = Producto(
+                                              id: originalProducto.id,
+                                              nombreproducto: originalProducto.nombreproducto,
+                                              foto: originalProducto.foto,
+                                              codigo_interno: originalProducto.codigo_interno,
+                                              categoria_id: originalProducto.categoria_id,
+                                              stock: detalle.cantidad_producto,
+                                              precioproducto: detalle.precio_unitario
+                                              // Copiar otras propiedades necesarias
+                                            );
+                                            // Producto producto = ListadoProductos.firstWhere((producto) => producto.id == detalle.id_producto);
+                                            // producto.stock = detalle.cantidad_producto;
+                                            // producto.precioproducto = detalle.precio_unitario;
+                                            print(producto.toJson());
                                             listProduct.add(producto);
                                           }
+                                          listProduct.forEach((element) {
+                                            print(' - ${element.toJson()}');
+                                          });
                                           impresora.printLabel(printerIP!,listProduct,3, listPedido.montoTotal!, AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa).nombreMesa , mozo!, ListadoPisos.firstWhere((element) => element.id == AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa).pisoId),'');
                                           print('Imprimir');
                                         },
