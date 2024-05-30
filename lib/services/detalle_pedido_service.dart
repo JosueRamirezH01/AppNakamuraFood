@@ -34,22 +34,7 @@ class DetallePedidoServicio {
       listaNota = await bdPedido.obtenerListasNota(mozo.id_establecimiento!, context);
 
       for (Producto producto in productos) {
-        // List<String> partesComentario = [];
-        // if (producto.comentario != null && producto.comentario!.isNotEmpty) {
-        //   partesComentario = producto.comentario!.split(';');
-        // }
-        //
-        // print('Los D--> ${producto.comentario} tipo : ${producto.comentario.runtimeType}');
-        String? comentarioHTML = limpiarPuntoComa(listaNota,producto);;
-        // if (partesComentario.isNotEmpty) {
-        //   comentarioHTML = partesComentario.map((parte) {
-        //     return '<span class="badge badge-pill badge-danger" id="texto-comentario-${listaNota.firstWhere((element) => element.descripcion_nota == parte.trim()).id_nota}">${parte.trim()}</span>';
-        //   }).join('');
-        // }
-        //
-        // if (comentarioHTML.isEmpty) {
-        //   comentarioHTML = null;
-        // }
+        String? comentarioHTML = limpiarPuntoComa(listaNota,producto);
 
         final results = await conn.query('''
           INSERT INTO pedido_detalles (
@@ -71,8 +56,8 @@ class DetallePedidoServicio {
               producto.id, // id prodcuto
               producto.stock, // cantidad producto
               producto.stock, // cantidad real
-              producto.precioproducto! / producto.stock!,
-              producto.precioproducto, // precio producto
+              producto.precioproducto!,
+              producto.precioproducto! * producto.stock!, // precio producto
               comentarioHTML,//producto.comentario, // comentario
               1, // estado detalle
               DateTime.now().toUtc(),
@@ -277,8 +262,8 @@ class DetallePedidoServicio {
             id_producto: producto.id,
             cantidad_producto: producto.stock,
             cantidad_real: producto.stock,
-            precio_unitario: producto.precioproducto! / producto.stock!,
-            precio_producto: producto.precioproducto,
+            precio_unitario: producto.precioproducto!,
+            precio_producto: producto.precioproducto! * producto.stock!,
             comentario: comentarioHTML,
             estado_detalle: 1,
 
@@ -339,25 +324,7 @@ class DetallePedidoServicio {
             print('Com Base : ${nomComent} - ${nomComent.runtimeType}');
             print('Com Sist : ${producto.comentario} - ${producto.comentario.runtimeType}');
 
-            //---------------------------
-            // List<String> partesComentario = [];
-            // if (producto.comentario != null && producto.comentario!.isNotEmpty) {
-            //   partesComentario = producto.comentario!.split(';');
-            // }
-            //
-            // print('Los Dactualizar--> ${producto.comentario} tipo : ${producto.comentario.runtimeType}');
-
             String? comentarioHTML = limpiarPuntoComa(listaNota,producto);
-            // if (partesComentario.isNotEmpty) {
-            //   comentarioHTML = partesComentario.map((parte) {
-            //     return '<span class="badge badge-pill badge-danger" id="texto-comentario-${listaNota.firstWhere((element) => element.descripcion_nota == parte.trim()).id_nota}">${parte.trim()}</span>';
-            //   }).join('');
-            // }
-
-            // if (comentarioHTML.isEmpty) {
-            //   comentarioHTML = null;
-            // }
-            //---------------------------
 
             Detalle_Pedido nuevoDetalle2 = Detalle_Pedido(
               id_pedido: pedidoid,
@@ -374,25 +341,7 @@ class DetallePedidoServicio {
             detallesPedido.add(nuevoDetalle2);
           }
 
-          //---------------------------
-          // List<String> partesComentario = [];
-          // if (producto.comentario != null && producto.comentario!.isNotEmpty) {
-          //   partesComentario = producto.comentario!.split(';');
-          // }
-          //
-          // print('Los Dactualizar--> ${producto.comentario} tipo : ${producto.comentario.runtimeType}');
-
           String? comentarioHTML = limpiarPuntoComa(listaNota,producto);
-          // if (partesComentario.isNotEmpty) {
-          //   comentarioHTML = partesComentario.map((parte) {
-          //     return '<span class="badge badge-pill badge-danger" id="texto-comentario-${listaNota.firstWhere((element) => element.descripcion_nota == parte.trim()).id_nota}">${parte.trim()}</span>';
-          //   }).join('');
-          // }
-          //
-          // if (comentarioHTML.isEmpty) {
-          //   comentarioHTML = null;
-          // }
-          //---------------------------
 
           double precio = producto.precioproducto! * producto.stock!;
           await conn.query(
@@ -405,11 +354,10 @@ class DetallePedidoServicio {
                 DateTime.now().toUtc(),
                 pedidoid,
                 producto.id
-              ]);
+              ]
+          );
         }
-
       }
-
       await conn.query('UPDATE pedidos SET Monto_total = ?, updated_at= ? WHERE id_pedido = ?',
           [pedidoTotal, DateTime.now().toUtc(),pedidoid]);
       print('LISTA DE INSERTAR AL ACTUALIZAR EL PEDIDO $detallesPedido');

@@ -53,7 +53,7 @@ class ProductoController {
         Producto? setproducto = Producto(
             id: producto?.id,
             nombreproducto: producto?.nombreproducto,
-            precioproducto: producto?.precioproducto,
+            precioproducto: detalle.precio_unitario,
             stock: detalle.cantidad_producto,
             comentario: detalle.comentario,
             idPedido: detalle.id_pedido
@@ -218,7 +218,7 @@ class ProductoController {
     Fluttertoast.showToast(
         msg: mensaje,
         toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.BOTTOM,
+        gravity: ToastGravity.TOP,
         timeInSecForIosWeb: 1,
         backgroundColor: Colors.green,
         textColor: Colors.white,

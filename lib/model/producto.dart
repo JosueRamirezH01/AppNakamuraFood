@@ -6,7 +6,7 @@ Producto responseApiFromJson(String str) => Producto.fromJson(json.decode(str));
 
 String responseApiToJson(Producto data) => json.encode(data.toJson());
 
-class Producto {
+class     Producto {
   int? idPedido;
   int? id;
   String? nombreproducto;

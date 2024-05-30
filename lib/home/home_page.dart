@@ -56,6 +56,7 @@ enum SubOptTypes {
 }
 
 class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
+
   late TabController _tabController;
   int _selectedIndex = 0;
   late int _listSize;
@@ -137,6 +138,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   late PageController _pageControllerPisosPage;
 
   var impresora = Impresora();
+  late int initialTabIndex = 0;
+
 
 
   @override
@@ -149,21 +152,30 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     getConnectivity();
     UserShared().then((_) {
       // Una vez que UserShared() haya terminado de ejecutarse y se haya actualizado idEstablecimiento, entonces llamamos a las funciones de consulta.
-      consultarPisos(idEstablecimiento, context);
-      consultarMesas(pisoSelect, context).then((value) async {
-        _subOptType = SubOptTypes.local;
-        listaPedido = await dbPedido.obtenerListasPedidos(_subOptType, idEstablecimiento,context);
-        AllListadoMesas = await dbMesas.consultarTodasMesas(ListadoPisos, context);
-        setState(() {
-          isLoading = false;
-        });
-      },);
-      refresh();
+      consultarPisos(idEstablecimiento, context).then((_) {
+        consultarMesas(pisoSelect, context).then((value) async {
+          _subOptType = SubOptTypes.local;
+          listaPedido = await dbPedido.obtenerListasPedidos(_subOptType, idEstablecimiento,context);
+          AllListadoMesas = await dbMesas.consultarTodasMesas(ListadoPisos, context);
+          setState(() {
+            isLoading = false;
+          });
+        },);
+        refresh2();
+        refresh();
+      });
     });
     refresh2();
     refresh();
   }
-
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Obtener el índice inicial del argumento
+    initialTabIndex = ModalRoute.of(context)!.settings.arguments as int? ?? 0;
+    _tabController.index = initialTabIndex;
+    // Resto de tu lógica de inicialización...
+  }
   @override
   void dispose() {
     _tabController.dispose();
@@ -175,7 +187,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
   void _handleTabSelection() {
     setState(() {
-      _selectedIndex = _tabController.index;
+      initialTabIndex = _tabController.index;
     });
   }
 
@@ -216,9 +228,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     while (true) {
       // Consultar las mesas y emitir el resultado a través del stream
       List<Mesa> mesas = await dbMesas.consultarMesas(idPiso, context);
+      ListadoMesas = mesas ;
       yield mesas;
       await Future.delayed(const Duration(seconds: 5)); // Esperar 5 segundos antes de la próxima consulta
-      refresh();
     }
   }
 
@@ -234,6 +246,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    //initialTabIndex = ModalRoute.of(context)!.settings.arguments as int? ?? 0;
+    print('ARGUMENTO DE LLEGADA DE PEDIDO --------${initialTabIndex}');
     return Scaffold(
         appBar: AppBar(
           bottom: PreferredSize(
@@ -262,7 +276,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                       ),
                       child: ElevatedButton.icon(
                         onPressed: () {
-
                           consultarPisos(idEstablecimiento, context).then((value) {
                             consultarMesas(pisoSelect, context).then((value) async {
                               _subOptType = SubOptTypes.local;
@@ -273,8 +286,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                               });
                             },);
                             setState(() {
-                              _selectedIndex = 0;
-                              _tabController.animateTo(0);
+                              initialTabIndex = 0;
+                              _tabController.animateTo(initialTabIndex);
                               pisoMesas = 0;
                             });
                             print('PISOSMESAS $pisoMesas}');
@@ -289,34 +302,28 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                         },
                         icon: const Icon(Icons.list_alt_rounded),
                         label: const Text('Listado de pedidos'),
-                        style: _selectedIndex == 0
+                        style: initialTabIndex == 0
                             ? selectedButtonStyle
                             : elevatedButtonStyle,
                       ),
                     ),
                     ElevatedButton.icon(
                       onPressed: () {
-                        consultarPisos(idEstablecimiento, context).then((value) {
-                          consultarMesas(pisoSelect, context).then((value) async {
-                            _subOptType = SubOptTypes.local;
-                            listaPedido = await dbPedido.obtenerListasPedidos(_subOptType, idEstablecimiento,context);
-                            AllListadoMesas = await dbMesas.consultarTodasMesas(ListadoPisos, context);
                             setState(() {
                               isLoading = false;
                             });
-                          },);
                           setState(() {
-                            _selectedIndex = 1;
-                            _tabController.animateTo(1);
+                            initialTabIndex = 1;
+                            _tabController.animateTo(initialTabIndex);
+                            // _tabController.animateTo(initialTabIndex == 0 ? 1 : initialTabIndex);
                             pisoMesas = 0;
                           });
                           print('PISOSMESAS $pisoMesas}');
                           refresh();
-                        });
                       },
                       icon: const Icon(Icons.shopping_cart_outlined),
                       label: const Text('POS'),
-                      style: _selectedIndex == 1
+                      style: initialTabIndex == 1
                           ? selectedButtonStyle
                           : elevatedButtonStyle,
                     ),
@@ -326,150 +333,144 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             ),
           ),
         ),
-        body: ClipRRect(
-            borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(30), topRight: Radius.circular(30)),
-            child: Container(
-              color: Colors.white, // Fondo de color D9D9D9
-              child: TabBarView(
-                controller: _tabController,
-                children: [
-                  // Vista para 'Listado de pedidos'
-                  _buildAnimatedContent(
-                    key: const Key('Listado de pedidos'),
-                    child: Center(
-                      child: Column(
-                        children: [
-                          // Container(
-                          //   margin: const EdgeInsets.all(8),
-                          //   child: subopt(),
-                          // ),
-                          Expanded(
-                            child: mainListado(),
-                          ),
-                        ],
-                      ),
+        body: TabBarView(
+          controller: _tabController,
+          children: [
+            // Vista para 'Listado de pedidos'
+            _buildAnimatedContent(
+              key: const Key('Listado de pedidos'),
+              child: Center(
+                child: Column(
+                  children: [
+                    // Container(
+                    //   margin: const EdgeInsets.all(8),
+                    //   child: subopt(),
+                    // ),
+                    Expanded(
+                      child: mainListado(),
                     ),
-                  ),
-                  // Vista para 'POS'
-                  _buildAnimatedContent(
-                    key:  const Key('POS'),
-                    child: Center(
-                      child: Column(
-                        children: [
-                          DefaultTabController(
-                            length: myTabs.length,
-                            child: Expanded(
-                              child: Column(
-                                children: [
-                                  Row(
-                                    children: [
-                                      const SizedBox(width: 20),
-                                      const Icon(Icons.table_bar_sharp, size: 30),
-                                      const SizedBox(width: 20),
-                                      Expanded(
-                                        child: TabBar(
-                                          isScrollable: true,
-                                          controller: _tabControllerPisos,
-                                          tabs: myTabs,
-                                          onTap: (index) {
-                                            _pageControllerPisosPage.animateToPage(
-                                              index,
-                                              duration: Duration(milliseconds: 200),
-                                              curve: Curves.linear,
-                                            );
-                                            String selectedTabName = myTabs[index].text!;
-                                            print('Selected tab name: $selectedTabName');
-                                            for (int i = 0; i < ListadoPisos.length; i++) {
-                                              if (ListadoPisos[i].nombrePiso == selectedTabName) {
-                                                setState(() {
-                                                  piso = ListadoPisos[i];
-                                                  pisoSelect = ListadoPisos[i].id!;
-                                                  consultarMesas(pisoSelect,context);
-                                                });
-                                              }
-                                            }
-                                            setState(() {
-                                              pisoMesas = 0;
-                                            });
-                                          },
-                                          indicatorColor: const Color( 0xFFFF562F),
-                                          labelColor: const Color( 0xFFFF562F),
-                                          labelPadding:
-                                          const EdgeInsets.only(left: 12),
-                                          labelStyle: const TextStyle(fontSize: 16),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 20),
-
-                                      // const SizedBox(height: 20),
-
-                                      // const Spacer()
-                                    ],
-                                  ),
-                                  const SizedBox(height: 10),
-                                  Expanded(
-                                    child: PageView(
-                                      controller: _pageControllerPisosPage,
-                                      onPageChanged: (value) {
-                                        _tabControllerPisos.animateTo(value);
-                                        pisoMesas = value;
-                                        print('value s ${value}');
-                                        print('----${myTabs[value].text}');
-                                        for (int i = 0; i < ListadoPisos.length; i++) {
-                                          if (ListadoPisos[i].nombrePiso == myTabs[value].text) {
-                                            setState(() {
-                                              pisoSelect = ListadoPisos[i].id!;
-                                            });
-                                          }
-                                        }
-                                        setState(() {
-                                          pisoMesas = 0;
-                                        });
-                                      },
-                                      children: myTabs.map((Tab tab) {
-                                        return StreamBuilder<List<Mesa>>(
-                                          stream: consultarMesasStream(pisoSelect, context),
-                                          builder: (context, snapshot) {
-                                            if (snapshot.hasData) {
-                                              List<Mesa>? mesas = snapshot.data;
-                                              return GridView.builder(
-                                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                                                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                                  crossAxisCount: 2,
-
-                                                  childAspectRatio: 0.7,
-                                                ),
-                                                itemCount: mesas?.length,
-                                                itemBuilder: (_, index) {
-                                                  return _cardMesa(mesas![index]);
-                                                },
-                                              );
-                                            } else if (snapshot.hasError) {
-                                              return Center(
-                                                child: Text('Error: ${snapshot.error}'),
-                                              );
-                                            } else {
-                                              return Center(
-                                                child: CircularProgressIndicator(),
-                                              );
-                                            }
-                                          },
-                                        );
-                                      }).toList(),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            )
+            ),
+            // Vista para 'POS'
+            _buildAnimatedContent(
+              key:  const Key('POS'),
+              child: Center(
+                child: Column(
+                  children: [
+                    DefaultTabController(
+                      length: myTabs.length,
+                      child: Expanded(
+                        child: Column(
+                          children: [
+                            Row(
+                              children: [
+                                const SizedBox(width: 20),
+                                const Icon(Icons.table_bar_sharp, size: 30),
+                                const SizedBox(width: 20),
+                                Expanded(
+                                  child: TabBar(
+                                    isScrollable: true,
+                                    controller: _tabControllerPisos,
+                                    tabs: myTabs,
+                                    onTap: (index) {
+                                      _pageControllerPisosPage.animateToPage(
+                                        index,
+                                        duration: Duration(milliseconds: 200),
+                                        curve: Curves.linear,
+                                      );
+                                      String selectedTabName = myTabs[index].text!;
+                                      print('Selected tab name: $selectedTabName');
+                                      for (int i = 0; i < ListadoPisos.length; i++) {
+                                        if (ListadoPisos[i].nombrePiso == selectedTabName) {
+                                          setState(() {
+                                            piso = ListadoPisos[i];
+                                            pisoSelect = ListadoPisos[i].id!;
+                                            consultarMesas(pisoSelect,context);
+                                          });
+                                        }
+                                      }
+                                      setState(() {
+                                        pisoMesas = 0;
+                                      });
+                                    },
+                                    indicatorColor: const Color( 0xFFFF562F),
+                                    labelColor: const Color( 0xFFFF562F),
+                                    labelPadding:
+                                    const EdgeInsets.only(left: 12),
+                                    labelStyle: const TextStyle(fontSize: 16),
+                                  ),
+                                ),
+                                const SizedBox(width: 20),
+
+                                // const SizedBox(height: 20),
+
+                                // const Spacer()
+                              ],
+                            ),
+                            const SizedBox(height: 10),
+                        Expanded(
+                          child: NonScrollablePageView(
+                            controller: _pageControllerPisosPage,
+                            onPageChanged: (value) {
+                              _tabControllerPisos.animateTo(value);
+                              // pisoMesas
+                              pisoMesas = value;
+                              print('value s $value');
+                              print('----${myTabs[value].text}');
+                              for (int i = 0; i < ListadoPisos.length; i++) {
+                                if (ListadoPisos[i].nombrePiso == myTabs[value].text) {
+                                  setState(() {
+                                    pisoSelect = ListadoPisos[i].id!;
+                                    consultarMesas(pisoSelect, context);
+                                  });
+                                }
+                              }
+                              setState(() {
+                                pisoMesas = 0;
+                              });
+                            },
+                            children: myTabs.map((Tab tab) {
+                              return StreamBuilder<List<Mesa>>(
+                                stream: consultarMesasStream(pisoSelect, context),
+                                builder: (context, snapshot) {
+                                  if (snapshot.hasData) {
+                                    List<Mesa>? mesas = snapshot.data;
+                                    return GridView.builder(
+                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                        crossAxisCount: 2,
+                                        childAspectRatio: 0.7,
+                                      ),
+                                      itemCount: mesas?.length,
+                                      itemBuilder: (_, index) {
+                                        return _cardMesa(mesas![index]);
+                                      },
+                                    );
+                                  } else if (snapshot.hasError) {
+                                    return Center(
+                                      child: Text('Error: ${snapshot.error}'),
+                                    );
+                                  } else {
+                                    return Center(
+                                      child: CircularProgressIndicator(),
+                                    );
+                                  }
+                                },
+                              );
+                            }).toList(),
+                          ),
+                        ),
+                  ]
+                    )
+                  )
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         )
     );
   }
@@ -600,26 +601,12 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   }
 
   Widget mainListado() {
-    return Container(
-      decoration: const BoxDecoration(
-        color: Color.fromRGBO(65, 65, 65, 0.3),
-        borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(20), topRight: Radius.circular(20)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(width: 2),
-            color: const Color(0xFFF9F9F9),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            // children: [_textFieldSearch(), pedidosList()],
-            children: [ pedidosList()],
-          ),
-        ),
+    return Padding(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        // children: [_textFieldSearch(), pedidosList()],
+        children: [ pedidosList()],
       ),
     );
   }
@@ -636,7 +623,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
     return Expanded(
       child: Container(
-        margin: const EdgeInsets.only(top: 20, left: 20, right: 20, bottom: 20),
+        //margin: const EdgeInsets.only(top: 20, left: 20, right: 20, bottom: 20),
         decoration: BoxDecoration(
           border: Border.all(width: 2),
           borderRadius: BorderRadius.circular(20),
@@ -680,7 +667,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     child: Container(
                       alignment: Alignment.center,
                       child: const Text(
-                        'Estado',
+                        'Total',
                         textAlign: TextAlign.center,
                         style: TextStyle(fontWeight: FontWeight.w600),
                       ),
@@ -691,52 +678,64 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             ),
             Expanded(
               child: Container(
-                decoration: const BoxDecoration(),
+                clipBehavior: Clip.antiAlias,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                ),
                 child: isLoading
                     ? const Center(
                   child: CircularProgressIndicator(),
                 )
                     : ListView.builder(
+
                   //itemCount: listaPedido.length,
                   itemCount: listaFiltrada.length,
                   itemBuilder: (_, index) {
                     //if (index < listaPedido.length) {
                     if (index < listaFiltrada.length) {
-
                       // Funcional
                       //Pedido listPedido = listaPedido[index];
                       Pedido listPedido = listaFiltrada[index];
-                      return ListTile(
-                        title: Row(
-                          children: [
-                            Expanded(child: Text('PD-${listPedido.correlativoPedido}')),
-                            // Spacer(),
-                            //Text('${_subOptType == SubOptTypes.local ? (ListadoMesas.isNotEmpty ? ListadoMesas.firstWhere((element) => element.id == listPedido.idMesa, orElse: () => Mesa()).nombreMesa : "") : listPedido.idCliente}'),
-                            Expanded(child: Text('${_subOptType == SubOptTypes.local ? (ListadoMesas.isNotEmpty ? (AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa, orElse: () => Mesa()).nombreMesa ?? "") : "") : listPedido.idCliente}',overflow: TextOverflow.ellipsis)),
-                            // Spacer(),
-                            Expanded(child: Text('${listPedido.estadoPedido == 1 ? 'Registrado' : listPedido.estadoPedido == 0? 'Anulado':'pendiente'}',overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                  color: Color(0xFF111111),
-                                  decoration: TextDecoration.none,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500
-                              ),))
-                          ],
-                        ),
-                        subtitle: Row(
-                          children: [
-                            Text('${ListadoPisos.firstWhere((element) => element.id == AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa).pisoId).nombrePiso}' ),
-                          ],
-                        ),
-                        onTap: () async {
-                          List<Detalle_Pedido> listadoDetalle = await dbDetallePedido.obtenerDetallePedidoLastCreate(listPedido.idPedido, context);
+                      //tp1
+                      return Card(
+                        // color: AllListadoMesas.isNotEmpty && AllListadoMesas.any((element) => element.id == listPedido.idMesa) ?
+                        // AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa).estadoMesa != 1 ?
+                        // AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa).estadoMesa == 2 ? colores[1] : colores[2] : colores[0] :
+                        // Colors.black, // Color predeterminado en caso de que ListadoMesas esté vacío o no haya ninguna mesa que cumpla con la condición
 
-                          listadoDetalle.forEach((element) {
-                            print('Los home ${element.comentario} tipo : ${element.comentario.runtimeType}');
-                          });
+                        child: ListTile(
+                          title: Row(
+                            children: [
+                              Expanded(child: Text('PD-${listPedido.correlativoPedido}')),
+                              SizedBox(width: 50),
+                              //Text('${_subOptType == SubOptTypes.local ? (ListadoMesas.isNotEmpty ? ListadoMesas.firstWhere((element) => element.id == listPedido.idMesa, orElse: () => Mesa()).nombreMesa : "") : listPedido.idCliente}'),
+                              Expanded(child: Text('${_subOptType == SubOptTypes.local ? (ListadoMesas.isNotEmpty ? (AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa, orElse: () => Mesa()).nombreMesa ?? "") : "") : listPedido.idCliente}',overflow: TextOverflow.ellipsis)),
+                              SizedBox(width: 50),
+                              // Expanded(child: Text('${listPedido.estadoPedido == 1 ? 'Registrado' : listPedido.estadoPedido == 0? 'Anulado':'pendiente'}',overflow: TextOverflow.ellipsis,
+                              Expanded(child: Text('${listPedido.montoTotal}',overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                    color: Color(0xFF111111),
+                                    decoration: TextDecoration.none,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500
+                                ),))
+                            ],
+                          ),
+                          subtitle: Row(
+                            children: [
+                              Text('${ListadoPisos.firstWhere((element) => element.id == AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa).pisoId).nombrePiso}' ),
+                            ],
+                          ),
+                          onTap: () async {
+                            List<Detalle_Pedido> listadoDetalle = await dbDetallePedido.obtenerDetallePedidoLastCreate(listPedido.idPedido, context);
 
-                          pedido(listPedido, listadoDetalle);
-                        },
+                            listadoDetalle.forEach((element) {
+                              print('Los home ${element.comentario} tipo : ${element.comentario.runtimeType}');
+                            });
+
+                            pedido(listPedido, listadoDetalle);
+                          },
+                        ),
                       );
                     } else {
                       return null;
@@ -836,19 +835,31 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                                   child: Row(
                                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                                     children: [
-                                                      Expanded(
-                                                        child: Container(
-                                                          alignment: Alignment.center,
-                                                          child: const Text(
-                                                            'Cantidad',
-                                                            style: TextStyle(
-                                                                color: Color(0xFF111111),
-                                                                decoration: TextDecoration.none,
-                                                                fontSize: 16,
-                                                                fontWeight: FontWeight.w500),
-                                                          ),
+                                                      SizedBox(width: 10,),
+                                                      Container(
+                                                        alignment: Alignment.center,
+                                                        child: const Text(
+                                                          'C.',
+                                                          style: TextStyle(
+                                                              color: Color(0xFF111111),
+                                                              decoration: TextDecoration.none,
+                                                              fontSize: 16,
+                                                              fontWeight: FontWeight.w500),
                                                         ),
                                                       ),
+                                                      // Expanded(
+                                                      //   child: Container(
+                                                      //     alignment: Alignment.center,
+                                                      //     child: const Text(
+                                                      //       'C.',
+                                                      //       style: TextStyle(
+                                                      //           color: Color(0xFF111111),
+                                                      //           decoration: TextDecoration.none,
+                                                      //           fontSize: 16,
+                                                      //           fontWeight: FontWeight.w500),
+                                                      //     ),
+                                                      //   ),
+                                                      // ),
                                                       Expanded(
                                                         child: Container(
                                                           alignment: Alignment.center,
@@ -862,20 +873,31 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                                           ),
                                                         ),
                                                       ),
-                                                      Expanded(
-                                                        child: Container(
-                                                          alignment: Alignment.center,
-                                                          child: const Text(
-                                                            'Precio',
-                                                            style: TextStyle(
-                                                                color: Color(0xFF111111),
-                                                                decoration: TextDecoration.none,
-                                                                fontSize: 16,
-                                                                fontWeight: FontWeight.w500),
-                                                          ),
+                                                      SizedBox(width: 5,),
+                                                      Container(
+                                                        alignment: Alignment.center,
+                                                        child: const Text(
+                                                          'P. U',
+                                                          style: TextStyle(
+                                                              color: Color(0xFF111111),
+                                                              decoration: TextDecoration.none,
+                                                              fontSize: 16,
+                                                              fontWeight: FontWeight.w500),
                                                         ),
                                                       ),
-
+                                                      SizedBox(width: 20,),
+                                                      Container(
+                                                        alignment: Alignment.center,
+                                                        child: const Text(
+                                                          'T',
+                                                          style: TextStyle(
+                                                              color: Color(0xFF111111),
+                                                              decoration: TextDecoration.none,
+                                                              fontSize: 16,
+                                                              fontWeight: FontWeight.w500),
+                                                        ),
+                                                      ),
+                                                      SizedBox(width: 25,),
                                                     ],
                                                   ),
                                                 ),
@@ -928,13 +950,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                             Producto originalProducto = ListadoProductos.firstWhere((producto) => producto.id == detalle.id_producto);
 
                                             Producto producto = Producto(
-                                              id: originalProducto.id,
-                                              nombreproducto: originalProducto.nombreproducto,
-                                              foto: originalProducto.foto,
-                                              codigo_interno: originalProducto.codigo_interno,
-                                              categoria_id: originalProducto.categoria_id,
-                                              stock: detalle.cantidad_producto,
-                                              precioproducto: detalle.precio_unitario
+                                                id: originalProducto.id,
+                                                nombreproducto: originalProducto.nombreproducto,
+                                                foto: originalProducto.foto,
+                                                codigo_interno: originalProducto.codigo_interno,
+                                                categoria_id: originalProducto.categoria_id,
+                                                stock: detalle.cantidad_producto,
+                                                precioproducto: detalle.precio_unitario
                                               // Copiar otras propiedades necesarias
                                             );
                                             // Producto producto = ListadoProductos.firstWhere((producto) => producto.id == detalle.id_producto);
@@ -956,34 +978,34 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                     ),
 
                                     // --BT ANULAR
-                                    // Container(
-                                    //   decoration: const BoxDecoration(
-                                    //       color: Colors.redAccent,
-                                    //       shape: BoxShape.circle
-                                    //   ),
-                                    //   child: IconButton(
-                                    //     onPressed: () async {
-                                    //       List<Producto> listProduct= [];
-                                    //       List<Pedido> listCompar = listaPedido ;
-                                    //       String? printerIP = await _pref.read('ipCocina');
-                                    //       for (int i = 0; i < listadoDetalle.length; i++) {
-                                    //         Detalle_Pedido detalle = listadoDetalle[i];
-                                    //         Producto producto = ListadoProductos.firstWhere((producto) => producto.id == detalle.id_producto);
-                                    //         producto.stock = detalle.cantidad_producto;
-                                    //         listProduct.add(producto);
-                                    //       }
-                                    //       mostrarDialogoAnulacion( printerIP!, listProduct  ,listPedido ,context).then((value) async {
-                                    //         listaPedido = await dbPedido.obtenerListasPedidos(_subOptType, idEstablecimiento,context);
-                                    //         consultarMesas(pisoSelect, context);
-                                    //         refresh();
-                                    //       });
-                                    //       refresh();
-                                    //     },
-                                    //     icon: const Icon(Icons.cancel_outlined),
-                                    //     tooltip: 'Anular',
-                                    //     color: Colors.white,
-                                    //   ),
-                                    // ),
+                                    Container(
+                                      decoration: const BoxDecoration(
+                                          color: Colors.redAccent,
+                                          shape: BoxShape.circle
+                                      ),
+                                      child: IconButton(
+                                        onPressed: () async {
+                                          List<Producto> listProduct= [];
+                                          List<Pedido> listCompar = listaPedido ;
+                                          String? printerIP = await _pref.read('ipCocina');
+                                          for (int i = 0; i < listadoDetalle.length; i++) {
+                                            Detalle_Pedido detalle = listadoDetalle[i];
+                                            Producto producto = ListadoProductos.firstWhere((producto) => producto.id == detalle.id_producto);
+                                            producto.stock = detalle.cantidad_producto;
+                                            listProduct.add(producto);
+                                          }
+                                          mostrarDialogoAnulacion( printerIP!, listProduct  ,listPedido ,context).then((value) async {
+                                            listaPedido = await dbPedido.obtenerListasPedidos(_subOptType, idEstablecimiento,context);
+                                            consultarMesas(pisoSelect, context);
+                                            refresh();
+                                          });
+                                          refresh();
+                                        },
+                                        icon: const Icon(Icons.cancel_outlined),
+                                        tooltip: 'Anular',
+                                        color: Colors.white,
+                                      ),
+                                    ),
                                   ],
                                 ),
                                 Text(
@@ -1010,7 +1032,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       },
     );
   }
-
   // ----LS
   Widget _producList(List<Detalle_Pedido> detalleList) {
     List<Widget> rows = [];
@@ -1025,19 +1046,29 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                Expanded(
-                  child: Container(
-                    alignment: Alignment.center,
-                    child: Text(
-                      '${detalle.cantidad_producto}',
-                      style: const TextStyle(
-                          color: Color(0xFF111111),
-                          decoration: TextDecoration.none,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500),
-                    ),
-                  ),
+                // Expanded(
+                //   child: Container(
+                //     alignment: Alignment.center,
+                //     child: Text(
+                //       '${detalle.cantidad_producto}',
+                //       style: const TextStyle(
+                //           color: Color(0xFF111111),
+                //           decoration: TextDecoration.none,
+                //           fontSize: 16,
+                //           fontWeight: FontWeight.w500),
+                //     ),
+                //   ),
+                // ),
+                SizedBox(width: 10,),
+                Text(
+                  '${detalle.cantidad_producto}',
+                  style: const TextStyle(
+                      color: Color(0xFF111111),
+                      decoration: TextDecoration.none,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500),
                 ),
+                SizedBox(width: 20,),
                 Expanded(
                   child: Container(
                     alignment: Alignment.center,
@@ -1053,19 +1084,33 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     ),
                   ),
                 ),
-                Expanded(
-                  child: Container(
-                    alignment: Alignment.center,
-                    child: Text(
-                      '${detalle.precio_producto}',
-                      style: const TextStyle(
-                          color: Color(0xFF111111),
-                          decoration: TextDecoration.none,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500),
-                    ),
+                SizedBox(width: 10,),
+
+                Container(
+                  alignment: Alignment.center,
+                  child: Text(
+                    '${detalle.precio_unitario}',
+                    style: const TextStyle(
+                        color: Color(0xFF111111),
+                        decoration: TextDecoration.none,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500),
                   ),
                 ),
+                SizedBox(width: 10,),
+                Container(
+                  alignment: Alignment.center,
+                  child: Text(
+                    '${detalle.precio_producto}',
+                    style: const TextStyle(
+                        color: Color(0xFF111111),
+                        decoration: TextDecoration.none,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500),
+                  ),
+                ),
+                SizedBox(width: 10,),
+
               ],
             ),
           ),
@@ -1353,6 +1398,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     );
   }
 
+  void refreshTabController(){
+    setState(() {
+      _tabController = TabController( length: 2, vsync: this);
+    });
+  }
   void refresh(){
     setState(() {
 
@@ -1404,4 +1454,31 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   );
 
 
+}
+
+
+class NonScrollablePageView extends StatelessWidget {
+  final PageController controller;
+  final ValueChanged<int> onPageChanged;
+  final List<Widget> children;
+
+  const NonScrollablePageView({
+    Key? key,
+    required this.controller,
+    required this.onPageChanged,
+    required this.children,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return PageView.builder(
+      controller: controller,
+      onPageChanged: onPageChanged,
+      itemCount: children.length,
+      itemBuilder: (context, index) {
+        return children[index];
+      },
+      physics: NeverScrollableScrollPhysics(), // Deshabilita el desplazamiento
+    );
+  }
 }

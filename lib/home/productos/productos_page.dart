@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
+import 'package:responsive_builder/responsive_builder.dart';
 import 'package:restauflutter/home/details/datails_page.dart';
 import 'package:restauflutter/home/productos/producto_controller.dart';
 import 'package:restauflutter/model/producto.dart';
@@ -47,62 +48,64 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
 
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
+    return ResponsiveApp(
+      builder: (context) {
+        return DefaultTabController(
           length: _con.categorias.length,
           child: Scaffold(
-          appBar: AppBar(
-            automaticallyImplyLeading: false,
-            elevation: 3,
-            toolbarHeight: 100,
-            // backgroundColor: const Color(0xFF99CFB5),
-            actions: [
-              Container(
-                margin: EdgeInsets.only(top: 10,left: 15),
-                child: ElevatedButton.icon(
-                    style: const ButtonStyle(backgroundColor: MaterialStatePropertyAll(Colors.deepOrange)),
-                    onPressed: (){
-                      Navigator.pushNamed(context, 'home');
+            appBar: AppBar(
+              automaticallyImplyLeading: false,
+              elevation: 3,
+              toolbarHeight: 100,
+              // backgroundColor: const Color(0xFF99CFB5),
+              actions: [
+                Container(
+                  margin: EdgeInsets.only(top: 10,left: 15),
+                  child: ElevatedButton.icon(
+                      style: const ButtonStyle(backgroundColor: MaterialStatePropertyAll(Colors.deepOrange)),
+                      onPressed: (){
+                        Navigator.pushNamed(context, 'home');
                       },
-                    icon: const Icon(Icons.arrow_back_ios_outlined, color: Colors.white,),
-                    label: const Text("SALIR", style: TextStyle(fontSize: 18, color: Colors.white),)
-                ),
-              ),
-              Spacer(),
-              Container(
-                margin: EdgeInsets.only( top: 10 ,right: 15),
-                child: ElevatedButton(
-                  style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all<Color>(Colors.grey[300]!),
+                      icon: const Icon(Icons.arrow_back_ios_outlined, color: Colors.white,),
+                      label: const Text("SALIR", style: TextStyle(fontSize: 18, color: Colors.white),)
                   ),
-                  onPressed: (){
-                  },
-                  child:  Text('${_con.mesa.nombreMesa}', style: TextStyle(fontSize: 18,color: Colors.black)),),
-              ),
-              const SizedBox(width: 5)
-            ],
-            // bottom: TabBar(
-            //   isScrollable: true,
-            //   controller: _tabController,
-            //   indicatorColor: Color(0xFFFF562F),
-            //   tabs: List<Widget>.generate(_con.categorias.length, (index) {
-            //     return Tab(
-            //       child: Text(_con.categorias[index].nombre ?? '', style: TextStyle(color: Color(0xFF1f1f1f)),),
-            //     );
-            //   }),
-            //   onTap: (index) async {
-            //     _pageController.animateToPage(
-            //       index,
-            //       duration: Duration(milliseconds: 300),
-            //       curve: Curves.easeInOut,
-            //     );
-            //     List<Producto> productosCategoria = await _con.getProductosPorCategoria(_con.categorias[index].id);
-            //     setState(() {
-            //       _con.productos = productosCategoria;
-            //     });
-            //   },
-            // ),
-          ),
-          body: Column(
+                ),
+                Spacer(),
+                Container(
+                  margin: EdgeInsets.only( top: 10 ,right: 15),
+                  child: ElevatedButton(
+                    style: ButtonStyle(
+                      backgroundColor: MaterialStateProperty.all<Color>(Colors.grey[300]!),
+                    ),
+                    onPressed: (){
+                    },
+                    child:  Text('${_con.mesa.nombreMesa}', style: TextStyle(fontSize: 18,color: Colors.black)),),
+                ),
+                const SizedBox(width: 5)
+              ],
+              // bottom: TabBar(
+              //   isScrollable: true,
+              //   controller: _tabController,
+              //   indicatorColor: Color(0xFFFF562F),
+              //   tabs: List<Widget>.generate(_con.categorias.length, (index) {
+              //     return Tab(
+              //       child: Text(_con.categorias[index].nombre ?? '', style: TextStyle(color: Color(0xFF1f1f1f)),),
+              //     );
+              //   }),
+              //   onTap: (index) async {
+              //     _pageController.animateToPage(
+              //       index,
+              //       duration: Duration(milliseconds: 300),
+              //       curve: Curves.easeInOut,
+              //     );
+              //     List<Producto> productosCategoria = await _con.getProductosPorCategoria(_con.categorias[index].id);
+              //     setState(() {
+              //       _con.productos = productosCategoria;
+              //     });
+              //   },
+              // ),
+            ),
+            body: Column(
               children: [
                 const SizedBox(height: 10),
                 _textFieldSearch(),
@@ -110,10 +113,13 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
                 TabBar(
                   isScrollable: true,
                   controller: _tabController,
-                  indicatorColor: Color(0xFFFF562F),
+                  indicator: BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(10)),border: Border.all(width: 2), color: Color(0xFF99cfb5)),
+                  indicatorSize: TabBarIndicatorSize.tab,
+                  padding: EdgeInsets.only(bottom: 6),
+                  labelStyle: TextStyle(fontWeight: FontWeight.bold),
                   tabs: List<Widget>.generate(_con.categorias.length, (index) {
                     return Tab(
-                      child: Text(_con.categorias[index].nombre ?? '', style: TextStyle(color: Color(0xFF1f1f1f)),),
+                      child: Text(_con.categorias[index].nombre ?? ''),
                     );
                   }),
                   onTap: (index) async {
@@ -162,7 +168,7 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
                   ),
                 ),
               ],
-          ),
+            ),
             floatingActionButton: Container(
               width: MediaQuery.of(context).size.width,
               alignment: Alignment.bottomCenter,
@@ -189,7 +195,8 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
             ),
             floatingActionButtonLocation: FloatingActionButtonLocation.miniCenterFloat,
           ),
-
+        );
+      },
     );
   }
   Widget precio(){
@@ -269,8 +276,14 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
         setState(() {
           if(_con.mesa.estadoMesa != 2){
             if (_con.productosSeleccionados?.any((p) => p.nombreproducto == producto.nombreproducto) ?? false) {
-              // El producto ya está seleccionado, muestra un mensaje de confirmación
-              _con.mostrarMensaje('El producto ya ha sido seleccionado.');
+              final Producto? productoExistente = _con.productosSeleccionados?.firstWhere((p) => p.nombreproducto == producto.nombreproducto);
+              if (productoExistente != null) {
+                print('------- ${_con.productosSeleccionados?.first.stock}');
+                setState(() {
+                  productoExistente.stock = (productoExistente.stock ?? 0) + 1;
+                });
+                _con.agregarMsj('Se ha aumentado el stock de ${productoExistente.nombreproducto} en 1.');
+              }
             } else {
               // El producto no está seleccionado, agrégalo a la lista de productos seleccionados
               setState(() {
