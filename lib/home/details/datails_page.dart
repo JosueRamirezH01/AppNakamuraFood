@@ -139,11 +139,17 @@ class _DetailsPageState extends State<DetailsPage> {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        Column(
-                          children: [
-                            _addOrRemoveItem(index),
-                            _precioProducto(index)
-                          ],
+                        Container(
+                          decoration: BoxDecoration(
+                            border: Border(bottom: BorderSide(width: 3)),
+                            borderRadius: BorderRadius.all(Radius.circular(10))
+                          ),
+                          child: Column(
+                            children: [
+                              _addOrRemoveItem(index),
+                              _precioProducto(index)
+                            ],
+                          ),
                         ),
                         const SizedBox(width: 5),
                         _iconDelete(index),
@@ -510,6 +516,7 @@ class _DetailsPageState extends State<DetailsPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
+          backgroundColor: Colors.white,
           title: const Text('Cambiar Mesa'),
           content: StatefulBuilder(
             builder: (BuildContext context, StateSetter setState) {
@@ -518,6 +525,7 @@ class _DetailsPageState extends State<DetailsPage> {
                   "Seleccione una mesa disponible",
                   style: TextStyle(fontSize: 14),
                 ),
+                focusColor: Color( 0xFFFF562F),
                 onChanged: (Mesa? newValue) {
                   setState(() {
                     nuevaMesaId = newValue?.id;
@@ -526,10 +534,16 @@ class _DetailsPageState extends State<DetailsPage> {
                 },
                 items: mesas.map<DropdownMenuItem<Mesa>>(
                       (Mesa mesa) => DropdownMenuItem<Mesa>(
-                    value: mesa,
-                    child: Text('${mesa.nombreMesa} -> ${listaPisos.firstWhere((element) => element.id == mesa.pisoId).nombrePiso}'),
+                        value: mesa,
+                        child: Text(
+                            '${mesa.nombreMesa} -> ${listaPisos.firstWhere((element) => element.id == mesa.pisoId).nombrePiso}'
+                        ),
                   ),
                 ).toList(),
+                borderRadius: BorderRadius.all(Radius.circular(20)),
+                menuMaxHeight: 500,
+
+                icon: Icon(Icons.table_bar),
               );
             },
           ),
@@ -654,11 +668,11 @@ class _DetailsPageState extends State<DetailsPage> {
               widget.mesa?.estadoMesa = retornoMesa.estadoMesa;
               //selectObjmesa.estadoMesa = retornoMesa.estadoMesa;
             });
+            imprimir(widget.productosSeleccionados!,1);
             Navigator.pop(context);
             Navigator.pushNamedAndRemoveUntil(context, 'home', (route) => false, arguments: 1);
             //Navigator.pop(context, newPedidoId);
             //impresora.printLabel(printerIP,widget.productosSeleccionados,1, pedidoTotal, selectObjmesa.nombreMesa);
-            imprimir(widget.productosSeleccionados!,1);
             // Actualizar mesa
             //print(retornoPedido);
             }else{

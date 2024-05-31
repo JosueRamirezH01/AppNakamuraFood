@@ -63,8 +63,10 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
                   margin: EdgeInsets.only(top: 10,left: 15),
                   child: ElevatedButton.icon(
                       style: const ButtonStyle(backgroundColor: MaterialStatePropertyAll(Colors.deepOrange)),
+                      //tp2
                       onPressed: (){
-                        Navigator.pushNamed(context, 'home');
+                        // Navigator.pushNamed(context, 'home');
+                        Navigator.pushNamedAndRemoveUntil(context, 'home', (route) => false, arguments: 1);
                       },
                       icon: const Icon(Icons.arrow_back_ios_outlined, color: Colors.white,),
                       label: const Text("SALIR", style: TextStyle(fontSize: 18, color: Colors.white),)
@@ -83,57 +85,40 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
                 ),
                 const SizedBox(width: 5)
               ],
-              // bottom: TabBar(
-              //   isScrollable: true,
-              //   controller: _tabController,
-              //   indicatorColor: Color(0xFFFF562F),
-              //   tabs: List<Widget>.generate(_con.categorias.length, (index) {
-              //     return Tab(
-              //       child: Text(_con.categorias[index].nombre ?? '', style: TextStyle(color: Color(0xFF1f1f1f)),),
-              //     );
-              //   }),
-              //   onTap: (index) async {
-              //     _pageController.animateToPage(
-              //       index,
-              //       duration: Duration(milliseconds: 300),
-              //       curve: Curves.easeInOut,
-              //     );
-              //     List<Producto> productosCategoria = await _con.getProductosPorCategoria(_con.categorias[index].id);
-              //     setState(() {
-              //       _con.productos = productosCategoria;
-              //     });
-              //   },
-              // ),
             ),
             body: Column(
               children: [
-                const SizedBox(height: 10),
+                SizedBox(height: 10),
                 _textFieldSearch(),
-                const SizedBox(height: 10),
-                TabBar(
-                  isScrollable: true,
-                  controller: _tabController,
-                  indicator: BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(10)),border: Border.all(width: 2), color: Color(0xFF99cfb5)),
-                  indicatorSize: TabBarIndicatorSize.tab,
-                  padding: EdgeInsets.only(bottom: 6),
-                  labelStyle: TextStyle(fontWeight: FontWeight.bold),
-                  tabs: List<Widget>.generate(_con.categorias.length, (index) {
-                    return Tab(
-                      child: Text(_con.categorias[index].nombre ?? ''),
-                    );
-                  }),
-                  onTap: (index) async {
-                    _productoFocus.unfocus();
-                    _pageController.animateToPage(
-                      index,
-                      duration: Duration(milliseconds: 300),
-                      curve: Curves.easeInOut,
-                    );
-                    List<Producto> productosCategoria = await _con.getProductosPorCategoria(_con.categorias[index]);
-                    setState(() {
-                      _con.productos = productosCategoria;
-                    });
-                  },
+                SizedBox(height: 10),
+                Padding(
+                  padding: const EdgeInsets.only(right: 15,left: 15),
+                  child: TabBar(
+                    tabAlignment: TabAlignment.start,
+                    isScrollable: true,
+                    controller: _tabController,
+                    indicator: BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(10)),border: Border.all(width: 2), color: Color(0xFF99cfb5)),
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    padding: EdgeInsets.only(bottom: 6),
+                    labelStyle: TextStyle(fontWeight: FontWeight.bold),
+                    tabs: List<Widget>.generate(_con.categorias.length, (index) {
+                      return Tab(
+                        child: Text(_con.categorias[index].nombre ?? ''),
+                      );
+                    }),
+                    onTap: (index) async {
+                      _productoFocus.unfocus();
+                      _pageController.animateToPage(
+                        index,
+                        duration: Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                      );
+                      List<Producto> productosCategoria = await _con.getProductosPorCategoria(_con.categorias[index]);
+                      setState(() {
+                        _con.productos = productosCategoria;
+                      });
+                    },
+                  ),
                 ),
                 const SizedBox(height: 10),
                 Expanded(
