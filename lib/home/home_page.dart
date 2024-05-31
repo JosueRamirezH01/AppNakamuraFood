@@ -1135,7 +1135,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     }else if (mesa.estadoMesa == 3){
       estadoMesaDis = 'Ocupado';
     }
-
     return GestureDetector(
       onTap: () async {
         if (mesa.estadoMesa == 1) {
@@ -1230,7 +1229,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     String motivo = '';
     bool motivoVacio = false;
     bool usarMotivoPorDefecto = false;
-
     return showDialog(
       context: context,
       builder: (BuildContext context) {

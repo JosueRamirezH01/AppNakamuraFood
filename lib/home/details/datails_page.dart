@@ -166,7 +166,6 @@ class _DetailsPageState extends State<DetailsPage> {
       ),
     );
   }
-
   Widget _precioProducto(int index) {
     print('---------${widget.productosSeleccionados![index].precioproducto}');
     double p = widget.productosSeleccionados![index].precioproducto! *  (widget.productosSeleccionados![index].stock ?? 0);
@@ -232,7 +231,6 @@ class _DetailsPageState extends State<DetailsPage> {
                         mesasDisponibles = await bdMesas.consultarTodasMesas(listaPisos, context);
                         List<Mesa> mesasDisponiblesFiltradas = mesasDisponibles.where((mesa) => mesa.estadoMesa == 1).toList();
                         Navigator.pop(context);
-
                         mostrarMesa(mesasDisponiblesFiltradas);
                       },
                       child: const Text(
