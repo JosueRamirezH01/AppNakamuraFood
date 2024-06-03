@@ -50,6 +50,17 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
   Widget build(BuildContext context) {
     return ResponsiveApp(
       builder: (context) {
+        double screenWidth = MediaQuery.of(context).size.width;
+        int crossAxisCount = 2;
+        if (screenWidth > 1200) {
+          crossAxisCount = 4;
+        } else if (screenWidth > 800) {
+          crossAxisCount = 4;
+        } else if (screenWidth > 600) {
+          crossAxisCount = 3;
+        } else {
+          crossAxisCount = 2;
+        }
         return DefaultTabController(
           length: _con.categorias.length,
           child: Scaffold(
@@ -83,10 +94,122 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
                     },
                     child:  Text('${_con.mesa.nombreMesa}', style: TextStyle(fontSize: 18,color: Colors.black)),),
                 ),
-                const SizedBox(width: 5)
+                SizedBox(width: 5)
               ],
             ),
-            body: Column(
+            body: crossAxisCount > 3 ? Row(
+              children: [
+                Container(
+                  margin: EdgeInsets.only(top : 10 ,bottom: 10),
+                  decoration: BoxDecoration(
+                    border: Border(right: BorderSide(width: 2.5)),
+                  ),
+                  width: MediaQuery.of(context).size.width * 0.60,
+                  // color: Colors.blue, // Color de ejemplo
+                  child: Column(
+                    children: [
+                      Container(margin: EdgeInsets.only( top: 20 ,bottom: 20) ,child: _textFieldSearch()),
+                      Padding(
+                            padding: const EdgeInsets.only(right: 15,left: 15),
+                            child: TabBar(
+                              tabAlignment: TabAlignment.start,
+                              isScrollable: true,
+                              controller: _tabController,
+                              indicator: BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(10)),border: Border.all(width: 2), color: Color(0xFF99cfb5)),
+                              indicatorSize: TabBarIndicatorSize.tab,
+                              padding: EdgeInsets.only(bottom: 6),
+                              labelStyle: TextStyle(fontWeight: FontWeight.bold),
+                              tabs: List<Widget>.generate(_con.categorias.length, (index) {
+                                return Tab(
+                                  child: Text(_con.categorias[index].nombre ?? ''),
+                                );
+                              }),
+                              onTap: (index) async {
+                                _productoFocus.unfocus();
+                                _pageController.animateToPage(
+                                  index,
+                                  duration: Duration(milliseconds: 300),
+                                  curve: Curves.easeInOut,
+                                );
+                                List<Producto> productosCategoria = await _con.getProductosPorCategoria(_con.categorias[index]);
+                                setState(() {
+                                  _con.productos = productosCategoria;
+                                });
+                              },
+                            ),
+                          ),
+                      Expanded(
+                  child: PageView.builder(
+                    controller: _pageController,
+                    onPageChanged: (index) async {
+                      _tabController.animateTo(index);
+                      List<Producto> productosCategoria = await _con.getProductosPorCategoria(_con.categorias[index]);
+                      setState(() {
+                        _con.productos = productosCategoria;
+                      });
+                    },
+                    itemCount: _con.categorias.length,
+                    itemBuilder: (context, index) {
+                      double screenWidth = MediaQuery.of(context).size.width;
+
+                      int crossAxisCount = 2;
+                      if (screenWidth > 1200) {
+                        crossAxisCount = 4;
+                      } else if (screenWidth > 800) {
+                        crossAxisCount = 4;
+                      } else if (screenWidth > 600) {
+                        crossAxisCount = 3;
+                      } else {
+                        crossAxisCount = 2;
+                      }
+
+                      return GridView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                        gridDelegate:  SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: crossAxisCount,
+                          childAspectRatio:  crossAxisCount == 2 || crossAxisCount == 3 ? 0.7 : 0.68,
+                        ),
+                        itemCount: _con.productos.length,
+                        itemBuilder: (_, index) {
+                          if (index < _con.productos.length) {
+                            Producto producto = _con.productos[index];
+                            return _cardProduct(producto);
+                          } else {
+                            return const SizedBox(); // Otra opción es devolver un widget vacío si el índice está fuera de rango
+                          }
+                        },
+                      );
+                    },
+                  ),
+                ),
+                      // Center(child: Text("70% de la pantalla")),
+                    ],
+                  ),
+                ),
+                Container(
+                  margin: EdgeInsets.only(top : 10 ,bottom: 10),
+                  width: MediaQuery.of(context).size.width * 0.4,
+                  // color: Colors.green, // Color de ejemplo
+                  child: Column(
+                    children: [
+                      SingleChildScrollView(
+                        child: Container(
+                          margin: EdgeInsets.only(right: 10, left: 10),
+                          height: MediaQuery.of(context).size.height * 0.773,
+                          child: DetailsPage(
+                            productosSeleccionados: _con.productosSeleccionados,
+                            idPedido: idPedido ?? _con.IDPEDIDO,
+                            mesa: _con.mesa,
+                            detallePedidoLista: _con.detalle_pedido,
+                            onProductosActualizados: _actualizarProductosSeleccionados,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ) : Column(
               children: [
                 SizedBox(height: 10),
                 _textFieldSearch(),
@@ -120,7 +243,7 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
                     },
                   ),
                 ),
-                const SizedBox(height: 10),
+                SizedBox(height: 10),
                 Expanded(
                   child: PageView.builder(
                     controller: _pageController,
@@ -133,11 +256,24 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
                     },
                     itemCount: _con.categorias.length,
                     itemBuilder: (context, index) {
+                      double screenWidth = MediaQuery.of(context).size.width;
+
+                      int crossAxisCount = 2;
+                      if (screenWidth > 1200) {
+                        crossAxisCount = 5;
+                      } else if (screenWidth > 800) {
+                        crossAxisCount = 4;
+                      } else if (screenWidth > 600) {
+                        crossAxisCount = 3;
+                      } else {
+                        crossAxisCount = 2;
+                      }
+
                       return GridView.builder(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          childAspectRatio: 0.7,
+                        gridDelegate:  SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: crossAxisCount,
+                          childAspectRatio:  crossAxisCount == 2 || crossAxisCount == 3 ? 0.7 : 1,
                         ),
                         itemCount: _con.productos.length,
                         itemBuilder: (_, index) {
@@ -154,7 +290,7 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
                 ),
               ],
             ),
-            floatingActionButton: Container(
+            floatingActionButton: crossAxisCount > 3 ?  Container() : Container(
               width: MediaQuery.of(context).size.width,
               alignment: Alignment.bottomCenter,
               child: SizedBox(
@@ -178,7 +314,7 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
                 ),
               ),
             ),
-            floatingActionButtonLocation: FloatingActionButtonLocation.miniCenterFloat,
+            floatingActionButtonLocation: crossAxisCount > 3 ? null : FloatingActionButtonLocation.miniCenterFloat,
           ),
         );
       },
@@ -203,6 +339,7 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
     }
     return total;
   }
+
   int calcularCantidadProductosSeleccionados() {
     int cantidad = 0;
     if (_con.productosSeleccionados != null) {
@@ -219,15 +356,14 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
     });
   }
 
-
-
-
   Future pedido() async {
+
     //List<Producto>? productosSeleccionadosCopy = List.from(_con.productosSeleccionados ?? []);
     int? idPedidoNuevo = await showCupertinoModalBottomSheet<int>(
       barrierColor: Colors.transparent,
       context: context,
       builder: (BuildContext context) {
+
         return SingleChildScrollView(
           child: SizedBox(
             height: MediaQuery.of(context).size.height * 0.87,
@@ -252,7 +388,6 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
     print('-------------Valor de IDPEDIDO: $idPedido');
 
   }
-
 
   Widget _cardProduct(Producto producto) {
     return GestureDetector(
@@ -289,6 +424,7 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
       },
       child: SizedBox(
         child: Card(
+          clipBehavior: Clip.antiAlias,
           elevation: 3.0,
           shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(15)
@@ -318,9 +454,11 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
                     height: MediaQuery.of(context).size.height * 0.2,
                     width: MediaQuery.of(context).size.width,
                     padding: const EdgeInsets.only(left: 10, right: 10),
-                    child: Image.network(
-                      'http://137.184.54.213/storage/${producto.foto}',
-                      fit: BoxFit.contain,
+                    child: ClipRRect(
+                      child: Image.network(
+                        'http://137.184.54.213/storage/${producto.foto}',
+                        fit: BoxFit.contain,
+                      ),
                     ),
                   ),
                   Container(
@@ -356,7 +494,6 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
       ),
     );
   }
-
 
   Widget _textFieldSearch() {
     return Container(

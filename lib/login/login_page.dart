@@ -44,20 +44,22 @@ class _LoginPageState extends State<LoginPage> {
           _passwordFocus.unfocus();
         },
         child: SingleChildScrollView(
-          child: Column(
-            children: [
-              const Padding(
-                padding: EdgeInsets.only(left: 30, top: 80),
-                child: Image(image: AssetImage('assets/img/Background.png')),
-              ),
-              const SizedBox(height: 30),
-              _centro(),
-              const SizedBox(height: 60),
-              const Text('970 333 599/946 285 690',
-                  style: TextStyle(color: Colors.white, fontSize: 16)),
-              const Text('Calle las camelias 657 San Isidro, Lima',
-                  style: TextStyle(color: Colors.white, fontSize: 16)),
-            ],
+          child: Center(
+            child: Column(
+              children: [
+                const Padding(
+                  padding: EdgeInsets.only(left: 30, top: 80),
+                  child: Image(image: AssetImage('assets/img/Background.png')),
+                ),
+                const SizedBox(height: 30),
+                _centro(),
+                const SizedBox(height: 60),
+                const Text('970 333 599/946 285 690',
+                    style: TextStyle(color: Colors.white, fontSize: 16)),
+                const Text('Calle las camelias 657 San Isidro, Lima',
+                    style: TextStyle(color: Colors.white, fontSize: 16)),
+              ],
+            ),
           ),
         ),
       ),

@@ -30,12 +30,15 @@ class DetailsPage extends StatefulWidget {
   final Mesa? mesa;
   int? idPedido;
   final void Function(List<Producto>?)? onProductosActualizados; // Función de devolución de llamada
-  DetailsPage({super.key,
+
+  DetailsPage({
+    super.key,
     required this.productosSeleccionados,
     required this.detallePedidoLista,
     required this.mesa,
     required this.idPedido,
-    this.onProductosActualizados});
+    this.onProductosActualizados
+  });
 
   @override
   State<DetailsPage> createState() => _DetailsPageState();
@@ -63,8 +66,9 @@ class _DetailsPageState extends State<DetailsPage> {
     }
     DateTime now = DateTime.now();
     String formattedDate = DateFormat('yyyy-MM-dd HH:mm:ss').format(now);
-    piso = await bdPisos.consultarPiso(selectObjmesa.pisoId!, context);
+    piso = await bdPisos.consultarPiso(widget.mesa!.pisoId as int, context);
   }
+
   List<Mesa> mesasDisponibles = [];
   List<Detalle_Pedido> detalles_pedios_tmp = [];
   List<Piso> listaPisos =[];
@@ -95,12 +99,14 @@ class _DetailsPageState extends State<DetailsPage> {
 
   @override
   Widget build(BuildContext context) {
+    double screenWidth = MediaQuery.of(context).size.width;
     return Scaffold(
       body: SingleChildScrollView(
         child: Column(
           children: [
-            icono(),
-            if(selectObjmesa.estadoMesa != 1 && selectObjmesa.estadoMesa != 2)
+            if (screenWidth < 600)
+              icono(),
+            if( widget.mesa!.estadoMesa != 1 && widget.mesa!.estadoMesa != 2)
               cabecera(),
             contenido(),
             debajo()
@@ -111,6 +117,20 @@ class _DetailsPageState extends State<DetailsPage> {
   }
 
   Widget contenido() {
+
+    double screenWidth = MediaQuery.of(context).size.width;
+
+    int crossAxisCount = 2;
+    if (screenWidth > 1200) {
+      crossAxisCount = 4;
+    } else if (screenWidth > 800) {
+      crossAxisCount = 4;
+    } else if (screenWidth > 600) {
+      crossAxisCount = 3;
+    } else {
+      crossAxisCount = 2;
+    }
+    double sizeHeigth= widget.mesa!.estadoMesa != 1 && widget.mesa!.estadoMesa != 2 ? 0.56 : 0.65;
     return NotificationListener<ScrollNotification>(
       onNotification: (notification) {
         if (notification is ScrollUpdateNotification && notification.metrics.atEdge && notification.metrics.pixels <= 0) {
@@ -120,9 +140,10 @@ class _DetailsPageState extends State<DetailsPage> {
       },
       child: SingleChildScrollView(
         child: Container(
-          margin: EdgeInsets.only(top:5 ,left: 15,right: 15),
-          height: MediaQuery.of(context).size.height * 0.6,
-          width: MediaQuery.of(context).size.height * 0.45,
+          margin: crossAxisCount <= 3 ? EdgeInsets.only(top:15 ,left: 15,right: 15) : null,
+
+          height: MediaQuery.of(context).size.height * sizeHeigth,
+          width: screenWidth > 600 ? MediaQuery.of(context).size.width * 0.9 : MediaQuery.of(context).size.width * 8,
           decoration: BoxDecoration(borderRadius: const BorderRadius.all(Radius.circular(15)), border: Border.all(width: 2),),
           child: ListView.builder(
             itemCount: widget.productosSeleccionados?.length,
@@ -182,6 +203,7 @@ class _DetailsPageState extends State<DetailsPage> {
       // Agrega el estilo de texto necesario aquí
     );
   }
+
   Widget _iconDelete(int index) {
     return GestureDetector(
       onTap: (){
@@ -200,6 +222,7 @@ class _DetailsPageState extends State<DetailsPage> {
       child: const Icon(Icons.edit, color: Colors.amber),
     );
   }
+
   Widget icono(){
     return const Padding(
       padding: EdgeInsets.only(top: 10, bottom: 10),
@@ -212,12 +235,15 @@ class _DetailsPageState extends State<DetailsPage> {
   }
 
   Widget cabecera() {
+
+    double screenWidth = MediaQuery.of(context).size.width;
+
     return Center(
       child: Column(
         children: [
           Container(
-            margin: EdgeInsets.only(left: 15,right: 15, bottom: 10),
-            width: MediaQuery.of(context).size.width * 0.95,
+            margin: EdgeInsets.only(top : screenWidth < 600 ? 20 : 1, bottom: 10),
+            width: MediaQuery.of(context).size.width * 0.9,
             height: MediaQuery.of(context).size.height * 0.08,
             decoration: BoxDecoration(
               border: Border.fromBorderSide(BorderSide(width: 2)),
@@ -327,7 +353,6 @@ class _DetailsPageState extends State<DetailsPage> {
     return null;
   }
 
-
   Future gif(){
     return showDialog(
       context: context,
@@ -371,6 +396,7 @@ class _DetailsPageState extends State<DetailsPage> {
       ),
     );
   }
+
   String generateSelectedOptionsString(List<Nota> comidas) {
     List<String> selectedOptions = [];
     for (int i = 0; i < _checkedItems.length; i++) {
@@ -595,7 +621,6 @@ class _DetailsPageState extends State<DetailsPage> {
     return nomMesa;
   }
 
-
   Widget _pedido(){
     return ElevatedButton(
         style:  ButtonStyle(
@@ -637,7 +662,7 @@ class _DetailsPageState extends State<DetailsPage> {
               idCliente: 60, // 60 clientes varios
               idUsuario: mozo?.id, // ID DEL MOSO ✔️
               idTipoPedido: 1, // 1-> local || 2-> llevar || 3->delivery ✖️
-              idMesa: selectObjmesa.id, //✔️
+              idMesa: selectObjmesa.id ?? widget.mesa!.id, //✔️
               idEstablecimiento: mozo?.id_establecimiento, // ✔️
               idSeriePedido: 1, // nose que es ✖️
               montoTotal: pedidoTotal, // ✔️
@@ -649,7 +674,7 @@ class _DetailsPageState extends State<DetailsPage> {
             // Ya crea el pedido
 
             int newPedidoId = await pedidoServicio.crearPedidoPrueba(newpedido, context);
-            Mesa? retornoMesa = await mesaServicio.actualizarMesa( selectObjmesa.id , 3, context);
+            Mesa? retornoMesa = await mesaServicio.actualizarMesa( selectObjmesa.id ?? widget.mesa!.id , 3, context);
             List<Detalle_Pedido> retornoPedidoDetalle = await detallePedidoServicio.crearDetallePedidoPrueba( newPedidoId, widget.productosSeleccionados!, context);
             print(retornoPedidoDetalle);
             setState(() {
@@ -679,7 +704,7 @@ class _DetailsPageState extends State<DetailsPage> {
             //print(retornoPedido);
             }else{
             mostrarMensaje('No hay productos seleccionados');
-            Navigator.pop(context);
+            // Navigator.pop(context);
           }
         },
         child: const Text(
@@ -726,24 +751,24 @@ class _DetailsPageState extends State<DetailsPage> {
       if (ipBar == null) {
         if (prodSeleccionados.isNotEmpty){
           print('Lista de productos seleccionados:');
-          impresora.printLabel(ipCocina!,prodSeleccionados,estado, pedidoTotal, selectObjmesa.nombreMesa, mozo!, piso,'');
+          impresora.printLabel(ipCocina!,prodSeleccionados,estado, pedidoTotal, selectObjmesa.nombreMesa ?? widget.mesa!.nombreMesa, mozo!, piso,'');
         }else{
           print('nada que imprimir');
         }
       } else {
         print('Productos para el bar:');
         if(ParaBar.isNotEmpty){
-          impresora.printLabel(ipBar,ParaBar,estado, pedidoTotal, selectObjmesa.nombreMesa, mozo!, piso,'');
+          impresora.printLabel(ipBar,ParaBar,estado, pedidoTotal, selectObjmesa.nombreMesa ?? widget.mesa!.nombreMesa, mozo!, piso,'');
           if (ParaCocina.isNotEmpty){
             print('Lista de productos seleccionados:');
-            impresora.printLabel(ipCocina!,ParaCocina,estado, pedidoTotal, selectObjmesa.nombreMesa, mozo!, piso,'');
+            impresora.printLabel(ipCocina!,ParaCocina,estado, pedidoTotal, selectObjmesa.nombreMesa ?? widget.mesa!.nombreMesa, mozo!, piso,'');
           }else{
             print('nada que imprimir');
           }
         }else{
           if (ParaCocina.isNotEmpty){
             print('Lista de productos seleccionados:');
-            impresora.printLabel(ipCocina!,ParaCocina,estado, pedidoTotal, selectObjmesa.nombreMesa, mozo!, piso,'');
+            impresora.printLabel(ipCocina!,ParaCocina,estado, pedidoTotal, selectObjmesa.nombreMesa ?? widget.mesa!.nombreMesa, mozo!, piso,'');
           }else{
             print('nada que imprimir');
           }
@@ -758,8 +783,6 @@ class _DetailsPageState extends State<DetailsPage> {
     }
   }
 
-
-
   Widget _preCuenta(){
     return ElevatedButton(
         style:  ButtonStyle(
@@ -767,9 +790,9 @@ class _DetailsPageState extends State<DetailsPage> {
         onPressed: () async {
           String? printerIP = await _pref.read('ipCocina');
 
-          if (selectObjmesa.estadoMesa != 2){
+          if (selectObjmesa.estadoMesa != 2 || widget.mesa!.estadoMesa !=2){
             gif();
-            Mesa? retornoMesa = await mesaServicio.actualizarMesa( selectObjmesa.id , 2, context);
+            Mesa? retornoMesa = await mesaServicio.actualizarMesa( selectObjmesa.id  ?? widget.mesa!.id, 2, context);
             setState(() {
               selectObjmesa.estadoMesa = retornoMesa?.estadoMesa;
               widget.mesa?.estadoMesa = retornoMesa?.estadoMesa;
@@ -777,7 +800,7 @@ class _DetailsPageState extends State<DetailsPage> {
 
           }
           Navigator.pop(context,2);
-          impresora.printLabel(printerIP!,widget.productosSeleccionados,3,pedidoTotal, selectObjmesa.nombreMesa, mozo!, piso,'');
+          impresora.printLabel(printerIP!,widget.productosSeleccionados,3,pedidoTotal, selectObjmesa.nombreMesa ?? widget.mesa!.nombreMesa, mozo!, piso,'');
         },
 
         child: const Text(
@@ -795,6 +818,7 @@ class _DetailsPageState extends State<DetailsPage> {
     }
     return total;
   }
+
   Widget debajo() {
     double total = calcularTotal();
     pedidoTotal = total;
@@ -814,7 +838,7 @@ class _DetailsPageState extends State<DetailsPage> {
             // const SizedBox(width: 5),
             Container(
               margin: EdgeInsets.only(left: 15),
-              child: selectObjmesa.estadoMesa == 1 ? _pedido() : _preCuenta(),
+              child: selectObjmesa.estadoMesa == 1 || widget.mesa!.estadoMesa == 1 ? _pedido() : _preCuenta(),
             ),
             // const SizedBox(width: 10),
             Spacer(),
@@ -839,7 +863,6 @@ class _DetailsPageState extends State<DetailsPage> {
       widget.onProductosActualizados!(widget.productosSeleccionados);
     }
   }
-
 
   Widget _addOrRemoveItem(int index) {
     return Row(
@@ -918,8 +941,6 @@ class _DetailsPageState extends State<DetailsPage> {
     );
   }
 
-
-
   void mostrarMensaje(String mensaje) {
     Fluttertoast.showToast(
       msg: mensaje,
@@ -931,6 +952,7 @@ class _DetailsPageState extends State<DetailsPage> {
       fontSize: 16.0,
     );
   }
+
   void mostrarMensajeActualizado(String mensaje, bool esRojo ) {
     Color backgroundColor = esRojo ? Colors.red : Colors.green;
 
@@ -945,12 +967,9 @@ class _DetailsPageState extends State<DetailsPage> {
     );
   }
 
-
   void refresh(){
     setState(() {
     });
   }
-
-
 
 }

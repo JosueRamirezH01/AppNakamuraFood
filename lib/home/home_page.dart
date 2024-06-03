@@ -157,6 +157,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           _subOptType = SubOptTypes.local;
           listaPedido = await dbPedido.obtenerListasPedidos(_subOptType, idEstablecimiento,context);
           AllListadoMesas = await dbMesas.consultarTodasMesas(ListadoPisos, context);
+          AllListadoMesas.forEach((element) {
+            print('-- all mesas ${element.nombreMesa} ${element.pisoId}');
+          });
           setState(() {
             isLoading = false;
           });
@@ -435,13 +438,25 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                               return StreamBuilder<List<Mesa>>(
                                 stream: consultarMesasStream(pisoSelect, context),
                                 builder: (context, snapshot) {
+                                  double screenWidth = MediaQuery.of(context).size.width;
+
+                                  int crossAxisCount = 2;
+                                  if (screenWidth > 1200) {
+                                    crossAxisCount = 5;
+                                  } else if (screenWidth > 800) {
+                                    crossAxisCount = 4;
+                                  } else if (screenWidth > 600) {
+                                    crossAxisCount = 3;
+                                  } else {
+                                    crossAxisCount = 2;
+                                  }
                                   if (snapshot.hasData) {
                                     List<Mesa>? mesas = snapshot.data;
                                     return GridView.builder(
                                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                        crossAxisCount: 2,
-                                        childAspectRatio: 0.7,
+                                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                        crossAxisCount: crossAxisCount,
+                                        childAspectRatio: crossAxisCount == 2 || crossAxisCount == 3 ? 0.7 : 1,
                                       ),
                                       itemCount: mesas?.length,
                                       itemBuilder: (_, index) {
@@ -740,11 +755,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                           ),
                           onTap: () async {
                             List<Detalle_Pedido> listadoDetalle = await dbDetallePedido.obtenerDetallePedidoLastCreate(listPedido.idPedido, context);
-
-                            listadoDetalle.forEach((element) {
-                              print('Los home ${element.comentario} tipo : ${element.comentario.runtimeType}');
-                            });
-
                             pedido(listPedido, listadoDetalle);
                           },
                         ),
@@ -888,7 +898,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                                       Container(
                                                         alignment: Alignment.center,
                                                         child: const Text(
-                                                          'T',
+                                                          'T.',
                                                           style: TextStyle(
                                                               color: Color(0xFF111111),
                                                               decoration: TextDecoration.none,
@@ -896,12 +906,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                                               fontWeight: FontWeight.w500),
                                                         ),
                                                       ),
-                                                      SizedBox(width: 25,),
+                                                      SizedBox(width: 20,),
                                                     ],
                                                   ),
                                                 ),
                                               ),
-                                              //cp
                                               //obtenerDetallePedidoLastCreate
                                               _producList(listadoDetalle)
                                             ],
@@ -922,7 +931,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                               border: Border.all(width: 2),
                               borderRadius: const BorderRadius.all(Radius.circular(20))
                           ),
-
                           child:  Padding(
                             padding: const EdgeInsets.only(
                                 top: 10,
@@ -942,33 +950,53 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                       child: IconButton(
                                         onPressed: () async {
                                           String? printerIP = await _pref.read('ipCocina');
+                                          if(printerIP != null){
+                                            List<Producto> listProduct= [];
+                                            for (int i = 0; i < listadoDetalle.length; i++) {
+                                              Detalle_Pedido detalle = listadoDetalle[i];
+                                              Producto originalProducto = ListadoProductos.firstWhere((producto) => producto.id == detalle.id_producto);
 
-                                          List<Producto> listProduct= [];
-                                          for (int i = 0; i < listadoDetalle.length; i++) {
-                                            Detalle_Pedido detalle = listadoDetalle[i];
-                                            Producto originalProducto = ListadoProductos.firstWhere((producto) => producto.id == detalle.id_producto);
-
-                                            Producto producto = Producto(
-                                                id: originalProducto.id,
-                                                nombreproducto: originalProducto.nombreproducto,
-                                                foto: originalProducto.foto,
-                                                codigo_interno: originalProducto.codigo_interno,
-                                                categoria_id: originalProducto.categoria_id,
-                                                stock: detalle.cantidad_producto,
-                                                precioproducto: detalle.precio_unitario
-                                              // Copiar otras propiedades necesarias
+                                              Producto producto = Producto(
+                                                  id: originalProducto.id,
+                                                  nombreproducto: originalProducto.nombreproducto,
+                                                  foto: originalProducto.foto,
+                                                  codigo_interno: originalProducto.codigo_interno,
+                                                  categoria_id: originalProducto.categoria_id,
+                                                  stock: detalle.cantidad_producto,
+                                                  precioproducto: detalle.precio_unitario
+                                                // Copiar otras propiedades necesarias
+                                              );
+                                              // Producto producto = ListadoProductos.firstWhere((producto) => producto.id == detalle.id_producto);
+                                              // producto.stock = detalle.cantidad_producto;
+                                              // producto.precioproducto = detalle.precio_unitario;
+                                              print(producto.toJson());
+                                              listProduct.add(producto);
+                                            }
+                                            listProduct.forEach((element) {
+                                              print(' - ${element.toJson()}');
+                                            });
+                                            impresora.printLabel(printerIP!,listProduct,3, listPedido.montoTotal!, AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa).nombreMesa , mozo!, ListadoPisos.firstWhere((element) => element.id == AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa).pisoId),'');
+                                            print('Imprimir');
+                                          }else{
+                                            showDialog(
+                                              context: context,
+                                              builder: (BuildContext context) {
+                                                return AlertDialog(
+                                                  title: const Text('Error'),
+                                                  content: const Text('No se ha encontrado ninguna impresora.'),
+                                                  actions: <Widget>[
+                                                    TextButton(
+                                                      child: const Text('OK'),
+                                                      onPressed: () {
+                                                        Navigator.of(context).pop();
+                                                        Navigator.pushNamed(context, 'home/ajustes');
+                                                      },
+                                                    ),
+                                                  ],
+                                                );
+                                              },
                                             );
-                                            // Producto producto = ListadoProductos.firstWhere((producto) => producto.id == detalle.id_producto);
-                                            // producto.stock = detalle.cantidad_producto;
-                                            // producto.precioproducto = detalle.precio_unitario;
-                                            print(producto.toJson());
-                                            listProduct.add(producto);
                                           }
-                                          listProduct.forEach((element) {
-                                            print(' - ${element.toJson()}');
-                                          });
-                                          impresora.printLabel(printerIP!,listProduct,3, listPedido.montoTotal!, AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa).nombreMesa , mozo!, ListadoPisos.firstWhere((element) => element.id == AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa).pisoId),'');
-                                          print('Imprimir');
                                         },
                                         icon: const Icon(Icons.print),
                                         tooltip: 'Imprimir',
@@ -987,18 +1015,39 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                           List<Producto> listProduct= [];
                                           List<Pedido> listCompar = listaPedido ;
                                           String? printerIP = await _pref.read('ipCocina');
-                                          for (int i = 0; i < listadoDetalle.length; i++) {
-                                            Detalle_Pedido detalle = listadoDetalle[i];
-                                            Producto producto = ListadoProductos.firstWhere((producto) => producto.id == detalle.id_producto);
-                                            producto.stock = detalle.cantidad_producto;
-                                            listProduct.add(producto);
-                                          }
-                                          mostrarDialogoAnulacion( printerIP!, listProduct  ,listPedido ,context).then((value) async {
-                                            listaPedido = await dbPedido.obtenerListasPedidos(_subOptType, idEstablecimiento,context);
-                                            consultarMesas(pisoSelect, context);
+                                          if(printerIP != null){
+                                            for (int i = 0; i < listadoDetalle.length; i++) {
+                                              Detalle_Pedido detalle = listadoDetalle[i];
+                                              Producto producto = ListadoProductos.firstWhere((producto) => producto.id == detalle.id_producto);
+                                              producto.stock = detalle.cantidad_producto;
+                                              listProduct.add(producto);
+                                            }
+                                            mostrarDialogoAnulacion( printerIP, listProduct  ,listPedido ,context).then((value) async {
+                                              listaPedido = await dbPedido.obtenerListasPedidos(_subOptType, idEstablecimiento,context);
+                                              consultarMesas(pisoSelect, context);
+                                              refresh();
+                                            });
                                             refresh();
-                                          });
-                                          refresh();
+                                          }else{
+                                            showDialog(
+                                              context: context,
+                                              builder: (BuildContext context) {
+                                                return AlertDialog(
+                                                  title: const Text('Error'),
+                                                  content: const Text('No se ha encontrado ninguna impresora.'),
+                                                  actions: <Widget>[
+                                                    TextButton(
+                                                      child: const Text('OK'),
+                                                      onPressed: () {
+                                                        Navigator.of(context).pop();
+                                                        Navigator.pushNamed(context, 'home/ajustes');
+                                                      },
+                                                    ),
+                                                  ],
+                                                );
+                                              },
+                                            );
+                                          }
                                         },
                                         icon: const Icon(Icons.cancel_outlined),
                                         tooltip: 'Anular',
@@ -1199,7 +1248,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     width: MediaQuery.of(context).size.width,
                     padding: const EdgeInsets.only(left: 10, right: 10),
                     child:  Padding(
-                      padding: int.parse('${mesa.estadoMesa}') > 1 ? const EdgeInsets.all(15.0) : const EdgeInsets.only(right: 28, left: 28, top: 30),
+                      padding: int.parse('${mesa.estadoMesa}') > 1 ? const EdgeInsets.all(15.0) : const EdgeInsets.only(right: 30, left: 30, top: 72 ),
                       child: FadeInImage(
                         image: int.parse('${mesa.estadoMesa}') > 1 ? const AssetImage('assets/img/pre-cuenta.png')  : const AssetImage('assets/img/Vector.png'),
                         fit: BoxFit.contain,
@@ -1402,6 +1451,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       _tabController = TabController( length: 2, vsync: this);
     });
   }
+
   void refresh(){
     setState(() {
 
@@ -1451,10 +1501,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       ],
     ),
   );
-
-
 }
-
 
 class NonScrollablePageView extends StatelessWidget {
   final PageController controller;
