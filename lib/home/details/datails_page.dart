@@ -96,16 +96,17 @@ class _DetailsPageState extends State<DetailsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            icono(),
-            if(selectObjmesa.estadoMesa != 1 && selectObjmesa.estadoMesa != 2)
-              cabecera(),
-            contenido(),
-            debajo()
-          ],
-        ),
+      body: Column(
+        children: [
+          icono(),
+          if(selectObjmesa.estadoMesa != 1 && selectObjmesa.estadoMesa != 2)
+            cabecera(),
+           contenido(),
+          // Envuelve debajo() en un Expanded
+          Expanded(
+            child: debajo(),
+          ),
+        ],
       ),
     );
   }
@@ -139,17 +140,11 @@ class _DetailsPageState extends State<DetailsPage> {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        Container(
-                          decoration: BoxDecoration(
-                            border: Border(bottom: BorderSide(width: 3)),
-                            borderRadius: BorderRadius.all(Radius.circular(10))
-                          ),
-                          child: Column(
-                            children: [
-                              _addOrRemoveItem(index),
-                              _precioProducto(index)
-                            ],
-                          ),
+                        Column(
+                          children: [
+                            _addOrRemoveItem(index),
+                            _precioProducto(index)
+                          ],
                         ),
                         const SizedBox(width: 5),
                         _iconDelete(index),

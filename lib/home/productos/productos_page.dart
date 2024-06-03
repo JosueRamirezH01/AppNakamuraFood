@@ -65,9 +65,9 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
                       style: const ButtonStyle(backgroundColor: MaterialStatePropertyAll(Colors.deepOrange)),
                       //tp2
                       onPressed: (){
-                        // Navigator.pushNamed(context, 'home');
-                        Navigator.pushNamedAndRemoveUntil(context, 'home', (route) => false, arguments: 1);
-                      },
+                        //Navigator.pushNamed(context, 'home');
+                       Navigator.pushNamedAndRemoveUntil(context, 'home', (route) => false);
+                       },
                       icon: const Icon(Icons.arrow_back_ios_outlined, color: Colors.white,),
                       label: const Text("SALIR", style: TextStyle(fontSize: 18, color: Colors.white),)
                   ),

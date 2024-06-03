@@ -1,12 +1,11 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:password_hash_plus/password_hash_plus.dart';
-import 'package:restauflutter/bd/conexion.dart';
 import 'package:restauflutter/login/login_controller.dart';
 import 'package:restauflutter/services/login_service.dart';
-import 'package:restauflutter/services/producto_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../utils/shared_pref.dart';
 
 
 class LoginPage extends StatefulWidget {
@@ -18,20 +17,43 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
   final FocusNode _emailFocus = FocusNode();
   final FocusNode _passwordFocus = FocusNode();
   final LoginController _con = LoginController();
   var dbSQL = LoginService();
   String email = '';
   String password = '';
-
+  bool _rememberMe = false;
+  SharedPref _pref = SharedPref();
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+    readCredentials();
     SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
       _con.init(context, refresh);
     });
+  }
+  void readCredentials() {
+    _pref.read('email').then((value) {
+      setState(() {
+        _emailController.text = value as String? ?? '';
+        email = _emailController.text;
+      });
+    });
+
+    _pref.read('password').then((value) {
+      setState(() {
+        _passwordController.text = value as String? ?? '';
+        password = _passwordController.text;
+      });
+    });
+  }
+
+  void _saveCredentials() async {
+      _pref.save('email', _emailController.text);
+      _pref.save('password', _passwordController.text);
   }
 
   @override
@@ -43,21 +65,23 @@ class _LoginPageState extends State<LoginPage> {
           _emailFocus.unfocus();
           _passwordFocus.unfocus();
         },
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              const Padding(
-                padding: EdgeInsets.only(left: 30, top: 80),
-                child: Image(image: AssetImage('assets/img/Background.png')),
-              ),
-              const SizedBox(height: 30),
-              _centro(),
-              const SizedBox(height: 60),
-              const Text('970 333 599/946 285 690',
-                  style: TextStyle(color: Colors.white, fontSize: 16)),
-              const Text('Calle las camelias 657 San Isidro, Lima',
-                  style: TextStyle(color: Colors.white, fontSize: 16)),
-            ],
+        child: Center(
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                const Padding(
+                  padding: EdgeInsets.only(left: 30, top: 80),
+                  child: Image(image: AssetImage('assets/img/Background.png')),
+                ),
+                const SizedBox(height: 30),
+                _centro(),
+                const SizedBox(height: 60),
+                const Text('970 333 599/946 285 690',
+                    style: TextStyle(color: Colors.white, fontSize: 16)),
+                const Text('Calle las camelias 657 San Isidro, Lima',
+                    style: TextStyle(color: Colors.white, fontSize: 16)),
+              ],
+            ),
           ),
         ),
       ),
@@ -89,7 +113,7 @@ class _LoginPageState extends State<LoginPage> {
                         border: UnderlineInputBorder(borderSide: BorderSide(width: 20))
                       ),
                       onChanged: (value) {
-                        email = value; // Actualiza el valor de email cada vez que cambia el texto
+                        email= value;
                       },
                       onSaved: (String? value) {
                       },
@@ -101,6 +125,7 @@ class _LoginPageState extends State<LoginPage> {
                   Container(
                       margin: const EdgeInsets.only(left: 20, right: 20, top: 10),
                       child: TextFormField(
+                        controller: _passwordController,
                         focusNode: _passwordFocus,
                         obscureText: true,
                         decoration: const InputDecoration(
@@ -113,7 +138,7 @@ class _LoginPageState extends State<LoginPage> {
                           password = value!;
                         },
                         onSaved: (String? value) {
-
+                          password = _passwordController.text;
                         },
                         validator: (String? value) {
                           return (value != null && value.contains('@')) ? 'Do not use the @ char.' : null;
@@ -125,7 +150,11 @@ class _LoginPageState extends State<LoginPage> {
                     child: ElevatedButton(onPressed: () async {
                       print(email);
                       print(password);
-                      await dbSQL.consultarUsuarios(email,password,context);
+                      bool saveCredentials = await dbSQL.consultarUsuarios(email,password,context);
+                      print('CREDENCIALES ${saveCredentials}');
+                      if(saveCredentials == true){
+                        _saveCredentials();
+                      }
                     }, style: const ButtonStyle(
                       backgroundColor: MaterialStatePropertyAll(Colors.deepOrange),
                     ), child: const Text('Iniciar Session', style: TextStyle(color: Colors.white, fontSize: 20),),),

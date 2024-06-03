@@ -138,7 +138,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   late PageController _pageControllerPisosPage;
 
   var impresora = Impresora();
-  late int initialTabIndex = 0;
+  late int initialTabIndex;
 
 
 
@@ -174,6 +174,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     // Obtener el índice inicial del argumento
     initialTabIndex = ModalRoute.of(context)!.settings.arguments as int? ?? 0;
     _tabController.index = initialTabIndex;
+
     // Resto de tu lógica de inicialización...
   }
   @override
@@ -198,6 +199,12 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             newValue;
       });
     }
+  }
+  void updateTabIndex(int newIndex) {
+    setState(() {
+      initialTabIndex = newIndex;
+      _tabController.animateTo(initialTabIndex);
+    });
   }
 
   Future<void> consultarPisos(int idEstablecimiento, BuildContext context) async {
@@ -286,8 +293,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                               });
                             },);
                             setState(() {
-                              initialTabIndex = 0;
-                              _tabController.animateTo(initialTabIndex);
+                              _tabController.index = 0;
+                              updateTabIndex(0);
                               pisoMesas = 0;
                             });
                             print('PISOSMESAS $pisoMesas}');
@@ -744,7 +751,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                             listadoDetalle.forEach((element) {
                               print('Los home ${element.comentario} tipo : ${element.comentario.runtimeType}');
                             });
-
+                            setState(() {
+                              initialTabIndex == 0;
+                            });
                             pedido(listPedido, listadoDetalle);
                           },
                         ),

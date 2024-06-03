@@ -19,7 +19,7 @@ class LoginService {
   var prod = ProductoServicio();
   var pisos = PisoServicio();
   Mozo mozo = Mozo();
-  Future<void> consultarUsuarios(String email, String password,
+  Future<bool> consultarUsuarios(String email, String password,
       BuildContext context) async {
     MySqlConnection? conn;
     try {
@@ -40,6 +40,7 @@ class LoginService {
         );
         print(
             'No se encontraron usuarios con el correo electrónico proporcionado.');
+        return false;
       } else {
         const query2 = 'SELECT id_entorno FROM `empresas` WHERE 1';
         final results2 = await conn.query(query2);
@@ -64,6 +65,7 @@ class LoginService {
               fontSize: 16.0,
             );
             print('No tiene privilegio para iniciar sesión.');
+            return false;
           } else {
             Fluttertoast.showToast(
               msg: "Inicio de sesión exitoso.",
@@ -113,6 +115,7 @@ class LoginService {
             print('DATA OBTENIDO ${mozo.nombre_usuario}');
             Navigator.pushNamedAndRemoveUntil(
                 context, 'home', (route) => false);
+            return true;
           }
         } else {
           Fluttertoast.showToast(
@@ -125,10 +128,12 @@ class LoginService {
             fontSize: 16.0,
           );
           print('Contraseña incorrecta.');
+          return false;
         }
       }
     } catch (e) {
       print('Error al realizar la consulta: $e');
+      return false;
     } finally {
       if (conn != null) {
         await conn.close();
