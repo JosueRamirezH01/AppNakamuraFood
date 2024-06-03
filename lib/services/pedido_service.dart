@@ -12,7 +12,6 @@ import '../model/pedido.dart';
 
 class PedidoServicio {
   final Connection _connectionSQL = Connection();
-  final SharedPref _sharedPref = SharedPref();
 
   Future<int?> consultarMesasDisponibilidad( int? idUsuario, int? idMesa ,BuildContext context) async {
     MySqlConnection? conn;

@@ -160,17 +160,11 @@ class _DetailsPageState extends State<DetailsPage> {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        Container(
-                          decoration: BoxDecoration(
-                            border: Border(bottom: BorderSide(width: 3)),
-                            borderRadius: BorderRadius.all(Radius.circular(10))
-                          ),
-                          child: Column(
-                            children: [
-                              _addOrRemoveItem(index),
-                              _precioProducto(index)
-                            ],
-                          ),
+                        Column(
+                          children: [
+                            _addOrRemoveItem(index),
+                            _precioProducto(index)
+                          ],
                         ),
                         const SizedBox(width: 5),
                         _iconDelete(index),
@@ -264,7 +258,6 @@ class _DetailsPageState extends State<DetailsPage> {
                         mesasDisponibles = await bdMesas.consultarTodasMesas(listaPisos, context);
                         List<Mesa> mesasDisponiblesFiltradas = mesasDisponibles.where((mesa) => mesa.estadoMesa == 1).toList();
                         Navigator.pop(context);
-
                         mostrarMesa(mesasDisponiblesFiltradas);
                       },
                       child: const Text(

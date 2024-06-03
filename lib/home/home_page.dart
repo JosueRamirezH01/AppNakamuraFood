@@ -138,7 +138,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   late PageController _pageControllerPisosPage;
 
   var impresora = Impresora();
-  late int initialTabIndex = 0;
+  late int initialTabIndex;
+  // late int initialTabIndex = 0;
 
 
 
@@ -157,9 +158,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           _subOptType = SubOptTypes.local;
           listaPedido = await dbPedido.obtenerListasPedidos(_subOptType, idEstablecimiento,context);
           AllListadoMesas = await dbMesas.consultarTodasMesas(ListadoPisos, context);
-          AllListadoMesas.forEach((element) {
-            print('-- all mesas ${element.nombreMesa} ${element.pisoId}');
-          });
           setState(() {
             isLoading = false;
           });
@@ -177,6 +175,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     // Obtener el índice inicial del argumento
     initialTabIndex = ModalRoute.of(context)!.settings.arguments as int? ?? 0;
     _tabController.index = initialTabIndex;
+
     // Resto de tu lógica de inicialización...
   }
   @override
@@ -755,6 +754,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                           ),
                           onTap: () async {
                             List<Detalle_Pedido> listadoDetalle = await dbDetallePedido.obtenerDetallePedidoLastCreate(listPedido.idPedido, context);
+                            setState(() {
+                              initialTabIndex == 0;
+                            });
                             pedido(listPedido, listadoDetalle);
                           },
                         ),
@@ -1451,7 +1453,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       _tabController = TabController( length: 2, vsync: this);
     });
   }
-
   void refresh(){
     setState(() {
 
