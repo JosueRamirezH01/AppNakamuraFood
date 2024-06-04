@@ -55,7 +55,7 @@ enum SubOptTypes {
   delivery,
 }
 
-class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
+class _HomePageState extends State<HomePage> with TickerProviderStateMixin                                                                        {
 
   late TabController _tabController;
   int _selectedIndex = 0;

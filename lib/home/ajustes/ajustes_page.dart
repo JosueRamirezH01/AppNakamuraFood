@@ -91,6 +91,7 @@ class _AjustesPageState extends State<AjustesPage> {
             children: [
               Expanded(
                 child: Container(
+                  width: MediaQuery.of(context).size.width * 0.6,
                   child: Scrollbar(
                     thumbVisibility: true,
                     child: SingleChildScrollView(

@@ -203,7 +203,7 @@ class DetallePedidoServicio {
         print('P-Comentario ${detalle.comentario} Tipo :${detalle.comentario.runtimeType }');
         bool found = false;
         for (var product in productos) {
-          if (product.id == detalle.id_producto) {
+            if (product.id == detalle.id_producto && product.precioproducto == detalle.precio_unitario && product.stock == detalle.cantidad_producto) {
             found = true;
             break;
           }
@@ -219,8 +219,8 @@ class DetallePedidoServicio {
 
       for (final producto in productos) {
         var existingDetail = await conn.query(
-            'SELECT id_pedido_detalle, cantidad_producto, comentario FROM pedido_detalles WHERE id_pedido = ? AND id_producto = ?',
-            [pedidoid, producto.id]);
+            'SELECT id_pedido_detalle, cantidad_producto, comentario FROM pedido_detalles WHERE id_pedido = ? AND id_producto = ? AND precio_unitario = ?',
+            [pedidoid, producto.id, producto.precioproducto]);
 
         print('LISTA $existingDetail');
 
@@ -230,32 +230,12 @@ class DetallePedidoServicio {
         producto.comentario = (producto.comentario == 'null' || producto.comentario?.length == 0) ? null : producto.comentario;
 
         print('Comentario inicio ${producto.comentario} ${producto.comentario.runtimeType}');
-        // if (producto.comentario?.length == ''){
-        //   producto.comentario = null;
-        // }
+
         print('Comentario medio ${producto.comentario} ${producto.comentario.runtimeType}');
         // si existingDetail
         if (existingDetail.isEmpty) {
 
-          //---------------------------
-          // List<String> partesComentario = [];
-          // if (producto.comentario != null && producto.comentario!.isNotEmpty) {
-          //   partesComentario = producto.comentario!.split(';');
-          // }
-          //
-          // print('Los Dactualizar--> ${producto.comentario} tipo : ${producto.comentario.runtimeType}');
-
           String? comentarioHTML = limpiarPuntoComa(listaNota,producto);
-          // if (partesComentario.isNotEmpty) {
-          //   comentarioHTML = partesComentario.map((parte) {
-          //     return '<span class="badge badge-pill badge-danger" id="texto-comentario-${listaNota.firstWhere((element) => element.descripcion_nota == parte.trim()).id_nota}">${parte.trim()}</span>';
-          //   }).join('');
-          // }
-          //
-          // if (comentarioHTML.isEmpty) {
-          //   comentarioHTML = null;
-          // }
-          //---------------------------
 
           Detalle_Pedido nuevoDetalle = Detalle_Pedido(
             id_pedido: pedidoid,
