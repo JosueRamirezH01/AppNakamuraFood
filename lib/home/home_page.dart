@@ -1185,12 +1185,67 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
     }else if (mesa.estadoMesa == 3){
       estadoMesaDis = 'Ocupado';
     }
-
     return GestureDetector(
       onTap: () async {
         if (mesa.estadoMesa == 1) {
           Navigator.pushNamed(context, 'home/productos', arguments: mesa);
-        } else {
+        // } if(mesa.estadoMesa == 2){
+        //   String? printerIP = await _pref.read('ipCocina');
+        //   if(printerIP != null){
+        //     int? idPedido = await dbPedido.consultarMesasDisponibilidad(mozo!.id, mesa.id,context);
+        //     List<Detalle_Pedido> detallePedido =  await dbPedido.consultaObtenerDetallePedido(idPedido, context);
+        //     double total = 0;
+        //     detallePedido.forEach((element) {
+        //       total += element.precio_producto!;
+        //     });
+        //     List<Producto> listProduct= [];
+        //     for (int i = 0; i < detallePedido.length; i++) {
+        //       Detalle_Pedido detalle = detallePedido[i];
+        //       Producto originalProducto = ListadoProductos.firstWhere((producto) => producto.id == detalle.id_producto);
+        //
+        //       Producto producto = Producto(
+        //           id: originalProducto.id,
+        //           nombreproducto: originalProducto.nombreproducto,
+        //           foto: originalProducto.foto,
+        //           codigo_interno: originalProducto.codigo_interno,
+        //           categoria_id: originalProducto.categoria_id,
+        //           stock: detalle.cantidad_producto,
+        //           precioproducto: detalle.precio_unitario
+        //         // Copiar otras propiedades necesarias
+        //       );
+        //       // Producto producto = ListadoProductos.firstWhere((producto) => producto.id == detalle.id_producto);
+        //       // producto.stock = detalle.cantidad_producto;
+        //       // producto.precioproducto = detalle.precio_unitario;
+        //       print(producto.toJson());
+        //       listProduct.add(producto);
+        //     }
+        //     listProduct.forEach((element) {
+        //       print(' - ${element.toJson()}');
+        //     });
+        //     impresora.printLabel(printerIP,listProduct,3, total, mesa.nombreMesa, mozo!, ListadoPisos.firstWhere((element) => element.id == mesa.pisoId),'');
+        //     print('Imprimir');
+        //   }else{
+        //     showDialog(
+        //       context: context,
+        //       builder: (BuildContext context) {
+        //         return AlertDialog(
+        //           title: const Text('Error'),
+        //           content: const Text('No se ha encontrado ninguna impresora.'),
+        //           actions: <Widget>[
+        //             TextButton(
+        //               child: const Text('OK'),
+        //               onPressed: () {
+        //                 Navigator.of(context).pop();
+        //                 Navigator.pushNamed(context, 'home/ajustes');
+        //               },
+        //             ),
+        //           ],
+        //         );
+        //       },
+        //     );
+        //   }
+        }
+          else {
           int? idPedido = await dbPedido.consultarMesasDisponibilidad(mozo!.id, mesa.id,context);
           if(idPedido != null){
             List<Detalle_Pedido> detallePedido =  await dbPedido.consultaObtenerDetallePedido(idPedido, context);
