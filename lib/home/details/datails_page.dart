@@ -162,14 +162,17 @@ class _DetailsPageState extends State<DetailsPage> {
                         ),
                         Column(
                           children: [
+                            if(selectObjmesa.estadoMesa != 2 || widget.mesa!.estadoMesa != 2)
                             _addOrRemoveItem(index),
                             _precioProducto(index)
                           ],
                         ),
+                          const SizedBox(width: 5),
+                        if(selectObjmesa.estadoMesa != 2 || widget.mesa!.estadoMesa != 2)
+                          _iconDelete(index),
                         const SizedBox(width: 5),
-                        _iconDelete(index),
-                        const SizedBox(width: 5),
-                        _iconNota(index),
+                        if(selectObjmesa.estadoMesa != 2 || widget.mesa!.estadoMesa != 2)
+                          _iconNota(index),
                       ],
                     ),
                   ),

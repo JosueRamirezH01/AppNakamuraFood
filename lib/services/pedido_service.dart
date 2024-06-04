@@ -18,7 +18,7 @@ class PedidoServicio {
     try {
       conn = await _connectionSQL.getConnection();
 
-      const query = 'SELECT id_pedido FROM `pedidos` WHERE id_usuario = ? AND id_mesa = ? AND estado_pedido != 0 ORDER by id_pedido DESC LIMIT 1';
+      const query = 'SELECT id_pedido FROM `pedidos` WHERE id_usuario = ? AND id_mesa = ? AND estado_pedido != 0 AND estado_pedido != 2  ORDER by id_pedido DESC LIMIT 1';
       final results = await conn.query(query, [idUsuario, idMesa]);
       if (results.isEmpty) {
         print('No se encontraron datos en las tablas.');
