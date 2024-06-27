@@ -235,7 +235,7 @@ class DetallePedidoServicio {
         // si existingDetail
         if (existingDetail.isEmpty) {
 
-          String? comentarioHTML = limpiarPuntoComa(listaNota,producto);
+          String? comentarioHTML = limpiarPuntoComa(listaNota,producto,'');
 
           Detalle_Pedido nuevoDetalle = Detalle_Pedido(
             id_pedido: pedidoid,
