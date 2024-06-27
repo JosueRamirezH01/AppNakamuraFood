@@ -1,6 +1,5 @@
 
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:mysql1/mysql1.dart';
@@ -87,7 +86,6 @@ class ProductoServicio {
     }
   }
 
-
   Future<bool> consultarCategoriaIpBar(BuildContext context, int? id_establecimiento) async {
     MySqlConnection? conn;
     try {
@@ -114,6 +112,7 @@ class ProductoServicio {
       }
     }
   }
+
   void agregarMsj(String mensaje){
     Fluttertoast.showToast(
         msg: mensaje,
@@ -126,4 +125,88 @@ class ProductoServicio {
     );
   }
 
+  Future<List<Producto>> consultarStockProductos( int? establecimiento, List<Producto> productosConsultar ) async {
+    MySqlConnection? conn;
+    conn = await _connectionSQL.getConnection();
+
+    List<Producto> productos = [];
+
+    for (final producto in productosConsultar) {
+      var results = await conn.query(
+          'SELECT * FROM productos as p WHERE p.establecimiento_id = ? AND p.codigo_interno = ?',
+          [establecimiento, producto.codigo_interno]
+      );
+
+      for (var row in results) {
+        Producto prod = Producto(
+            idPedido: row['idPedido'],
+            id: row['id'],
+            nombreproducto: row['nombreproducto'],
+            foto: row['foto'],
+            precioproducto: row['precioproducto'],
+            stock: row['stock'],
+            codigo_interno: row['codigo_interno'],
+            categoria_id: row['categoria_id'],
+            estado: row['estado']
+        );
+        productos.add(prod);
+      }
+    }
+
+    return productos;
+  }
+
+  Future<Producto> consultarStockProducto( int? establecimiento, Producto productoConsultar ) async {
+    MySqlConnection? conn;
+    conn = await _connectionSQL.getConnection();
+
+    Producto prod =  new Producto();
+
+      var results = await conn.query(
+          'SELECT * FROM productos as p WHERE p.establecimiento_id = ? AND p.codigo_interno = ?',
+          [establecimiento, productoConsultar.codigo_interno]
+      );
+
+      for (var row in results) {
+        prod = Producto(
+            idPedido: row['idPedido'],
+            id: row['id'],
+            nombreproducto: row['nombreproducto'],
+            foto: row['foto'],
+            precioproducto: row['precioproducto'],
+            stock: row['stock'],
+            codigo_interno: row['codigo_interno'],
+            categoria_id: row['categoria_id'],
+            estado: row['estado']
+        );
+      }
+    return prod;
+  }
+
+  Future<bool> cambiarStockProducto(BuildContext context, int? establecimiento, Producto producto ) async {
+    MySqlConnection? conn;
+    try {
+      // Conexión a la base de datos
+      conn = await _connectionSQL.getConnection();
+
+      // Consulta para actualizar el stock
+      var results = await conn.query(
+          'UPDATE productos SET stock = stock - ? WHERE codigo_interno = ? AND establecimiento_id = ?',
+          [producto.stock, producto.codigo_interno, establecimiento]
+      );
+
+      // Comprobar si la actualización afectó alguna fila
+      if (results.affectedRows! > 0) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      print('Error al actualizar el stock: $e');
+      return false;
+    } finally {
+      // Cerrar la conexión
+      await conn?.close();
+    }
+  }
 }

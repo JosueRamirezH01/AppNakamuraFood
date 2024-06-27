@@ -787,95 +787,88 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
             return true;
           },
           child: SingleChildScrollView(
-            child: Container(
-              decoration: const BoxDecoration(
-                color: Color.fromRGBO(217, 217, 217, 0.8),
-              ),
-              child: SizedBox(
-                height: MediaQuery.of(context).size.height * 0.62,
-                child: Container(
-                  decoration: const BoxDecoration(
-                    borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(30),
-                        topRight: Radius.circular(30)
+            child: Center(
+              child: Container(
+                decoration: const BoxDecoration(
+                  // color: Color.fromRGBO(217, 217, 217, 0.8),
+                  color:  Colors.transparent
+                ),
+                // width: MediaQuery.of(context).size.width * 0.8,
+                child: SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.62,
+                  // width: MediaQuery.of(context).size.width * 0.8,
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      color: Color.fromRGBO(217, 217, 217, 0.8),
+                      borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(30),
+                          topRight: Radius.circular(30)
+                      ),
                     ),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      children: [
-                        Expanded(
-                            child: Container(
-                              alignment: Alignment.topLeft,
-                              decoration: BoxDecoration(
-                                  color: const Color(0xFFf1f1f1),
-                                  border: Border.all(width: 2),
-                                  borderRadius: const BorderRadius.all(Radius.circular(20))
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.only(bottom: 15),
-                                child: Column(
-                                  children: [
-                                    Container(
-                                      alignment: Alignment.center,
-                                      child:  Padding(
-                                        padding: const EdgeInsets.only(
-                                            top: 10,
-                                            bottom: 10
-                                        ),
-                                        child: Text(
-                                          //'n° pedido: ${listPedido.correlativoPedido}',
-                                          'n° pedido: ${listPedido.correlativoPedido}',
-                                          style: const TextStyle(
-                                              color: Color(0xFF111111),
-                                              decoration: TextDecoration.none,
-                                              fontSize : 30,
-                                              fontWeight: FontWeight.w600
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        children: [
+                          Expanded(
+                              child: Container(
+                                alignment: Alignment.topLeft,
+                                decoration: BoxDecoration(
+                                    color: const Color(0xFFf1f1f1),
+                                    border: Border.all(width: 2),
+                                    borderRadius: const BorderRadius.all(Radius.circular(20))
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.only(bottom: 15),
+                                  child: Column(
+                                    children: [
+                                      Container(
+                                        alignment: Alignment.center,
+                                        child:  Padding(
+                                          padding: const EdgeInsets.only(
+                                              top: 10,
+                                              bottom: 10
+                                          ),
+                                          child: Text(
+                                            //'n° pedido: ${listPedido.correlativoPedido}',
+                                            'n° pedido: ${listPedido.correlativoPedido}',
+                                            style: const TextStyle(
+                                                color: Color(0xFF111111),
+                                                decoration: TextDecoration.none,
+                                                fontSize : 30,
+                                                fontWeight: FontWeight.w600
+                                            ),
                                           ),
                                         ),
                                       ),
-                                    ),
-                                    Expanded(
-                                      child: Padding(
-                                        padding: const EdgeInsets.only(
-                                            top: 10,
-                                            left: 20,
-                                            bottom: 10,
-                                            right: 20
-                                        ),
-                                        child: Container(
-                                          decoration: BoxDecoration(
-                                              color: const Color(0xFFD9D9D9),
-                                              border: Border.all(width: 2),
-                                              borderRadius: const BorderRadius.all(Radius.circular(20))
+                                      Expanded(
+                                        child: Padding(
+                                          padding: const EdgeInsets.only(
+                                              top: 10,
+                                              left: 20,
+                                              bottom: 10,
+                                              right: 20
                                           ),
-                                          child: Column(
-                                            children: [
-                                              Container(
-                                                margin: const EdgeInsets.all(5),
-                                                decoration: const BoxDecoration(border: Border(bottom: BorderSide(width: 2))),
-                                                child:  Padding(
-                                                  padding: const EdgeInsets.all(5),
-                                                  child: Row(
-                                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                    children: [
-                                                      SizedBox(width: 10,),
-                                                      Container(
-                                                        alignment: Alignment.center,
-                                                        child: const Text(
-                                                          'C.',
-                                                          style: TextStyle(
-                                                              color: Color(0xFF111111),
-                                                              decoration: TextDecoration.none,
-                                                              fontSize: 16,
-                                                              fontWeight: FontWeight.w500),
-                                                        ),
-                                                      ),
-                                                      Expanded(
-                                                        child: Container(
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                                color: const Color(0xFFD9D9D9),
+                                                border: Border.all(width: 2),
+                                                borderRadius: const BorderRadius.all(Radius.circular(20))
+                                            ),
+                                            child: Column(
+                                              children: [
+                                                Container(
+                                                  margin: const EdgeInsets.all(5),
+                                                  decoration: const BoxDecoration(border: Border(bottom: BorderSide(width: 2))),
+                                                  child:  Padding(
+                                                    padding: const EdgeInsets.all(5),
+                                                    child: Row(
+                                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                      children: [
+                                                        SizedBox(width: 10,),
+                                                        Container(
                                                           alignment: Alignment.center,
                                                           child: const Text(
-                                                            'Producto',
+                                                            'C.',
                                                             style: TextStyle(
                                                                 color: Color(0xFF111111),
                                                                 decoration: TextDecoration.none,
@@ -883,195 +876,208 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
                                                                 fontWeight: FontWeight.w500),
                                                           ),
                                                         ),
-                                                      ),
-                                                      SizedBox(width: 5,),
-                                                      Container(
-                                                        alignment: Alignment.center,
-                                                        child: const Text(
-                                                          'P. U',
-                                                          style: TextStyle(
-                                                              color: Color(0xFF111111),
-                                                              decoration: TextDecoration.none,
-                                                              fontSize: 16,
-                                                              fontWeight: FontWeight.w500),
+                                                        Expanded(
+                                                          child: Container(
+                                                            alignment: Alignment.center,
+                                                            child: const Text(
+                                                              'Producto',
+                                                              style: TextStyle(
+                                                                  color: Color(0xFF111111),
+                                                                  decoration: TextDecoration.none,
+                                                                  fontSize: 16,
+                                                                  fontWeight: FontWeight.w500),
+                                                            ),
+                                                          ),
                                                         ),
-                                                      ),
-                                                      SizedBox(width: 20,),
-                                                      Container(
-                                                        alignment: Alignment.center,
-                                                        child: const Text(
-                                                          'T.',
-                                                          style: TextStyle(
-                                                              color: Color(0xFF111111),
-                                                              decoration: TextDecoration.none,
-                                                              fontSize: 16,
-                                                              fontWeight: FontWeight.w500),
+                                                        SizedBox(width: 5,),
+                                                        Container(
+                                                          alignment: Alignment.center,
+                                                          child: const Text(
+                                                            'P. U',
+                                                            style: TextStyle(
+                                                                color: Color(0xFF111111),
+                                                                decoration: TextDecoration.none,
+                                                                fontSize: 16,
+                                                                fontWeight: FontWeight.w500),
+                                                          ),
                                                         ),
-                                                      ),
-                                                      SizedBox(width: 20,),
-                                                    ],
+                                                        SizedBox(width: 20,),
+                                                        Container(
+                                                          alignment: Alignment.center,
+                                                          child: const Text(
+                                                            'T.',
+                                                            style: TextStyle(
+                                                                color: Color(0xFF111111),
+                                                                decoration: TextDecoration.none,
+                                                                fontSize: 16,
+                                                                fontWeight: FontWeight.w500),
+                                                          ),
+                                                        ),
+                                                        SizedBox(width: 20,),
+                                                      ],
+                                                    ),
                                                   ),
                                                 ),
-                                              ),
-                                              //obtenerDetallePedidoLastCreate
-                                              _producList(listadoDetalle)
-                                            ],
+                                                //obtenerDetallePedidoLastCreate
+                                                _producList(listadoDetalle)
+                                              ],
+                                            ),
                                           ),
                                         ),
                                       ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            )
-                        ),
-                        Container(
-                          margin: const EdgeInsets.only(top: 20),
-                          alignment: Alignment.centerRight,
-                          decoration: BoxDecoration(
-                              color: const Color(0xFF99CFB5),
-                              border: Border.all(width: 2),
-                              borderRadius: const BorderRadius.all(Radius.circular(20))
-                          ),
-                          child:  Padding(
-                            padding: const EdgeInsets.only(
-                                top: 10,
-                                bottom: 10
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                              children: [
-                                Row(
-                                  children: [
-                                    Container(
-                                      decoration: const BoxDecoration(
-                                          color: Colors.blueAccent,
-                                          shape: BoxShape.circle
-                                      ),
-                                      margin: const EdgeInsets.only(right: 10),
-                                      child: IconButton(
-                                        onPressed: () async {
-                                          String? printerIP = await _pref.read('ipCocina');
-                                          if(printerIP != null){
-                                            List<Producto> listProduct= [];
-                                            for (int i = 0; i < listadoDetalle.length; i++) {
-                                              Detalle_Pedido detalle = listadoDetalle[i];
-                                              Producto originalProducto = ListadoProductos.firstWhere((producto) => producto.id == detalle.id_producto);
-
-                                              Producto producto = Producto(
-                                                  id: originalProducto.id,
-                                                  nombreproducto: originalProducto.nombreproducto,
-                                                  foto: originalProducto.foto,
-                                                  codigo_interno: originalProducto.codigo_interno,
-                                                  categoria_id: originalProducto.categoria_id,
-                                                  stock: detalle.cantidad_producto,
-                                                  precioproducto: detalle.precio_unitario
-                                                // Copiar otras propiedades necesarias
-                                              );
-                                              // Producto producto = ListadoProductos.firstWhere((producto) => producto.id == detalle.id_producto);
-                                              // producto.stock = detalle.cantidad_producto;
-                                              // producto.precioproducto = detalle.precio_unitario;
-                                              print(producto.toJson());
-                                              listProduct.add(producto);
-                                            }
-                                            listProduct.forEach((element) {
-                                              print(' - ${element.toJson()}');
-                                            });
-                                            impresora.printLabel(printerIP!,listProduct,3, listPedido.montoTotal!, AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa).nombreMesa , mozo!, ListadoPisos.firstWhere((element) => element.id == AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa).pisoId),'');
-                                            print('Imprimir');
-                                          }else{
-                                            showDialog(
-                                              context: context,
-                                              builder: (BuildContext context) {
-                                                return AlertDialog(
-                                                  title: const Text('Error'),
-                                                  content: const Text('No se ha encontrado ninguna impresora.'),
-                                                  actions: <Widget>[
-                                                    TextButton(
-                                                      child: const Text('OK'),
-                                                      onPressed: () {
-                                                        Navigator.of(context).pop();
-                                                        Navigator.pushNamed(context, 'home/ajustes');
-                                                      },
-                                                    ),
-                                                  ],
-                                                );
-                                              },
-                                            );
-                                          }
-                                        },
-                                        icon: const Icon(Icons.print),
-                                        tooltip: 'Imprimir',
-                                        color: Colors.white,
-                                      ),
-                                    ),
-
-                                    // --BT ANULAR
-                                    Container(
-                                      decoration: const BoxDecoration(
-                                          color: Colors.redAccent,
-                                          shape: BoxShape.circle
-                                      ),
-                                      child: IconButton(
-                                        onPressed: () async {
-                                          List<Producto> listProduct= [];
-                                          List<Pedido> listCompar = listaPedido ;
-                                          String? printerIP = await _pref.read('ipCocina');
-                                          if(printerIP != null){
-                                            for (int i = 0; i < listadoDetalle.length; i++) {
-                                              Detalle_Pedido detalle = listadoDetalle[i];
-                                              Producto producto = ListadoProductos.firstWhere((producto) => producto.id == detalle.id_producto);
-                                              producto.stock = detalle.cantidad_producto;
-                                              listProduct.add(producto);
-                                            }
-                                            mostrarDialogoAnulacion( printerIP, listProduct  ,listPedido ,context).then((value) async {
-                                              listaPedido = await dbPedido.obtenerListasPedidos(_subOptType, idEstablecimiento,context);
-                                              consultarMesas(pisoSelect, context);
-                                              refresh();
-                                            });
-                                            refresh();
-                                          }else{
-                                            showDialog(
-                                              context: context,
-                                              builder: (BuildContext context) {
-                                                return AlertDialog(
-                                                  title: const Text('Error'),
-                                                  content: const Text('No se ha encontrado ninguna impresora.'),
-                                                  actions: <Widget>[
-                                                    TextButton(
-                                                      child: const Text('OK'),
-                                                      onPressed: () {
-                                                        Navigator.of(context).pop();
-                                                        Navigator.pushNamed(context, 'home/ajustes');
-                                                      },
-                                                    ),
-                                                  ],
-                                                );
-                                              },
-                                            );
-                                          }
-                                        },
-                                        icon: const Icon(Icons.cancel_outlined),
-                                        tooltip: 'Anular',
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                Text(
-                                  ' Total S/${listPedido.montoTotal}',
-                                  style:  const TextStyle(
-                                      color: Color(0xFF111111),
-                                      decoration: TextDecoration.none,
-                                      fontSize : 20,
-                                      fontWeight: FontWeight.w600
+                                    ],
                                   ),
                                 ),
-                              ],
+                              )
+                          ),
+                          Container(
+                            margin: const EdgeInsets.only(top: 20),
+                            alignment: Alignment.centerRight,
+                            decoration: BoxDecoration(
+                                color: const Color(0xFF99CFB5),
+                                border: Border.all(width: 2),
+                                borderRadius: const BorderRadius.all(Radius.circular(20))
+                            ),
+                            child:  Padding(
+                              padding: const EdgeInsets.only(
+                                  top: 10,
+                                  bottom: 10
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Container(
+                                        decoration: const BoxDecoration(
+                                            color: Colors.blueAccent,
+                                            shape: BoxShape.circle
+                                        ),
+                                        margin: const EdgeInsets.only(right: 10),
+                                        child: IconButton(
+                                          onPressed: () async {
+                                            String? printerIP = await _pref.read('ipCocina');
+                                            if(printerIP != null){
+                                              List<Producto> listProduct= [];
+                                              for (int i = 0; i < listadoDetalle.length; i++) {
+                                                Detalle_Pedido detalle = listadoDetalle[i];
+                                                Producto originalProducto = ListadoProductos.firstWhere((producto) => producto.id == detalle.id_producto);
+
+                                                Producto producto = Producto(
+                                                    id: originalProducto.id,
+                                                    nombreproducto: originalProducto.nombreproducto,
+                                                    foto: originalProducto.foto,
+                                                    codigo_interno: originalProducto.codigo_interno,
+                                                    categoria_id: originalProducto.categoria_id,
+                                                    stock: detalle.cantidad_producto,
+                                                    precioproducto: detalle.precio_unitario
+                                                  // Copiar otras propiedades necesarias
+                                                );
+                                                // Producto producto = ListadoProductos.firstWhere((producto) => producto.id == detalle.id_producto);
+                                                // producto.stock = detalle.cantidad_producto;
+                                                // producto.precioproducto = detalle.precio_unitario;
+                                                print(producto.toJson());
+                                                listProduct.add(producto);
+                                              }
+                                              listProduct.forEach((element) {
+                                                print(' - ${element.toJson()}');
+                                              });
+                                              impresora.printLabel(printerIP!,listProduct,3, listPedido.montoTotal!, AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa).nombreMesa , mozo!, ListadoPisos.firstWhere((element) => element.id == AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa).pisoId),'');
+                                              print('Imprimir');
+                                            }else{
+                                              showDialog(
+                                                context: context,
+                                                builder: (BuildContext context) {
+                                                  return AlertDialog(
+                                                    title: const Text('Error'),
+                                                    content: const Text('No se ha encontrado ninguna impresora.'),
+                                                    actions: <Widget>[
+                                                      TextButton(
+                                                        child: const Text('OK'),
+                                                        onPressed: () {
+                                                          Navigator.of(context).pop();
+                                                          Navigator.pushNamed(context, 'home/ajustes');
+                                                        },
+                                                      ),
+                                                    ],
+                                                  );
+                                                },
+                                              );
+                                            }
+                                          },
+                                          icon: const Icon(Icons.print),
+                                          tooltip: 'Imprimir',
+                                          color: Colors.white,
+                                        ),
+                                      ),
+
+                                      // --BT ANULAR
+                                      Container(
+                                        decoration: const BoxDecoration(
+                                            color: Colors.redAccent,
+                                            shape: BoxShape.circle
+                                        ),
+                                        child: IconButton(
+                                          onPressed: () async {
+                                            List<Producto> listProduct= [];
+                                            List<Pedido> listCompar = listaPedido ;
+                                            String? printerIP = await _pref.read('ipCocina');
+                                            if(printerIP != null){
+                                              for (int i = 0; i < listadoDetalle.length; i++) {
+                                                Detalle_Pedido detalle = listadoDetalle[i];
+                                                Producto producto = ListadoProductos.firstWhere((producto) => producto.id == detalle.id_producto);
+                                                producto.stock = detalle.cantidad_producto;
+                                                listProduct.add(producto);
+                                              }
+                                              mostrarDialogoAnulacion( printerIP, listProduct  ,listPedido ,context).then((value) async {
+                                                listaPedido = await dbPedido.obtenerListasPedidos(_subOptType, idEstablecimiento,context);
+                                                consultarMesas(pisoSelect, context);
+                                                refresh();
+                                              });
+                                              refresh();
+                                            }else{
+                                              showDialog(
+                                                context: context,
+                                                builder: (BuildContext context) {
+                                                  return AlertDialog(
+                                                    title: const Text('Error'),
+                                                    content: const Text('No se ha encontrado ninguna impresora.'),
+                                                    actions: <Widget>[
+                                                      TextButton(
+                                                        child: const Text('OK'),
+                                                        onPressed: () {
+                                                          Navigator.of(context).pop();
+                                                          Navigator.pushNamed(context, 'home/ajustes');
+                                                        },
+                                                      ),
+                                                    ],
+                                                  );
+                                                },
+                                              );
+                                            }
+                                          },
+                                          icon: const Icon(Icons.cancel_outlined),
+                                          tooltip: 'Anular',
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  Text(
+                                    ' Total S/${listPedido.montoTotal}',
+                                    style:  const TextStyle(
+                                        color: Color(0xFF111111),
+                                        decoration: TextDecoration.none,
+                                        fontSize : 20,
+                                        fontWeight: FontWeight.w600
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -1261,10 +1267,16 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
                   content: Text('La Mesa ya esta ocupada por otro Mozo'),
                   actions: <Widget>[
                     TextButton(
+                      style: ButtonStyle(
+                          elevation: MaterialStateProperty.all(2),
+                          backgroundColor: MaterialStateProperty.all(Color(0xFFFF562F))),
                       onPressed: () {
+                        setState(() {
+                          initialTabIndex = 1;
+                        });
                         Navigator.of(context).pop();
                       },
-                      child: Text('OK'),
+                      child: Text('OK', style: TextStyle(color: Colors.white, fontSize: 16)),
                     ),
                   ],
                 );

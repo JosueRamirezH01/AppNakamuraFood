@@ -6,7 +6,7 @@ Producto responseApiFromJson(String str) => Producto.fromJson(json.decode(str));
 
 String responseApiToJson(Producto data) => json.encode(data.toJson());
 
-class     Producto {
+class Producto {
   int? idPedido;
   int? id;
   String? nombreproducto;
@@ -16,6 +16,7 @@ class     Producto {
   String? codigo_interno;
   int? categoria_id;
   String? comentario;
+  int? estado;
   List<Producto> productos = [];
 
 
@@ -28,9 +29,8 @@ class     Producto {
     this.stock,
     this.codigo_interno,
     this.categoria_id,
-    this.comentario
-
-
+    this.comentario,
+    this.estado
   });
 
   @override
@@ -62,7 +62,7 @@ class     Producto {
     codigo_interno: json["codigo_interno"],
     precioproducto: double.tryParse(json["precioproducto"]?.toString() ?? "0.0"),
     comentario: json["comentario"],
-
+    estado: json["estado"]
   );
   Producto.fromJsonList(List<dynamic> jsonList) {
     try {
@@ -83,6 +83,7 @@ class     Producto {
     "stock": stock,
     "codigo_interno": codigo_interno,
     "categoria_id": categoria_id,
-    "comentario": comentario
+    "comentario": comentario,
+    "estado": estado
   };
 }

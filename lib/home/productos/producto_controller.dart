@@ -10,6 +10,7 @@ import 'package:restauflutter/model/categoria.dart';
 import 'package:restauflutter/model/detalle_pedido.dart';
 import 'package:restauflutter/model/mesaDetallePedido.dart';
 import 'package:restauflutter/services/detalle_pedido_service.dart';
+import 'package:restauflutter/services/modulos_service.dart';
 import 'package:restauflutter/utils/shared_pref.dart';
 
 import '../../model/mesa.dart';
@@ -27,13 +28,18 @@ class ProductoController {
   late int IDPEDIDO = 0 ;
   late List<Detalle_Pedido> detalle_pedido = [];
   var dbDetallePedido = DetallePedidoServicio();
+  var Modulos = ModuloServicio();
   List<Producto>? productosSeleccionados = [];
+  bool items_independientes = false;
 
   Future init(BuildContext context, Function refresh) async {
     this.context = context;
     this.refresh = refresh;
     _getCategorias();
     _getProductos();
+
+    items_independientes = await Modulos.consultarItemsIndependientes(context);
+    print('activo itemsindependientes : ${items_independientes}');
 
     final args = ModalRoute.of(context)?.settings.arguments;
     if (args is Mesa) {

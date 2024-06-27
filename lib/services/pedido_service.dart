@@ -221,23 +221,24 @@ class PedidoServicio {
 
 
 
-  Future<List<Nota>> obtenerListasNota(int idEstablecimiento,BuildContext context) async {
+  Future<List<Nota>> obtenerListasNota(int idEstablecimiento, BuildContext context) async {
     MySqlConnection? conn;
     try {
       conn = await _connectionSQL.getConnection();
 
-      const query = 'SELECT * FROM notas where id_establecimiento = ? ';
-      final results = await conn.query(query,[idEstablecimiento] );
+      const query = 'SELECT * FROM notas WHERE id_establecimiento = ?';
+      final results = await conn.query(query, [idEstablecimiento]);
+
       if (results.isEmpty) {
-        print('No se encontraron datos en las tablas.');
+        print('No se encontraron notas para el establecimiento con ID: $idEstablecimiento');
         return [];
       } else {
         List<Nota> listaNota = results.map((row) => Nota.fromJson(row.fields)).toList();
-        print('ID del pedido recuperado: $listaNota');
+
         return listaNota;
       }
     } catch (e) {
-      print('Error al realizar la consulta: $e');
+      print('Error al realizar la consulta de notas: $e');
       return [];
     } finally {
       if (conn != null) {

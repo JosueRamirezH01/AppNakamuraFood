@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:restauflutter/services/entorno_service.dart';
+import 'package:restauflutter/services/modulos_service.dart';
 import 'package:restauflutter/utils/shared_pref.dart';
 
 import '../../model/mozo.dart';
@@ -18,11 +19,16 @@ class _AjustesPageState extends State<AjustesPage> {
   TextEditingController _printer2Controller = TextEditingController();
   bool _showBarPrinter = false;
   bool _stateProduccion = false;
+
+  // -- Modulos
+  bool _stateRestriccionStock = false;
+
   bool _ifChange = false;
   final _formKey = GlobalKey<FormState>(); // Agregar GlobalKey<FormState>
   final SharedPref _sharedPref = SharedPref();
   var prod = ProductoServicio();
   var entornoService = EntornoService();
+  var moduloService = ModuloServicio();
   Mozo mozo = Mozo();
   SharedPref _pref = SharedPref();
 
@@ -66,6 +72,9 @@ class _AjustesPageState extends State<AjustesPage> {
 
   void _loadSettings() async {
     int entornoId = await entornoService.consultarEntorno(context);
+    bool stateRestriccionStock = await moduloService.consultarRestriccion(context);
+
+    // Entorno
     if (entornoId == 2){
       setState(() {
         _stateProduccion = true;
@@ -76,6 +85,8 @@ class _AjustesPageState extends State<AjustesPage> {
       });
     }
 
+    //Restriccion de stock
+    _stateRestriccionStock = stateRestriccionStock ;
   }
 
   @override
@@ -91,7 +102,7 @@ class _AjustesPageState extends State<AjustesPage> {
             children: [
               Expanded(
                 child: Container(
-                  width: MediaQuery.of(context).size.width * 0.6,
+                  width: MediaQuery.of(context).size.width > 600 ? MediaQuery.of(context).size.width * 0.6 : null ,
                   child: Scrollbar(
                     thumbVisibility: true,
                     child: SingleChildScrollView(
@@ -288,6 +299,110 @@ class _AjustesPageState extends State<AjustesPage> {
                               ),
                             ),
                           ),
+
+                          //Para el futuro
+                          // Container(
+                          //   decoration: BoxDecoration(
+                          //     borderRadius: BorderRadius.circular(30),
+                          //     color: Color.fromRGBO(217, 217, 217, 0.8),
+                          //   ),
+                          //   margin: EdgeInsets.all(20),
+                          //   child: Padding(
+                          //     padding: const EdgeInsets.only(right: 20, left: 20,top: 5, bottom: 5),
+                          //     child: Column(
+                          //       crossAxisAlignment: CrossAxisAlignment.start,
+                          //       children: [
+                          //         Text(
+                          //           'Modulos',
+                          //           style: TextStyle(
+                          //             fontSize: 20,
+                          //             fontWeight: FontWeight.bold,
+                          //           ),
+                          //         ),
+                          //         Divider(),
+                          //         Row(
+                          //           children: [
+                          //             const Text(
+                          //               'Restrición de stock : ',
+                          //               style: TextStyle(
+                          //                 fontSize: 16,
+                          //                 fontWeight: FontWeight.bold,
+                          //               ),
+                          //             ),
+                          //             // SizedBox(width: 20),
+                          //             Container(
+                          //               decoration: BoxDecoration(
+                          //                   color: _stateRestriccionStock ? Color(0xFFFF562F) : Colors.grey,
+                          //                   borderRadius: BorderRadius.all(Radius.circular(20))
+                          //               ),
+                          //               child: Padding(
+                          //                 padding: const EdgeInsets.only(top: 2,bottom: 2,left: 10,right: 10),
+                          //                 child: Text(
+                          //                   _stateRestriccionStock ? 'On':'Off',
+                          //                   style: TextStyle(
+                          //                     color: _stateRestriccionStock ? Colors.white : Colors.black,
+                          //                     fontSize: 16,
+                          //                     fontWeight: FontWeight.bold,
+                          //                   ),
+                          //                 ),
+                          //               ),
+                          //             ),
+                          //             const Spacer(),
+                          //             Switch(
+                          //                 activeColor: Color(0xFFFF562F),
+                          //                 inactiveThumbColor: _stateRestriccionStock ? Color(0xFFFF562F) : Colors.grey ,
+                          //                 inactiveTrackColor: Colors.black,
+                          //                 activeTrackColor: Colors.black,
+                          //                 // thumbColor: ,
+                          //                 value: _stateRestriccionStock,
+                          //                 onChanged: null
+                          //             ),
+                          //           ],
+                          //         ),
+                          //         // Row(
+                          //         //   children: [
+                          //         //     const Text(
+                          //         //       'Restrición de stock : ',
+                          //         //       style: TextStyle(
+                          //         //         fontSize: 16,
+                          //         //         fontWeight: FontWeight.bold,
+                          //         //       ),
+                          //         //     ),
+                          //         //     // SizedBox(width: 20),
+                          //         //     Container(
+                          //         //       decoration: BoxDecoration(
+                          //         //           color: _stateProduccion ? Color(0xFFFF562F) : Colors.grey,
+                          //         //           borderRadius: BorderRadius.all(Radius.circular(20))
+                          //         //       ),
+                          //         //       child: Padding(
+                          //         //         padding: const EdgeInsets.only(top: 2,bottom: 2,left: 10,right: 10),
+                          //         //         child: Text(
+                          //         //           _stateProduccion? 'On':'Off',
+                          //         //           style: TextStyle(
+                          //         //             color: _stateProduccion ? Colors.white : Colors.black,
+                          //         //             fontSize: 16,
+                          //         //             fontWeight: FontWeight.bold,
+                          //         //           ),
+                          //         //         ),
+                          //         //       ),
+                          //         //     ),
+                          //         //     const Spacer(),
+                          //         //     Switch(
+                          //         //         activeColor: Color(0xFFFF562F),
+                          //         //         inactiveThumbColor: _stateProduccion ? Color(0xFFFF562F) : Colors.grey ,
+                          //         //         inactiveTrackColor: Colors.black,
+                          //         //         activeTrackColor: Colors.black,
+                          //         //         // thumbColor: ,
+                          //         //         value: _stateProduccion,
+                          //         //         onChanged: null
+                          //         //     ),
+                          //         //   ],
+                          //         // ),
+                          //
+                          //       ],
+                          //     ),
+                          //   ),
+                          // ),
                         ],
                       ),
                     ),
