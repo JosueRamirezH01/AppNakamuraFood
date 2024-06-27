@@ -37,9 +37,9 @@ class PisoServicio {
       conn = await _connectionSQL.getConnection();
       const query = 'SELECT * FROM `pisos` WHERE id = ? ';
       final results = await conn.query(query, [idmesapiso]);
-        Map<String, dynamic> pisoData = results.first.fields;
-        Piso piso = Piso.fromJson(pisoData);
-        return piso;
+      Map<String, dynamic> pisoData = results.first.fields;
+      Piso piso = Piso.fromJson(pisoData);
+      return piso;
     } catch (e) {
       print('Error al realizar la consulta: $e');
       return Piso();

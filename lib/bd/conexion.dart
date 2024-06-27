@@ -9,6 +9,7 @@ class Connection {
 
     Connection();
 
+
     Future<MySqlConnection> getConnection() async {
         var settings = ConnectionSettings(
             host: host,

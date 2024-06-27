@@ -15,6 +15,7 @@ import 'package:restauflutter/utils/shared_pref.dart';
 
 import '../../model/mesa.dart';
 import '../../model/producto.dart';
+import '../../services/modulos_service.dart';
 class ProductoController {
   late BuildContext context;
   late Function refresh;
@@ -57,6 +58,7 @@ class ProductoController {
         // Busca el producto correspondiente al detalle
         Producto? producto = await _getProductoPorId(detalle.id_producto);
         Producto? setproducto = Producto(
+            id_pedido_detalle: detalle.id_pedido_detalle,
             id: producto?.id,
             nombreproducto: producto?.nombreproducto,
             precioproducto: detalle.precio_unitario,

@@ -175,7 +175,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
     // Obtener el índice inicial del argumento
     initialTabIndex = ModalRoute.of(context)!.settings.arguments as int? ?? 0;
     _tabController.index = initialTabIndex;
-
     // Resto de tu lógica de inicialización...
   }
   @override
