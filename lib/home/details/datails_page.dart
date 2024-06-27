@@ -52,7 +52,6 @@ class _DetailsPageState extends State<DetailsPage> {
   var bdPisos = PisoServicio();
   var bdMesas = MesaServicio();
   var bdPedido = PedidoServicio();
-
   var impresora = Impresora();
   final SharedPref _pref = SharedPref();
   late  Mozo? mozo = Mozo();
@@ -88,7 +87,6 @@ class _DetailsPageState extends State<DetailsPage> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    print('activo itemsindependientes : ${widget.productosSeleccionados}');
     selectObjmesa = widget.mesa!;
     detalles_pedios_tmp = widget.detallePedidoLista ;
     UserShared();
@@ -145,6 +143,7 @@ class _DetailsPageState extends State<DetailsPage> {
       child: SingleChildScrollView(
         child: Container(
           margin: crossAxisCount <= 3 ? EdgeInsets.only(top:15 ,left: 15,right: 15) : null,
+
           height: MediaQuery.of(context).size.height * sizeHeigth,
           width: screenWidth > 600 ? MediaQuery.of(context).size.width * 0.9 : MediaQuery.of(context).size.width * 8,
           decoration: BoxDecoration(borderRadius: const BorderRadius.all(Radius.circular(15)), border: Border.all(width: 2),),
@@ -217,7 +216,6 @@ class _DetailsPageState extends State<DetailsPage> {
   Widget _iconNota(int index, int? id_pedido_detalle) {
     return GestureDetector(
       onTap: () async {
-        // listaNota.clear();
         listaNota = await bdPedido.obtenerListasNota(mozo!.id_establecimiento!, context);
         print('INDEX ${index}');
         _nota(listaNota,index, id_pedido_detalle);
@@ -423,6 +421,7 @@ class _DetailsPageState extends State<DetailsPage> {
                             mostrarMensajeActualizado('No puedes dejar la lista vacia', true);
                           }
                         }
+
                       },
                       child: const Text('Actualizar', style: TextStyle(color: Colors.white, fontSize: 16))),
                 ),
@@ -498,7 +497,6 @@ class _DetailsPageState extends State<DetailsPage> {
     );
   }
 
-
   String generateSelectedOptionsString(List<Nota> comidas) {
     List<String> selectedOptions = [];
     for (int i = 0; i < _checkedItems.length; i++) {
@@ -566,7 +564,7 @@ class _DetailsPageState extends State<DetailsPage> {
           actions: [
             TextButton(
               style: ButtonStyle(
-                backgroundColor: MaterialStateProperty.all(Color.fromRGBO(217, 217, 217, 0.8)),
+                backgroundColor: MaterialStateProperty.all( Color.fromRGBO(217, 217, 217, 0.8) ),
               ),
               onPressed: () {
                 setState(() {
@@ -574,7 +572,7 @@ class _DetailsPageState extends State<DetailsPage> {
                 });
                 Navigator.pop(context, 'Cancel');
               },
-              child: Text('Cancelar', style: TextStyle(color: Colors.black)),
+              child: Text('Cancelar',style: TextStyle(color: Colors.black)),
             ),
             ElevatedButton(
               style: ButtonStyle(
@@ -658,7 +656,6 @@ class _DetailsPageState extends State<DetailsPage> {
                   _actualizarProductosSeleccionados();
                 }
               }
-
               Navigator.pop(context, 'OK');
             },
             child: const Text('OK'),
