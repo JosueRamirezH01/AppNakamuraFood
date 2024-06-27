@@ -14,6 +14,7 @@ import 'package:restauflutter/utils/shared_pref.dart';
 
 import '../../model/mesa.dart';
 import '../../model/producto.dart';
+import '../../services/modulos_service.dart';
 class ProductoController {
   late BuildContext context;
   late Function refresh;
@@ -27,6 +28,10 @@ class ProductoController {
   late int IDPEDIDO = 0 ;
   late List<Detalle_Pedido> detalle_pedido = [];
   var dbDetallePedido = DetallePedidoServicio();
+  var Modulos = ModuloServicio();
+  bool items_independientes = false;
+
+
   List<Producto>? productosSeleccionados = [];
 
   Future init(BuildContext context, Function refresh) async {
@@ -34,6 +39,9 @@ class ProductoController {
     this.refresh = refresh;
     _getCategorias();
     _getProductos();
+
+    items_independientes = await Modulos.consultarItemsIndependientes(context);
+    print('activo itemsindependientes : ${items_independientes}');
 
     final args = ModalRoute.of(context)?.settings.arguments;
     if (args is Mesa) {
@@ -51,6 +59,7 @@ class ProductoController {
         // Busca el producto correspondiente al detalle
         Producto? producto = await _getProductoPorId(detalle.id_producto);
         Producto? setproducto = Producto(
+          id_pedido_detalle: detalle.id_pedido_detalle,
             id: producto?.id,
             nombreproducto: producto?.nombreproducto,
             precioproducto: detalle.precio_unitario,

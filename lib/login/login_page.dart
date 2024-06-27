@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:restauflutter/login/login_controller.dart';
 import 'package:restauflutter/services/login_service.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../utils/shared_pref.dart';
 

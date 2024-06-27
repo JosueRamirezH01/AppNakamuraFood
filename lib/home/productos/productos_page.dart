@@ -197,6 +197,8 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
                           margin: EdgeInsets.only(right: 10, left: 10),
                           height: MediaQuery.of(context).size.height * 0.773,
                           child: DetailsPage(
+                            items_independientes:
+                            _con.items_independientes,
                             productosSeleccionados: _con.productosSeleccionados,
                             idPedido: idPedido ?? _con.IDPEDIDO,
                             mesa: _con.mesa,
@@ -368,6 +370,7 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
           child: SizedBox(
             height: MediaQuery.of(context).size.height * 0.87,
             child: DetailsPage(
+              items_independientes: _con.items_independientes,
               productosSeleccionados: _con.productosSeleccionados,
               idPedido: idPedido ?? _con.IDPEDIDO,
               mesa: _con.mesa,
@@ -386,41 +389,72 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
       // Haz lo que necesites con el valor de idPedido, por ejemplo, imprimirlo
     }
     print('-------------Valor de IDPEDIDO: $idPedido');
-
   }
 
   Widget _cardProduct(Producto producto) {
     return GestureDetector(
       onTap: () {
         _productoFocus.unfocus();
-        setState(() {
-          if(_con.mesa.estadoMesa != 2){
-            if (_con.productosSeleccionados?.any((p) => p.nombreproducto == producto.nombreproducto) ?? false) {
-              final Producto? productoExistente = _con.productosSeleccionados?.firstWhere((p) => p.nombreproducto == producto.nombreproducto);
-              if (productoExistente != null) {
-                print('------- ${_con.productosSeleccionados?.first.stock}');
-                setState(() {
-                  productoExistente.stock = (productoExistente.stock ?? 0) + 1;
-                });
-                _con.agregarMsj('Se ha aumentado el stock de ${productoExistente.nombreproducto} en 1.');
-              }
-            } else {
-              // El producto no está seleccionado, agrégalo a la lista de productos seleccionados
-              setState(() {
-                _con.productosSeleccionados?.add(producto);
-              });
-              // Muestra un mensaje de confirmación
+        if(_con.items_independientes){
+          if (_con.mesa.estadoMesa != 2) {
+            setState(() {
+              // Agrega siempre una nueva instancia del producto a la lista de productos seleccionados
+              Producto newProducto = Producto(
+                  identificador: producto.identificador,
+                  idPedido: producto.idPedido,
+                  id_pedido_detalle: producto.id_pedido_detalle,
+                  id: producto.id,
+                  nombreproducto: producto.nombreproducto,
+                  foto: producto.foto,
+                  precioproducto: producto.precioproducto,
+                  stock: producto.stock,
+                  codigo_interno: producto.codigo_interno,
+                  categoria_id: producto.categoria_id,
+                  comentario: producto.comentario
+              );
+              _con.productosSeleccionados?.add(newProducto);
+
+              // Muestra un mensaje de confirmation
               _con.agregarMsj('El producto se ha añadido a la lista.');
+
+              // Imprime los productos seleccionados para verificación
               print('Productos seleccionados:');
               _con.productosSeleccionados?.forEach((prod) {
                 print(prod.toJson());
               });
-            }
-          }else{
+            });
+          } else {
             _con.mostrarMensaje('No se pueden agregar productos porque el pedido está cerrado.');
           }
-
-        });
+        }else{
+          setState(() {
+            if(_con.mesa.estadoMesa != 2){
+              if (_con.productosSeleccionados?.any((p) => p.nombreproducto == producto.nombreproducto) ?? false) {
+                final Producto? productoExistente = _con.productosSeleccionados?.firstWhere((p) => p.nombreproducto == producto.nombreproducto);
+                if (productoExistente != null) {
+                  print('------- ${_con.productosSeleccionados?.first.stock}');
+                  setState(() {
+                    productoExistente.stock = (productoExistente.stock ?? 0) + 1;
+                  });
+                  _con.agregarMsj('Se ha aumentado el stock de ${productoExistente.nombreproducto} en 1.');
+                }
+              } else {
+                // El producto no está seleccionado, agrégalo a la lista de productos seleccionados
+                setState(() {
+                  _con.productosSeleccionados?.add(producto);
+                });
+                // Muestra un mensaje de confirmación
+                _con.agregarMsj('El producto se ha añadido a la lista.');
+                print('Productos seleccionados:');
+                _con.productosSeleccionados?.forEach((prod) {
+                  print(prod.toJson());
+                });
+              }
+            }else{
+              _con.mostrarMensaje('No se pueden agregar productos porque el pedido está cerrado.');
+            }
+          });
+        }
       },
       child: SizedBox(
         child: Card(
