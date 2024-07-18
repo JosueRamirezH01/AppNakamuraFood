@@ -17,6 +17,7 @@ class     Producto {
   int? stock;
   String? codigo_interno;
   int? categoria_id;
+  int? establecimiento_id;
   String? comentario;
   int? estado;
   List<Producto> productos = [];
@@ -33,6 +34,7 @@ class     Producto {
     this.stock,
     this.codigo_interno,
     this.categoria_id,
+    this.establecimiento_id,
     this.comentario,
     this.estado
   });
@@ -68,6 +70,7 @@ class     Producto {
     categoria_id: json["categoria_id"],
     codigo_interno: json["codigo_interno"],
     precioproducto: double.tryParse(json["precioproducto"]?.toString() ?? "0.0"),
+    establecimiento_id: json["establecimiento_id"],
     comentario: json["comentario"],
     estado: json["estado"]
   );
@@ -91,6 +94,7 @@ class     Producto {
     "stock": stock,
     "codigo_interno": codigo_interno,
     "categoria_id": categoria_id,
+    "establecimiento_id": establecimiento_id,
     "comentario": comentario,
     "estado": estado
   };

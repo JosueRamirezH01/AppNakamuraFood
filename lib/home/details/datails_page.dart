@@ -68,8 +68,6 @@ class _DetailsPageState extends State<DetailsPage> {
       final Map<String, dynamic> userDataMap = json.decode(userData);
       mozo = Mozo.fromJson(userDataMap);
     }
-    DateTime now = DateTime.now();
-    String formattedDate = DateFormat('yyyy-MM-dd HH:mm:ss').format(now);
     int pidoId = widget.mesa!.pisoId!;
     print(pidoId);
 
@@ -135,6 +133,7 @@ class _DetailsPageState extends State<DetailsPage> {
     } else {
       crossAxisCount = 2;
     }
+
     double sizeHeigth= widget.mesa!.estadoMesa != 1 && widget.mesa!.estadoMesa != 2 ? 0.56 : 0.65;
     return NotificationListener<ScrollNotification>(
       onNotification: (notification) {
@@ -197,13 +196,22 @@ class _DetailsPageState extends State<DetailsPage> {
     );
   }
 
+  //tp66
   Widget _precioProducto(int index) {
     print('---------${widget.productosSeleccionados![index].precioproducto}');
     double p = widget.productosSeleccionados![index].precioproducto! *  (widget.productosSeleccionados![index].stock ?? 0);
     // Devuelve un widget vacío si el índice está fuera de rango o el detalle del pedido es nulo
-    return  Text(
-      '$p',
-      // Agrega el estilo de texto necesario aquí
+    return  Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        color: widget.items_independientes ? Colors.grey[200] : null,
+      ),
+      padding: widget.items_independientes ? EdgeInsets.symmetric(horizontal: 12, vertical: 8) : null,
+      // color: widget.items_independientes ? Colors.grey[200] : null,
+      child: Text(
+        '$p',
+        // Agrega el estilo de texto necesario aquí
+      ),
     );
   }
 
@@ -213,7 +221,11 @@ class _DetailsPageState extends State<DetailsPage> {
         print("CODIGO A ELIMINAR ${id_pedido_detalle}");
         _eliminar(index, id_pedido_detalle);
       },
-      child: const Icon(Icons.delete, color: Colors.red),
+      child: Container(
+          padding:EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(20), color:Colors.grey[200],),
+          child: const Icon(Icons.delete, color: Colors.red)
+      ),
     );
   }
 
@@ -224,7 +236,11 @@ class _DetailsPageState extends State<DetailsPage> {
         print('INDEX ${index}');
         _nota(listaNota,index, id_pedido_detalle);
       },
-      child: const Icon(Icons.edit, color: Colors.amber),
+      child: Container(
+          padding: EdgeInsets.symmetric(horizontal: 7, vertical: 8),
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(20), color: Colors.grey[200],),
+          child: const Icon(Icons.edit, color: Colors.amber)
+      ),
     );
   }
 
@@ -606,22 +622,30 @@ class _DetailsPageState extends State<DetailsPage> {
         content: const Text('Estas seguro en eliminar este producto'),
         actions: <Widget>[
           TextButton(
+            style: ButtonStyle(
+              backgroundColor: MaterialStateProperty.all( Color.fromRGBO(217, 217, 217, 0.8) ),
+            ),
             onPressed: () => Navigator.pop(context, 'Cancel'),
-            child: const Text('Cancel'),
+            child: const Text('Cancel',style: TextStyle(color: Colors.black)),
           ),
           TextButton(
+            style: ButtonStyle(
+              backgroundColor: MaterialStateProperty.all(Colors.redAccent),
+            ),
             onPressed: () async {
               if(widget.items_independientes){
                 if(id_pedido_detalle != null){
+                  double total;
                   int productIndex = widget.productosSeleccionados!.indexWhere((producto) => producto.id_pedido_detalle == id_pedido_detalle);
                   if (productIndex != -1) {
                     // Eliminar el producto de la lista
                     setState(() {
                       widget.productosSeleccionados!.removeAt(productIndex);
                     });
+                    total = calcularTotal();
                     // Actualizar los productos seleccionados en el widget padre si es necesario
                     await  detallePedidoServicio.eliminarProductoPorItem(id_pedido_detalle);
-                    await detallePedidoServicio.actualizarAgregarProductoDetallePedidoItem(widget.idPedido, pedidoTotal,context);
+                    await detallePedidoServicio.actualizarAgregarProductoDetallePedidoItem(widget.idPedido, total,context);
 
                     _actualizarProductosSeleccionados();
                   }
@@ -650,7 +674,7 @@ class _DetailsPageState extends State<DetailsPage> {
               }
               Navigator.pop(context, 'OK');
             },
-            child: const Text('OK'),
+            child: const Text('Aceptar', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -841,7 +865,7 @@ class _DetailsPageState extends State<DetailsPage> {
                 });
                 imprimir(widget.productosSeleccionados!,1);
                 Navigator.pop(context);
-                Navigator.pushNamedAndRemoveUntil(context, 'home', (route) => false, arguments: 1);
+                Navigator.pushNamedAndRemoveUntil(context, 'home', (route) => false);
                 //Navigator.pop(context, newPedidoId);
                 //impresora.printLabel(printerIP,widget.productosSeleccionados,1, pedidoTotal, selectObjmesa.nombreMesa);
                 // Actualizar mesa
@@ -1051,6 +1075,7 @@ class _DetailsPageState extends State<DetailsPage> {
     }
   }
 
+  //tp67
   Widget _addOrRemoveItem(int index) {
     return Row(
       children: [

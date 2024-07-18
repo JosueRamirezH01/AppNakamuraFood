@@ -13,8 +13,6 @@ class ProductosPage extends StatefulWidget {
   State<ProductosPage> createState() => _ProductosPageState();
 }
 
-
-
 class _ProductosPageState extends State<ProductosPage> with TickerProviderStateMixin {
   int estado = 1;
   int? idPedido;
@@ -468,13 +466,13 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
               _con.productosSeleccionados?.add(newProducto);
 
               // Muestra un mensaje de confirmation
-              _con.agregarMsj('El producto se ha añadido a la lista.');
+              // _con.agregarMsj('El producto se ha añadido a la lista.');
 
               // Imprime los productos seleccionados para verificación
-              print('Productos seleccionados:');
-              _con.productosSeleccionados?.forEach((prod) {
-                print(prod.toJson());
-              });
+              // print('Productos seleccionados:');
+              // _con.productosSeleccionados?.forEach((prod) {
+              //   print(prod.toJson());
+              // });
             });
           } else {
             _con.mostrarMensaje('No se pueden agregar productos porque el pedido está cerrado.');
