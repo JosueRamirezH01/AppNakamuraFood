@@ -620,18 +620,22 @@ class _DetailsPageState extends State<DetailsPage> {
           TextButton(
             onPressed: () async {
               if(widget.items_independientes){
+                double total;
                 if(id_pedido_detalle != null){
                   int productIndex = widget.productosSeleccionados!.indexWhere((producto) => producto.id_pedido_detalle == id_pedido_detalle);
                   if (productIndex != -1) {
+
                     // Eliminar el producto de la lista
                     setState(() {
                       widget.productosSeleccionados!.removeAt(productIndex);
                     });
-                    // Actualizar los productos seleccionados en el widget padre si es necesario
-                    await  detallePedidoServicio.eliminarProductoPorItem(id_pedido_detalle);
-                    await detallePedidoServicio.actualizarAgregarProductoDetallePedidoItem(widget.idPedido, pedidoTotal,context);
+                    total = calcularTotal();
+                    print('MONTO TOTAL ${total}');
 
+                    // Actualizar los productos seleccionados en el widget padre si es necesario
                     _actualizarProductosSeleccionados();
+                    await detallePedidoServicio.actualizarAgregarProductoDetallePedidoItem(widget.idPedido, total,context);
+                    await  detallePedidoServicio.eliminarProductoPorItem(id_pedido_detalle);
                   }
                   agregarMsj('El producto se ha eliminado');
                 }else{
@@ -1010,6 +1014,7 @@ class _DetailsPageState extends State<DetailsPage> {
 
   double calcularTotal() {
     double total = 0;
+
     if (widget.productosSeleccionados != null) {
       for (Producto producto in widget.productosSeleccionados!) {
         total += (producto.precioproducto ?? 0) * (producto.stock ?? 0);
