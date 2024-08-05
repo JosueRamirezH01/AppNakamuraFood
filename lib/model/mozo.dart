@@ -10,12 +10,16 @@ class Mozo {
   String? email;
   int? id_establecimiento;
   int? idperfil;
+  int? estado;
+  String? access_token;
   String? nombre_usuario;
 
   Mozo({
     this.id,
     this.id_establecimiento,
     this.email,
+    this.estado,
+    this.access_token,
     this.idperfil,
     this.nombre_usuario
   });
@@ -25,6 +29,7 @@ class Mozo {
     id: json["id"],
       email: json["email"],
       idperfil:json["idperfil"],
+      estado: json["estado"],
       nombre_usuario:json["nombre_usuario"]
   );
 
@@ -33,7 +38,7 @@ class Mozo {
     "id": id,
     "email": email,
     "idperfil": idperfil,
+    "estado": estado,
     "nombre_usuario": nombre_usuario
-
   };
 }

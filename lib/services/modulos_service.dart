@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/cupertino.dart';
 import 'package:mysql1/mysql1.dart';
 import 'package:restauflutter/bd/conexion.dart';
+import 'package:http/http.dart' as http;
 
 class ModuloServicio {
   final Connection _connectionSQL = Connection();
@@ -35,32 +38,32 @@ class ModuloServicio {
     }
   }
 
-  Future<bool> consultarItemsIndependientes(BuildContext context) async {
-    MySqlConnection? conn;
+  Future<bool> consultarItemsIndependientes(String? accessToken) async {
     try {
-      conn = await _connectionSQL.getConnection();
-      const query = 'SELECT ti.estado_item_independiente FROM items_independientes as ti WHERE 1';
-      final results = await conn.query(query);
-      if (results.isEmpty) {
-        print('No se encontraron datos en las tablas.');
-        return false;
-      } else {
-        var detailRow = results.first;
-        int isEnable = detailRow['estado_item_independiente'];
-        if(isEnable == 1){
+      Uri url = Uri.parse('https://chifalingling.restaupe.com/api/auth/item_independiente');
+      Map<String, String> headers = {
+        'Content-type': 'application/json',
+        'Authorization': 'Bearer $accessToken'
+      };
+
+      final res = await http.get(url, headers: headers);
+
+      if (res.statusCode == 200) {
+        final data = json.decode(res.body);
+        int estado = data['estado'];
+
+        if (estado == 1) {
           return true;
-        }else{
+        } else {
           return false;
         }
-
+      } else {
+        print('Error en la solicitud HTTP: ${res.statusCode}');
+        return false;
       }
     } catch (e) {
       print('Error al realizar la consulta: $e');
       return false;
-    } finally {
-      if (conn != null) {
-        await conn.close();
-      }
     }
   }
 }

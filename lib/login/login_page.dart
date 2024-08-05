@@ -1,7 +1,10 @@
 
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:restauflutter/login/login_controller.dart';
+import 'package:restauflutter/model/usuario.dart';
 import 'package:restauflutter/services/login_service.dart';
 
 import '../utils/shared_pref.dart';
@@ -68,8 +71,13 @@ class _LoginPageState extends State<LoginPage> {
           child: SingleChildScrollView(
             child: Column(
               children: [
+               Container(
+                 alignment: AlignmentDirectional.bottomStart,
+                   child: IconButton(onPressed: (){
+                     _con.configurarApi();
+                   }, icon:Icon(Icons.settings, color: Colors.grey, size: 40,))),
                 const Padding(
-                  padding: EdgeInsets.only(left: 30, top: 80),
+                  padding: EdgeInsets.only(left: 30, top: 50),
                   child: Image(image: AssetImage('assets/img/Background.png')),
                 ),
                 const SizedBox(height: 30),
@@ -149,11 +157,20 @@ class _LoginPageState extends State<LoginPage> {
                     child: ElevatedButton(onPressed: () async {
                       print(email);
                       print(password);
-                      bool saveCredentials = await dbSQL.consultarUsuarios(email,password,context);
-                      print('CREDENCIALES ${saveCredentials}');
-                      if(saveCredentials == true){
-                        _saveCredentials();
+                      var url = await _pref.read('url');
+                      print('URL guardada: $url');
+                      if(url != null){
+                        Usuario? saveCredentials = await dbSQL.login(email, password,context);;
+                        print('CREDENCIALES ${saveCredentials}');
+                        if(saveCredentials?.accessToken != null){
+                          _saveCredentials();
+                        }
+
+                      }else {
+                        _con.configurarApi();
                       }
+
+
                     }, style: const ButtonStyle(
                       backgroundColor: MaterialStatePropertyAll(Colors.deepOrange),
                     ), child: const Text('Iniciar Session', style: TextStyle(color: Colors.white, fontSize: 20),),),

@@ -1,6 +1,7 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/cupertino.dart';
@@ -21,6 +22,8 @@ import 'package:restauflutter/services/pedido_service.dart';
 import 'package:restauflutter/services/piso_service.dart';
 import 'package:restauflutter/utils/impresora.dart';
 import 'package:restauflutter/utils/shared_pref.dart';
+
+import '../model/usuario.dart';
 
 List<Color> colores = [
   const Color(0xFF8EFF72), // verde
@@ -57,6 +60,9 @@ enum SubOptTypes {
 
 class _HomePageState extends State<HomePage> with TickerProviderStateMixin                                                                        {
 
+  late Usuario? usuario = Usuario();
+
+  //----------------------------------------------------
   late TabController _tabController;
   int _selectedIndex = 0;
   late int _listSize;
@@ -107,17 +113,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
     final dynamic userData = await _pref.read('user_data');
     if (userData != null) {
       final Map<String, dynamic> userDataMap = json.decode(userData);
-      mozo = Mozo.fromJson(userDataMap);
+      usuario = Usuario.fromJson(userDataMap);
       idEstablecimiento = mozo!.id_establecimiento ?? 0;
     }
-    String productosJson = await _pref.read('productos');
-
     print('--L---L--');
-    print(productosJson);
-    if (productosJson.isNotEmpty) {
-      List<dynamic> productosData = json.decode(productosJson);
-      ListadoProductos = productosData.map((json) => Producto.fromJson(json)).toList();
-    }
   }
   var dbPisos = PisoServicio();
   var dbMesas = MesaServicio();
@@ -127,6 +126,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
 
 
   // mesas
+
+
   static  List<Tab> myTabs = <Tab>[];
   late int pisoSelect = 0;
   late int pisoMesas = 0 ;
@@ -153,11 +154,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
     getConnectivity();
     UserShared().then((_) {
       // Una vez que UserShared() haya terminado de ejecutarse y se haya actualizado idEstablecimiento, entonces llamamos a las funciones de consulta.
-      consultarPisos(idEstablecimiento, context).then((_) {
+      consultarPisos().then((_) {
         consultarMesas(pisoSelect, context).then((value) async {
           _subOptType = SubOptTypes.local;
-          listaPedido = await dbPedido.obtenerListasPedidos(_subOptType, idEstablecimiento,context);
-          AllListadoMesas = await dbMesas.consultarTodasMesas(ListadoPisos, context);
+          //listaPedido = await dbPedido.obtenerListasPedidos(_subOptType, idEstablecimiento,context);
+          //AllListadoMesas = await dbMesas.consultarTodasMesas(ListadoPisos, context);
           setState(() {
             isLoading = false;
           });
@@ -201,13 +202,18 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
     }
   }
 
-  Future<void> consultarPisos(int idEstablecimiento, BuildContext context) async {
-    List<Piso> listaPisos = await dbPisos.consultarPisos(idEstablecimiento, context);
+  Future<void> consultarPisos() async {
+    print('-----');
+    final dynamic userData = await _pref.read('user_data');
+      final Map<String, dynamic> userDataMap = json.decode(userData);
+      usuario = Usuario.fromJson(userDataMap);
+
+    List<Piso>? listaPisos = await dbPisos.getAll(usuario?.accessToken);
     print('LISTADO DE PISOS ------- ${listaPisos}');
     setState(() {
       myTabs.clear();
       ListadoPisos.clear();
-      for (int i = 0; i < listaPisos.length; i++) {
+      for (int i = 0; i < listaPisos!.length; i++) {
         myTabs.add(Tab(text: listaPisos[i].nombrePiso));
         ListadoPisos.add(listaPisos[i]);
         print(' pisos: ${listaPisos[i]}');
@@ -219,8 +225,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
   }
 
   Future<void> consultarMesas(int idPiso, BuildContext context) async {
+    final dynamic userData = await _pref.read('user_data');
+    final Map<String, dynamic> userDataMap = json.decode(userData);
+    usuario = Usuario.fromJson(userDataMap);
     print(' piso enviado: $idPiso');
-    ListadoMesas = await dbMesas.consultarMesas(idPiso, context);
+    ListadoMesas = await dbMesas.getAll(usuario?.accessToken,idPiso);
     refresh();
     //refresh2();
   }
@@ -228,7 +237,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
   Stream<List<Mesa>> consultarMesasStream(int idPiso, BuildContext context) async* {
     while (true) {
       // Consultar las mesas y emitir el resultado a través del stream
-      List<Mesa> mesas = await dbMesas.consultarMesas(idPiso, context);
+      List<Mesa> mesas = await dbMesas.getAll(usuario?.accessToken,idPiso);
       ListadoMesas = mesas ;
       yield mesas;
       await Future.delayed(const Duration(seconds: 5)); // Esperar 5 segundos antes de la próxima consulta
@@ -247,6 +256,19 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
 
   @override
   Widget build(BuildContext context) {
+
+    double screenWidth = MediaQuery.of(context).size.width;
+
+    int crossAxisCount = 2;
+    if (screenWidth > 1200) {
+      crossAxisCount = 4;
+    } else if (screenWidth > 800) {
+      crossAxisCount = 4;
+    } else if (screenWidth > 600) {
+      crossAxisCount = 3;
+    } else {
+      crossAxisCount = 2;
+    }
     //initialTabIndex = ModalRoute.of(context)!.settings.arguments as int? ?? 0;
     print('ARGUMENTO DE LLEGADA DE PEDIDO --------${initialTabIndex}');
     return Scaffold(
@@ -254,7 +276,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(18),
             child: ButtonBar(
-              alignment: MainAxisAlignment.center,
+              alignment: MainAxisAlignment.start,
               children: [
                 Row(
                   children: [
@@ -270,64 +292,66 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
                         color: Colors.white,
                       ),
                     ),
-                    Container(
-                      margin: const EdgeInsets.only(
-                          left: 2,
-                          right: 1.5
-                      ),
-                      child: ElevatedButton.icon(
-                        onPressed: () {
-                          consultarPisos(idEstablecimiento, context).then((value) {
-                            consultarMesas(pisoSelect, context).then((value) async {
-                              _subOptType = SubOptTypes.local;
-                              listaPedido = await dbPedido.obtenerListasPedidos(_subOptType, idEstablecimiento,context);
-                              AllListadoMesas = await dbMesas.consultarTodasMesas(ListadoPisos, context);
-                              setState(() {
-                                isLoading = false;
-                              });
-                            },);
-                            setState(() {
-                              initialTabIndex = 0;
-                              _tabController.animateTo(initialTabIndex);
-                              pisoMesas = 0;
-                            });
-                            print('PISOSMESAS $pisoMesas}');
-                            refresh();
-                          });
-
-                          // setState(() {
-                          //   _selectedIndex = 0;
-                          //   _tabController.animateTo(0);
-                          // });
-                          // refresh();
-                        },
-                        icon: const Icon(Icons.list_alt_rounded),
-                        label: const Text('Listado de pedidos'),
-                        style: initialTabIndex == 0
-                            ? selectedButtonStyle
-                            : elevatedButtonStyle,
-                      ),
-                    ),
-                    ElevatedButton.icon(
-                      onPressed: () {
-                            setState(() {
-                              isLoading = false;
-                            });
-                          setState(() {
-                            initialTabIndex = 1;
-                            _tabController.animateTo(initialTabIndex);
-                            // _tabController.animateTo(initialTabIndex == 0 ? 1 : initialTabIndex);
-                            pisoMesas = 0;
-                          });
-                          print('PISOSMESAS $pisoMesas}');
-                          refresh();
-                      },
-                      icon: const Icon(Icons.shopping_cart_outlined),
-                      label: const Text('POS'),
-                      style: initialTabIndex == 1
-                          ? selectedButtonStyle
-                          : elevatedButtonStyle,
-                    ),
+                    // Container(
+                    //   margin: const EdgeInsets.only(
+                    //       left: 2,
+                    //       right: 1.5
+                    //   ),
+                    //   child: ElevatedButton.icon(
+                    //     onPressed: () {
+                    //       consultarPisos().then((value) {
+                    //         consultarMesas(pisoSelect, context).then((value) async {
+                    //           _subOptType = SubOptTypes.local;
+                    //           listaPedido = await dbPedido.obtenerListasPedidos(_subOptType, idEstablecimiento,context);
+                    //           AllListadoMesas = await dbMesas.consultarTodasMesas(ListadoPisos, context);
+                    //           setState(() {
+                    //             isLoading = false;
+                    //           });
+                    //         },);
+                    //         setState(() {
+                    //           initialTabIndex = 0;
+                    //           _tabController.animateTo(initialTabIndex);
+                    //           pisoMesas = 0;
+                    //         });
+                    //         print('PISOSMESAS $pisoMesas}');
+                    //         refresh();
+                    //       });
+                    //
+                    //       // setState(() {
+                    //       //   _selectedIndex = 0;
+                    //       //   _tabController.animateTo(0);
+                    //       // });
+                    //       // refresh();
+                    //     },
+                    //     icon: const Icon(Icons.list_alt_rounded),
+                    //     label: const Text('Listado de pedidos'),
+                    //     style: initialTabIndex == 0
+                    //         ? selectedButtonStyle
+                    //         : elevatedButtonStyle,
+                    //   ),
+                    // ),
+                    // ElevatedButton.icon(
+                    //   onPressed: () {
+                    //
+                    //         setState(() {
+                    //           isLoading = false;
+                    //         });
+                    //       setState(() {
+                    //         initialTabIndex = 1;
+                    //         _tabController.animateTo(initialTabIndex);
+                    //         // _tabController.animateTo(initialTabIndex == 0 ? 1 : initialTabIndex);
+                    //         pisoMesas = 0;
+                    //       });
+                    //       print('PISOSMESAS $pisoMesas}');
+                    //         consultarPisos();
+                    //       refresh();
+                    //   },
+                    //   icon: const Icon(Icons.shopping_cart_outlined),
+                    //   label: const Text('POS'),
+                    //   style: initialTabIndex == 1
+                    //       ? selectedButtonStyle
+                    //       : elevatedButtonStyle,
+                    // ),
                   ],
                 ),
               ],
@@ -339,22 +363,25 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
           controller: _tabController,
           children: [
             // Vista para 'Listado de pedidos'
-            _buildAnimatedContent(
-              key: const Key('Listado de pedidos'),
-              child: Center(
-                child: Column(
-                  children: [
-                    // Container(
-                    //   margin: const EdgeInsets.all(8),
-                    //   child: subopt(),
-                    // ),
-                    Expanded(
-                      child: mainListado(),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            // _buildAnimatedContent(
+            //   key: const Key('Listado de pedidos'),
+            //   child: Center(
+            //     child: Container(
+            //       // width: crossAxisCount < 2 ? MediaQuery.of(context).size.width * 1  : MediaQuery.of(context).size.width * 0.7 ,
+            //       child: Column(
+            //         children: [
+            //           // Container(
+            //           //   margin: const EdgeInsets.all(8),
+            //           //   child: subopt(),
+            //           // ),
+            //           Expanded(
+            //             child: mainListado(),
+            //           ),
+            //         ],
+            //       ),
+            //     ),
+            //   ),
+            // ),
             // Vista para 'POS'
             _buildAnimatedContent(
               key:  const Key('POS'),
@@ -380,7 +407,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
                                     indicatorSize: TabBarIndicatorSize.tab,
                                     controller: _tabControllerPisos,
                                     tabs: myTabs,
-                                    onTap: (index) {
+                                    onTap: (index) async {
                                       _pageControllerPisosPage.animateToPage(
                                         index,
                                         duration: Duration(milliseconds: 200),
@@ -704,7 +731,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
                   ),
                 )
                     : ListView.builder(
-
                   //itemCount: listaPedido.length,
                   itemCount: listaFiltrada.length,
                   itemBuilder: (_, index) {
@@ -772,10 +798,30 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
       ),
     );
   }
-
+  bool _isModalOpen = false;
   Future pedido(Pedido listPedido, List<Detalle_Pedido> listadoDetalle) {
+
+    // double screenWidth = MediaQuery.of(context).size.width;
+    //
+    // double widthListado = 2;
+    // if (screenWidth > 600) {
+    //   widthListado = 0.7;
+    // }
+
+    if (_isModalOpen) {
+      return Future.value(); // No hacer nada si el modal ya está abierto
+    }
+
+    _isModalOpen = true;
+
     return showCupertinoModalBottomSheet(
+      animationCurve: Curves.easeInToLinear,
       barrierColor: Colors.transparent,
+      backgroundColor: Colors.transparent,
+      clipBehavior: Clip.hardEdge,
+      shadow: BoxShadow(
+        color: Colors.transparent
+      ),
       context: context,
       builder: (BuildContext context) {
         return NotificationListener<ScrollNotification>(
@@ -787,290 +833,302 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
           },
           child: SingleChildScrollView(
             child: Container(
-              decoration: const BoxDecoration(
-                color: Color.fromRGBO(217, 217, 217, 0.8),
-              ),
-              child: SizedBox(
-                height: MediaQuery.of(context).size.height * 0.62,
+              child: Center(
                 child: Container(
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     borderRadius: BorderRadius.only(
                         topLeft: Radius.circular(30),
                         topRight: Radius.circular(30)
                     ),
+                    // color: Color.fromRGBO(217, 217, 217, 0.8),
+                    color:  Colors.white,
+                    // backgroundBlendMode: BlendMode.color,
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      children: [
-                        Expanded(
-                            child: Container(
-                              alignment: Alignment.topLeft,
+                  // width: screenWidth > 60 ? MediaQuery.of(context).size.width * 0.6 : null,
+                  child: SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.62,
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        color: Color.fromRGBO(217, 217, 217, 0.8),
+                        borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(30),
+                            topRight: Radius.circular(30)
+                        ),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          children: [
+                            Expanded(
+                                child: Container(
+                                  alignment: Alignment.topLeft,
+                                  decoration: BoxDecoration(
+                                      color: const Color(0xFFf1f1f1),
+                                      border: Border.all(width: 2),
+                                      borderRadius: const BorderRadius.all(Radius.circular(20))
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(bottom: 15),
+                                    child: Column(
+                                      children: [
+                                        Container(
+                                          alignment: Alignment.center,
+                                          child:  Padding(
+                                            padding: const EdgeInsets.only(
+                                                top: 10,
+                                                bottom: 10
+                                            ),
+                                            child: Text(
+                                              //'n° pedido: ${listPedido.correlativoPedido}',
+                                              'n° pedido: ${listPedido.correlativoPedido}',
+                                              style: const TextStyle(
+                                                  color: Color(0xFF111111),
+                                                  decoration: TextDecoration.none,
+                                                  fontSize : 30,
+                                                  fontWeight: FontWeight.w600
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        Expanded(
+                                          child: Padding(
+                                            padding: const EdgeInsets.only(
+                                                top: 10,
+                                                left: 20,
+                                                bottom: 10,
+                                                right: 20
+                                            ),
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                  color: const Color(0xFFD9D9D9),
+                                                  border: Border.all(width: 2),
+                                                  borderRadius: const BorderRadius.all(Radius.circular(20))
+                                              ),
+                                              child: Column(
+                                                children: [
+                                                  Container(
+                                                    margin: const EdgeInsets.all(5),
+                                                    decoration: const BoxDecoration(border: Border(bottom: BorderSide(width: 2))),
+                                                    child:  Padding(
+                                                      padding: const EdgeInsets.all(5),
+                                                      child: Row(
+                                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                        children: [
+                                                          SizedBox(width: 10,),
+                                                          Container(
+                                                            alignment: Alignment.center,
+                                                            child: const Text(
+                                                              'C.',
+                                                              style: TextStyle(
+                                                                  color: Color(0xFF111111),
+                                                                  decoration: TextDecoration.none,
+                                                                  fontSize: 16,
+                                                                  fontWeight: FontWeight.w500),
+                                                            ),
+                                                          ),
+                                                          Expanded(
+                                                            child: Container(
+                                                              alignment: Alignment.center,
+                                                              child: const Text(
+                                                                'Producto',
+                                                                style: TextStyle(
+                                                                    color: Color(0xFF111111),
+                                                                    decoration: TextDecoration.none,
+                                                                    fontSize: 16,
+                                                                    fontWeight: FontWeight.w500),
+                                                              ),
+                                                            ),
+                                                          ),
+                                                          SizedBox(width: 5,),
+                                                          Container(
+                                                            alignment: Alignment.center,
+                                                            child: const Text(
+                                                              'P. U',
+                                                              style: TextStyle(
+                                                                  color: Color(0xFF111111),
+                                                                  decoration: TextDecoration.none,
+                                                                  fontSize: 16,
+                                                                  fontWeight: FontWeight.w500),
+                                                            ),
+                                                          ),
+                                                          SizedBox(width: 20,),
+                                                          Container(
+                                                            alignment: Alignment.center,
+                                                            child: const Text(
+                                                              'T.',
+                                                              style: TextStyle(
+                                                                  color: Color(0xFF111111),
+                                                                  decoration: TextDecoration.none,
+                                                                  fontSize: 16,
+                                                                  fontWeight: FontWeight.w500),
+                                                            ),
+                                                          ),
+                                                          SizedBox(width: 20,),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  //obtenerDetallePedidoLastCreate
+                                                  _producList(listadoDetalle)
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                )
+                            ),
+                            Container(
+                              margin: const EdgeInsets.only(top: 20),
+                              alignment: Alignment.centerRight,
                               decoration: BoxDecoration(
-                                  color: const Color(0xFFf1f1f1),
+                                  color: const Color(0xFF99CFB5),
                                   border: Border.all(width: 2),
                                   borderRadius: const BorderRadius.all(Radius.circular(20))
                               ),
-                              child: Padding(
-                                padding: const EdgeInsets.only(bottom: 15),
-                                child: Column(
+                              child:  Padding(
+                                padding: const EdgeInsets.only(
+                                    top: 10,
+                                    bottom: 10
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceAround,
                                   children: [
-                                    Container(
-                                      alignment: Alignment.center,
-                                      child:  Padding(
-                                        padding: const EdgeInsets.only(
-                                            top: 10,
-                                            bottom: 10
-                                        ),
-                                        child: Text(
-                                          //'n° pedido: ${listPedido.correlativoPedido}',
-                                          'n° pedido: ${listPedido.correlativoPedido}',
-                                          style: const TextStyle(
-                                              color: Color(0xFF111111),
-                                              decoration: TextDecoration.none,
-                                              fontSize : 30,
-                                              fontWeight: FontWeight.w600
+                                    Row(
+                                      children: [
+                                        Container(
+                                          decoration: const BoxDecoration(
+                                              color: Colors.blueAccent,
+                                              shape: BoxShape.circle
+                                          ),
+                                          margin: const EdgeInsets.only(right: 10),
+                                          child: IconButton(
+                                            onPressed: () async {
+                                              String? printerIP = await _pref.read('ipCocina');
+                                              if(printerIP != null){
+                                                List<Producto> listProduct= [];
+                                                for (int i = 0; i < listadoDetalle.length; i++) {
+                                                  Detalle_Pedido detalle = listadoDetalle[i];
+                                                  Producto originalProducto = ListadoProductos.firstWhere((producto) => producto.id == detalle.id_producto);
+
+                                                  Producto producto = Producto(
+                                                      id: originalProducto.id,
+                                                      nombreproducto: originalProducto.nombreproducto,
+                                                      foto: originalProducto.foto,
+                                                      codigo_interno: originalProducto.codigo_interno,
+                                                      categoria_id: originalProducto.categoria_id,
+                                                      stock: detalle.cantidad_producto,
+                                                      precioproducto: detalle.precio_unitario
+                                                    // Copiar otras propiedades necesarias
+                                                  );
+                                                  // Producto producto = ListadoProductos.firstWhere((producto) => producto.id == detalle.id_producto);
+                                                  // producto.stock = detalle.cantidad_producto;
+                                                  // producto.precioproducto = detalle.precio_unitario;
+                                                  print(producto.toJson());
+                                                  listProduct.add(producto);
+                                                }
+                                                listProduct.forEach((element) {
+                                                  print(' - ${element.toJson()}');
+                                                });
+                                                impresora.printLabel(printerIP,listProduct,3, listPedido.montoTotal!, AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa).nombreMesa , mozo!, ListadoPisos.firstWhere((element) => element.id == AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa).pisoId),'');
+                                                print('Imprimir');
+                                              }else{
+                                                showDialog(
+                                                  context: context,
+                                                  builder: (BuildContext context) {
+                                                    return AlertDialog(
+                                                      title: const Text('Error'),
+                                                      content: const Text('No se ha encontrado ninguna impresora.'),
+                                                      actions: <Widget>[
+                                                        TextButton(
+                                                          child: const Text('OK'),
+                                                          onPressed: () {
+                                                            Navigator.of(context).pop();
+                                                            Navigator.pushNamed(context, 'home/ajustes');
+                                                          },
+                                                        ),
+                                                      ],
+                                                    );
+                                                  },
+                                                );
+                                              }
+                                            },
+                                            icon: const Icon(Icons.print),
+                                            tooltip: 'Imprimir',
+                                            color: Colors.white,
                                           ),
                                         ),
-                                      ),
+
+                                        // --BT ANULAR
+                                        // Container(
+                                        //   decoration: const BoxDecoration(
+                                        //       color: Colors.redAccent,
+                                        //       shape: BoxShape.circle
+                                        //   ),
+                                        //   child: IconButton(
+                                        //     onPressed: () async {
+                                        //       List<Producto> listProduct= [];
+                                        //       List<Pedido> listCompar = listaPedido ;
+                                        //       String? printerIP = await _pref.read('ipCocina');
+                                        //       if(printerIP != null){
+                                        //         for (int i = 0; i < listadoDetalle.length; i++) {
+                                        //           Detalle_Pedido detalle = listadoDetalle[i];
+                                        //           Producto producto = ListadoProductos.firstWhere((producto) => producto.id == detalle.id_producto);
+                                        //           producto.stock = detalle.cantidad_producto;
+                                        //           listProduct.add(producto);
+                                        //         }
+                                        //         mostrarDialogoAnulacion( printerIP, listProduct  ,listPedido ,context).then((value) async {
+                                        //           listaPedido = await dbPedido.obtenerListasPedidos(_subOptType, idEstablecimiento,context);
+                                        //           consultarMesas(pisoSelect, context);
+                                        //           refresh();
+                                        //         });
+                                        //         refresh();
+                                        //       }else{
+                                        //         showDialog(
+                                        //           context: context,
+                                        //           builder: (BuildContext context) {
+                                        //             return AlertDialog(
+                                        //               title: const Text('Error'),
+                                        //               content: const Text('No se ha encontrado ninguna impresora.'),
+                                        //               actions: <Widget>[
+                                        //                 TextButton(
+                                        //                   child: const Text('OK'),
+                                        //                   onPressed: () {
+                                        //                     Navigator.of(context).pop();
+                                        //                     Navigator.pushNamed(context, 'home/ajustes');
+                                        //                   },
+                                        //                 ),
+                                        //               ],
+                                        //             );
+                                        //           },
+                                        //         );
+                                        //       }
+                                        //     },
+                                        //     icon: const Icon(Icons.cancel_outlined),
+                                        //     tooltip: 'Anular',
+                                        //     color: Colors.white,
+                                        //   ),
+                                        // ),
+                                      ],
                                     ),
-                                    Expanded(
-                                      child: Padding(
-                                        padding: const EdgeInsets.only(
-                                            top: 10,
-                                            left: 20,
-                                            bottom: 10,
-                                            right: 20
-                                        ),
-                                        child: Container(
-                                          decoration: BoxDecoration(
-                                              color: const Color(0xFFD9D9D9),
-                                              border: Border.all(width: 2),
-                                              borderRadius: const BorderRadius.all(Radius.circular(20))
-                                          ),
-                                          child: Column(
-                                            children: [
-                                              Container(
-                                                margin: const EdgeInsets.all(5),
-                                                decoration: const BoxDecoration(border: Border(bottom: BorderSide(width: 2))),
-                                                child:  Padding(
-                                                  padding: const EdgeInsets.all(5),
-                                                  child: Row(
-                                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                    children: [
-                                                      SizedBox(width: 10,),
-                                                      Container(
-                                                        alignment: Alignment.center,
-                                                        child: const Text(
-                                                          'C.',
-                                                          style: TextStyle(
-                                                              color: Color(0xFF111111),
-                                                              decoration: TextDecoration.none,
-                                                              fontSize: 16,
-                                                              fontWeight: FontWeight.w500),
-                                                        ),
-                                                      ),
-                                                      Expanded(
-                                                        child: Container(
-                                                          alignment: Alignment.center,
-                                                          child: const Text(
-                                                            'Producto',
-                                                            style: TextStyle(
-                                                                color: Color(0xFF111111),
-                                                                decoration: TextDecoration.none,
-                                                                fontSize: 16,
-                                                                fontWeight: FontWeight.w500),
-                                                          ),
-                                                        ),
-                                                      ),
-                                                      SizedBox(width: 5,),
-                                                      Container(
-                                                        alignment: Alignment.center,
-                                                        child: const Text(
-                                                          'P. U',
-                                                          style: TextStyle(
-                                                              color: Color(0xFF111111),
-                                                              decoration: TextDecoration.none,
-                                                              fontSize: 16,
-                                                              fontWeight: FontWeight.w500),
-                                                        ),
-                                                      ),
-                                                      SizedBox(width: 20,),
-                                                      Container(
-                                                        alignment: Alignment.center,
-                                                        child: const Text(
-                                                          'T.',
-                                                          style: TextStyle(
-                                                              color: Color(0xFF111111),
-                                                              decoration: TextDecoration.none,
-                                                              fontSize: 16,
-                                                              fontWeight: FontWeight.w500),
-                                                        ),
-                                                      ),
-                                                      SizedBox(width: 20,),
-                                                    ],
-                                                  ),
-                                                ),
-                                              ),
-                                              //obtenerDetallePedidoLastCreate
-                                              _producList(listadoDetalle)
-                                            ],
-                                          ),
-                                        ),
+                                    Text(
+                                      ' Total S/${listPedido.montoTotal}',
+                                      style:  const TextStyle(
+                                          color: Color(0xFF111111),
+                                          decoration: TextDecoration.none,
+                                          fontSize : 20,
+                                          fontWeight: FontWeight.w600
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
-                            )
-                        ),
-                        Container(
-                          margin: const EdgeInsets.only(top: 20),
-                          alignment: Alignment.centerRight,
-                          decoration: BoxDecoration(
-                              color: const Color(0xFF99CFB5),
-                              border: Border.all(width: 2),
-                              borderRadius: const BorderRadius.all(Radius.circular(20))
-                          ),
-                          child:  Padding(
-                            padding: const EdgeInsets.only(
-                                top: 10,
-                                bottom: 10
                             ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                              children: [
-                                Row(
-                                  children: [
-                                    Container(
-                                      decoration: const BoxDecoration(
-                                          color: Colors.blueAccent,
-                                          shape: BoxShape.circle
-                                      ),
-                                      margin: const EdgeInsets.only(right: 10),
-                                      child: IconButton(
-                                        onPressed: () async {
-                                          String? printerIP = await _pref.read('ipCocina');
-                                          if(printerIP != null){
-                                            List<Producto> listProduct= [];
-                                            for (int i = 0; i < listadoDetalle.length; i++) {
-                                              Detalle_Pedido detalle = listadoDetalle[i];
-                                              Producto originalProducto = ListadoProductos.firstWhere((producto) => producto.id == detalle.id_producto);
-
-                                              Producto producto = Producto(
-                                                  id: originalProducto.id,
-                                                  nombreproducto: originalProducto.nombreproducto,
-                                                  foto: originalProducto.foto,
-                                                  codigo_interno: originalProducto.codigo_interno,
-                                                  categoria_id: originalProducto.categoria_id,
-                                                  stock: detalle.cantidad_producto,
-                                                  precioproducto: detalle.precio_unitario
-                                                // Copiar otras propiedades necesarias
-                                              );
-                                              // Producto producto = ListadoProductos.firstWhere((producto) => producto.id == detalle.id_producto);
-                                              // producto.stock = detalle.cantidad_producto;
-                                              // producto.precioproducto = detalle.precio_unitario;
-                                              print(producto.toJson());
-                                              listProduct.add(producto);
-                                            }
-                                            listProduct.forEach((element) {
-                                              print(' - ${element.toJson()}');
-                                            });
-                                            impresora.printLabel(printerIP!,listProduct,3, listPedido.montoTotal!, AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa).nombreMesa , mozo!, ListadoPisos.firstWhere((element) => element.id == AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa).pisoId),'');
-                                            print('Imprimir');
-                                          }else{
-                                            showDialog(
-                                              context: context,
-                                              builder: (BuildContext context) {
-                                                return AlertDialog(
-                                                  title: const Text('Error'),
-                                                  content: const Text('No se ha encontrado ninguna impresora.'),
-                                                  actions: <Widget>[
-                                                    TextButton(
-                                                      child: const Text('OK'),
-                                                      onPressed: () {
-                                                        Navigator.of(context).pop();
-                                                        Navigator.pushNamed(context, 'home/ajustes');
-                                                      },
-                                                    ),
-                                                  ],
-                                                );
-                                              },
-                                            );
-                                          }
-                                        },
-                                        icon: const Icon(Icons.print),
-                                        tooltip: 'Imprimir',
-                                        color: Colors.white,
-                                      ),
-                                    ),
-
-                                    // --BT ANULAR
-                                    Container(
-                                      decoration: const BoxDecoration(
-                                          color: Colors.redAccent,
-                                          shape: BoxShape.circle
-                                      ),
-                                      child: IconButton(
-                                        onPressed: () async {
-                                          List<Producto> listProduct= [];
-                                          List<Pedido> listCompar = listaPedido ;
-                                          String? printerIP = await _pref.read('ipCocina');
-                                          if(printerIP != null){
-                                            for (int i = 0; i < listadoDetalle.length; i++) {
-                                              Detalle_Pedido detalle = listadoDetalle[i];
-                                              Producto producto = ListadoProductos.firstWhere((producto) => producto.id == detalle.id_producto);
-                                              producto.stock = detalle.cantidad_producto;
-                                              listProduct.add(producto);
-                                            }
-                                            mostrarDialogoAnulacion( printerIP, listProduct  ,listPedido ,context).then((value) async {
-                                              listaPedido = await dbPedido.obtenerListasPedidos(_subOptType, idEstablecimiento,context);
-                                              consultarMesas(pisoSelect, context);
-                                              refresh();
-                                            });
-                                            refresh();
-                                          }else{
-                                            showDialog(
-                                              context: context,
-                                              builder: (BuildContext context) {
-                                                return AlertDialog(
-                                                  title: const Text('Error'),
-                                                  content: const Text('No se ha encontrado ninguna impresora.'),
-                                                  actions: <Widget>[
-                                                    TextButton(
-                                                      child: const Text('OK'),
-                                                      onPressed: () {
-                                                        Navigator.of(context).pop();
-                                                        Navigator.pushNamed(context, 'home/ajustes');
-                                                      },
-                                                    ),
-                                                  ],
-                                                );
-                                              },
-                                            );
-                                          }
-                                        },
-                                        icon: const Icon(Icons.cancel_outlined),
-                                        tooltip: 'Anular',
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                Text(
-                                  ' Total S/${listPedido.montoTotal}',
-                                  style:  const TextStyle(
-                                      color: Color(0xFF111111),
-                                      decoration: TextDecoration.none,
-                                      fontSize : 20,
-                                      fontWeight: FontWeight.w600
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
@@ -1079,7 +1137,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
           ),
         );
       },
-    );
+    ).then((_) {
+      _isModalOpen = false; // Restablecer el estado del modal cuando se cierre
+    });
   }
   // ----LS
   Widget _producList(List<Detalle_Pedido> detalleList) {
@@ -1186,8 +1246,60 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
     }
     return GestureDetector(
       onTap: () async {
-        if (mesa.estadoMesa == 1) {
+
+        if(mesa.estadoMesa == 1){
+          print('ENTRAR MESA STATUS ${mesa.toJson()}');
           Navigator.pushNamed(context, 'home/productos', arguments: mesa);
+        }else {
+          print('ENTRAR MESA STATUS  ${mesa.toJson()}');
+          Map<String, dynamic> pedidoRespuesta =  await dbDetallePedido.fetchPedidoDetalle(usuario!.accessToken, mesa.id  );
+          Pedido pedido = pedidoRespuesta['pedido_detalle'];
+          if(pedido.idUsuario != usuario?.user?.id){
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: Text('Mensaje'),
+                  content: Text('La Mesa ya esta ocupada por otro Mozo'),
+                  actions: <Widget>[
+                    TextButton(
+                      style: ButtonStyle(
+                          elevation: MaterialStateProperty.all(2),
+                          backgroundColor: MaterialStateProperty.all(Color(0xFFFF562F))),
+                      onPressed: () {
+                        setState(() {
+                          initialTabIndex = 1;
+                        });
+                        Navigator.of(context).pop();
+                      },
+                      child: Text('OK', style: TextStyle(color: Colors.white, fontSize: 16)),
+                    ),
+                  ],
+                );
+              },
+            );
+          }else {
+            if (pedido.idPedido != null && pedido.detalle != null) {
+              // Itera sobre la lista de detalles y actualiza el id_pedido
+              for (var detalle in pedido.detalle!) {
+                detalle.id_pedido = pedido.idPedido;
+                print('PRECIO 2222 ${detalle.toJson()}');
+              }
+            }
+            List<Detalle_Pedido>? detallePedido = [];
+            detallePedido = pedido.detalle;
+            // sin usarse
+            print('-------LISTADO DE INSTANCIA $detallePedido');
+            MesaDetallePedido mesaDetallePedido = MesaDetallePedido(mesa, detallePedido!);
+            print('${detallePedido[0].toJson()}');
+            Navigator.pushNamed(context, 'home/productos', arguments: mesaDetallePedido);
+          }
+        }
+
+
+        // if (mesa.estadoMesa == 1) {
+        //   print('ENTRAR MESA  ${mesa.toJson()}');
+        //   Navigator.pushNamed(context, 'home/productos', arguments: mesa);
         // } if(mesa.estadoMesa == 2){
         //   String? printerIP = await _pref.read('ipCocina');
         //   if(printerIP != null){
@@ -1243,34 +1355,26 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
         //       },
         //     );
         //   }
-        }
-          else {
-          int? idPedido = await dbPedido.consultarMesasDisponibilidad(mozo!.id, mesa.id,context);
-          if(idPedido != null){
-            List<Detalle_Pedido> detallePedido =  await dbPedido.consultaObtenerDetallePedido(idPedido, context);
-            // sin usarse
-            MesaDetallePedido mesaDetallePedido = MesaDetallePedido(mesa, detallePedido);
-            Navigator.pushNamed(context, 'home/productos', arguments: mesaDetallePedido);
-          }else {
-            showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return AlertDialog(
-                  title: Text('Mensaje'),
-                  content: Text('La Mesa ya esta ocupada por otro Mozo'),
-                  actions: <Widget>[
-                    TextButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                      child: Text('OK'),
-                    ),
-                  ],
-                );
-              },
-            );
-          }
-        }
+        //}
+          // else {
+          // int? idPedido = await dbPedido.consultarMesasDisponibilidad(mozo!.id, mesa.id,context);
+          // if(idPedido != null){
+            // final response = await http.get(Uri.parse('https://chifalingling.restaupe.com/api/obtener_lista_productos'));
+            // List<dynamic> productosData = json.decode(response.body);
+            // productosData = productosData.where((producto) {
+            //   return producto['estado'] == 1 && producto['establecimiento_id'] == mozo!.id_establecimiento;
+            // }).toList();
+            //
+            // // Guardar productos filtrados en SharedPreferences
+            // // SharedPreferences prefs = await SharedPreferences.getInstance();
+            // _pref.save('productos', json.encode(productosData));
+
+
+            //Navigator.pushNamed(context, 'home/productos', arguments: mesaDetallePedido);
+          // }else {
+
+          // }
+        //}
       },
       child: SizedBox(
         child: Card(
@@ -1475,7 +1579,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
                           printerIP, listProduct, 4, pedido.montoTotal!, AllListadoMesas.firstWhere((element) => element.id == pedido.idMesa).nombreMesa, mozo!,
                           ListadoPisos.firstWhere((element) => element.id == AllListadoMesas.firstWhere((element) => element.id == pedido.idMesa).pisoId),
                           motivoFinal);
-                      dbMesas.actualizarMesa(pedido.idMesa, 1, context);
+                      //dbMesas.actualizarMesa(pedido.idMesa, 1, context); API ACTIALZIAR MESA
                       dbPedido.anularPedido(motivoFinal, mozo!, pedido.idPedido!, context);
                       // refresh();
                       Navigator.of(context).pop();

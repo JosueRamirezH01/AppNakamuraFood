@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 import 'package:flutter/material.dart';
 import 'package:mysql1/mysql1.dart';
@@ -15,95 +16,183 @@ class DetallePedidoServicio {
   final Connection _connectionSQL = Connection();
   final SharedPref _sharedPref = SharedPref();
 
-  Future<List<Detalle_Pedido>> crearDetallePedidoPrueba(int idPedido, List<Producto> productos, BuildContext context) async {
-    MySqlConnection? conn;
-    List<Detalle_Pedido> detallesPedido = [];
-    List<Nota> listaNota = [];
-    late  Mozo? mozo = Mozo();
-    var bdPedido = PedidoServicio();
+  final String _url = 'chifalingling.restaupe.com';
+  final String _api = '/api/auth';
 
-    final dynamic userData = await _sharedPref.read('user_data');
-    if (userData != null) {
-      final Map<String, dynamic> userDataMap = json.decode(userData);
-      mozo = Mozo.fromJson(userDataMap);
-    }
+  Future<Map<String, dynamic>> fetchPedidoDetalle(String? accessToken,int? idMesa) async {
 
-    try {
-      conn = await _connectionSQL.getConnection();
-      print('Id de pedido creado${idPedido}');
-      listaNota = await bdPedido.obtenerListasNota(mozo.id_establecimiento!, context);
+    Uri url = Uri.https(_url, '$_api/obtener_pedidos_pormesa/$idMesa');
+    Map<String, String> headers = {
+      'Content-type': 'application/json',
+      'Authorization': 'Bearer $accessToken'
+    };
+    final res = await http.get(url, headers: headers);
+    if (res.statusCode == 200) {
+      Map<String, dynamic> jsonResponse = json.decode(res.body);
 
-      for (Producto producto in productos) {
-        String? comentarioHTML = limpiarPuntoComa(listaNota,producto);
-
-        final results = await conn.query('''
-          INSERT INTO pedido_detalles (
-            id_pedido,
-            id_producto,
-            cantidad_producto,
-            cantidad_real,
-            precio_unitario,
-            precio_producto,
-            comentario,
-            estado_detalle,
-            created_at,
-            updated_at ) VALUES (
-              ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
-            )
-        ''',
-            [
-              idPedido, // id pedido
-              producto.id, // id prodcuto
-              producto.stock, // cantidad producto
-              producto.stock, // cantidad real
-              producto.precioproducto!,
-              producto.precioproducto! * producto.stock!, // precio producto
-              comentarioHTML,//producto.comentario, // comentario
-              1, // estado detalle
-              DateTime.now().toUtc(),
-              DateTime.now().toUtc()
-            ]
-        );
-
-        final pedidoDetalleIdResult = await conn.query(
-            'SELECT LAST_INSERT_ID()');
-        int pedidoDetalleId = pedidoDetalleIdResult.first[0] as int;
-
-        print('SERVICIO DE DETALLE DE PEDIDO $pedidoDetalleId');
-
-        final pedidoDetalleResult = await conn.query(
-            'SELECT * FROM pedido_detalles WHERE id_pedido_detalle  = ?',
-            [pedidoDetalleId]);
-
-        if (!pedidoDetalleResult.isEmpty) {
-          Detalle_Pedido detallePedido = pedidoDetalleResult
-              .map((row) => Detalle_Pedido.fromJson(row.fields))
-              .first;
-          print('COmentario bd = ${detallePedido.comentario} tipo: ${detallePedido.comentario.runtimeType}');
-          detallePedido.comentario = detallePedido.comentario == null ? null : _extraerTextoComentario(detallePedido.comentario);
-          detallesPedido.add(detallePedido);
-          print('Detalle insertado correctamente para el producto ${producto
-              .nombreproducto}');
-        } else {
-          print('No se pudo insertar el detalle para el producto ${producto
-              .nombreproducto}');
-        }
-      }
-
-      detallesPedido.forEach((element) {
-        print('Los cbdl ${element.comentario} tipo : ${element.comentario.runtimeType}');
-      });
-      print('LISTA DE DETALLES DE PEDIDOS AL CREAR ${detallesPedido[0].id_pedido}');
-      return detallesPedido;
-    } catch (e) {
-      print('Error al realizar la consulta: $e');
-      return [];
-    } finally {
-      if (conn != null) {
-        await conn.close();
-      }
+      // Procesa el JSON y devuelve el Map
+      bool status = jsonResponse['status'];
+      Pedido pedido = Pedido.fromJson(jsonResponse['pedido_detalle']);
+      print('OBTENER PEDIDO ${pedido.toJson()}');
+      return {
+        'status': status,
+        'pedido_detalle': pedido,
+      };
+    } else {
+      throw Exception('Failed to load pedido detalle');
     }
   }
+
+  Future<void> actualizarPedidoApi(String? accessToken, Pedido pedido, int? idMesa) async {
+    Uri uri = Uri.https(_url, '$_api/actualizarPedido/$idMesa');
+    String body = json.encode(pedido.toJson());
+    Map<String, String> headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $accessToken',
+    };
+    // Realizar la solicitud PUT
+    final response = await http.put(
+      uri,
+      headers: headers,
+      body: body,
+    );
+    // Verificar el estado de la respuesta
+    if (response.statusCode == 200) {
+      print('Pedido actualizado con éxito.');
+    } else {
+      throw Exception('Error al actualizar el pedido: ${response.statusCode}');
+    }
+  }
+
+
+
+
+  Future<void> eliminarDetallePedido(int id, String? accessToken) async {
+
+    Uri uri = Uri.https(_url, '$_api/eliminar_detallepedido/$id');
+
+    Map<String, String> headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $accessToken',
+    };
+
+    // Realizar la solicitud DELETE
+    final response = await http.delete(uri, headers: headers);
+
+    // Verificar el estado de la respuesta
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> responseData = json.decode(response.body);
+      if (responseData['status']) {
+        print('Detalle del pedido eliminado: ${responseData['message']}');
+      } else {
+        print('Error en la respuesta: ${responseData['message']}');
+      }
+    } else {
+      throw Exception('Error al eliminar el detalle del pedido: ${response.statusCode}');
+    }
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+  // Future<List<Detalle_Pedido>> crearDetallePedidoPrueba(int idPedido, List<Producto> productos, BuildContext context) async {
+  //   MySqlConnection? conn;
+  //   List<Detalle_Pedido> detallesPedido = [];
+  //   List<Nota> listaNota = [];
+  //   late  Mozo? mozo = Mozo();
+  //   var bdPedido = PedidoServicio();
+  //
+  //   final dynamic userData = await _sharedPref.read('user_data');
+  //   if (userData != null) {
+  //     final Map<String, dynamic> userDataMap = json.decode(userData);
+  //     mozo = Mozo.fromJson(userDataMap);
+  //   }
+  //
+  //   try {
+  //     conn = await _connectionSQL.getConnection();
+  //     print('Id de pedido creado${idPedido}');
+  //     listaNota = await bdPedido.obtenerListasNota(mozo.id_establecimiento!, context);
+  //
+  //     for (Producto producto in productos) {
+  //       String? comentarioHTML = limpiarPuntoComa(listaNota,producto,'');
+  //
+  //       final results = await conn.query('''
+  //         INSERT INTO pedido_detalles (
+  //           id_pedido,
+  //           id_producto,
+  //           cantidad_producto,
+  //           cantidad_real,
+  //           precio_unitario,
+  //           precio_producto,
+  //           comentario,
+  //           estado_detalle,
+  //           created_at,
+  //           updated_at ) VALUES (
+  //             ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+  //           )
+  //       ''',
+  //           [
+  //             idPedido, // id pedido
+  //             producto.id, // id prodcuto
+  //             producto.stock, // cantidad producto
+  //             producto.stock, // cantidad real
+  //             producto.precioproducto!,
+  //             producto.precioproducto! * producto.stock!, // precio producto
+  //             comentarioHTML,//producto.comentario, // comentario
+  //             1, // estado detalle
+  //             DateTime.now().toUtc(),
+  //             DateTime.now().toUtc()
+  //           ]
+  //       );
+  //
+  //       final pedidoDetalleIdResult = await conn.query(
+  //           'SELECT LAST_INSERT_ID()');
+  //       int pedidoDetalleId = pedidoDetalleIdResult.first[0] as int;
+  //
+  //       print('SERVICIO DE DETALLE DE PEDIDO $pedidoDetalleId');
+  //
+  //       final pedidoDetalleResult = await conn.query(
+  //           'SELECT * FROM pedido_detalles WHERE id_pedido_detalle  = ?',
+  //           [pedidoDetalleId]);
+  //
+  //       if (!pedidoDetalleResult.isEmpty) {
+  //         Detalle_Pedido detallePedido = pedidoDetalleResult
+  //             .map((row) => Detalle_Pedido.fromJson(row.fields))
+  //             .first;
+  //         print('COmentario bd = ${detallePedido.comentario} tipo: ${detallePedido.comentario.runtimeType}');
+  //         detallePedido.comentario = detallePedido.comentario == null ? null : _extraerTextoComentario(detallePedido.comentario);
+  //         detallesPedido.add(detallePedido);
+  //         print('Detalle insertado correctamente para el producto ${producto
+  //             .nombreproducto}');
+  //       } else {
+  //         print('No se pudo insertar el detalle para el producto ${producto
+  //             .nombreproducto}');
+  //       }
+  //     }
+  //
+  //     detallesPedido.forEach((element) {
+  //       print('Los cbdl ${element.comentario} tipo : ${element.comentario.runtimeType}');
+  //     });
+  //     print('LISTA DE DETALLES DE PEDIDOS AL CREAR ${detallesPedido[0].id_pedido}');
+  //     return detallesPedido;
+  //   } catch (e) {
+  //     print('Error al realizar la consulta: $e');
+  //     return [];
+  //   } finally {
+  //     if (conn != null) {
+  //       await conn.close();
+  //     }
+  //   }
+  // }
 
   Future<List<Detalle_Pedido>> eliminarCantidadProductoDetallePedidoImprimir( int? pedidoid,List<Producto> productos,double pedidoTotal, BuildContext context) async {
     MySqlConnection? conn;
@@ -158,6 +247,255 @@ class DetallePedidoServicio {
     }
   }
 
+  // bingo 1
+  // Future<List<Detalle_Pedido>>  actualizarCantidadProductoDetallePedidoPrueba(int? pedidoid, List<Producto> productos, double pedidoTotal, BuildContext context) async {
+  //   MySqlConnection? conn;
+  //   List<Detalle_Pedido> detallesPedido = [];
+  //
+  //   List<Nota> listaNota = [];
+  //   listaNota.clear();
+  //   late  Mozo? mozo = Mozo();
+  //   var bdPedido = PedidoServicio();
+  //
+  //   final dynamic userData = await _sharedPref.read('user_data');
+  //   if (userData != null) {
+  //     final Map<String, dynamic> userDataMap = json.decode(userData);
+  //     mozo = Mozo.fromJson(userDataMap);
+  //   }
+  //
+  //   detallesPedido.clear();
+  //   print('-------------- ID PEDIDO ${pedidoid}');
+  //   print('-------------- PRODUCTOS ${productos}');
+  //   print('-------------- PRECIO TOTAL ${pedidoTotal}');
+  //
+  //   try {
+  //
+  //     conn = await _connectionSQL.getConnection();
+  //     listaNota = await bdPedido.obtenerListasNota();
+  //     final resultst = await conn.query('''
+  //     SELECT * FROM pedido_detalles WHERE id_pedido = ?
+  //     ''', [pedidoid]);
+  //
+  //     // List<Detalle_Pedido> listaBD = resultst.map((row) =>
+  //     //     Detalle_Pedido.fromJson(row.fields)).toList();
+  //
+  //     List<Detalle_Pedido> listaBD = resultst.map((row) {
+  //       Detalle_Pedido detalle = Detalle_Pedido.fromJson(row.fields);
+  //       detalle.comentario = detalle.comentario == null ? null : _extraerTextoComentario(detalle.comentario);
+  //       return detalle;
+  //     }).toList();
+  //
+  //     print('LISTADO OBTENIDO POR LA CONSULTA $listaBD');
+  //
+  //     for (var detalle in listaBD) {
+  //
+  //       print('P-Comentario ${detalle.comentario} Tipo :${detalle.comentario.runtimeType }');
+  //       bool found = false;
+  //       for (var product in productos) {
+  //           if (product.id == detalle.id_producto && product.precioproducto == detalle.precio_unitario && product.stock == detalle.cantidad_producto) {
+  //           found = true;
+  //           break;
+  //         }
+  //       }
+  //
+  //       if (!found) {
+  //         print('ID OBTENIDO PARA ELIMINAR: ${detalle.id_pedido_detalle}');
+  //         await conn.query(
+  //             'DELETE FROM pedido_detalles WHERE id_pedido_detalle = ?',
+  //             [detalle.id_pedido_detalle]);
+  //       }
+  //     }
+  //
+  //     for (final producto in productos) {
+  //       var existingDetail = await conn.query(
+  //           'SELECT id_pedido_detalle, cantidad_producto, comentario FROM pedido_detalles WHERE id_pedido = ? AND id_producto = ? AND precio_unitario = ?',
+  //           [pedidoid, producto.id, producto.precioproducto]);
+  //
+  //       print('LISTA $existingDetail');
+  //
+  //       print('Comentario cero ${producto.comentario} ${producto.comentario.runtimeType}');
+  //
+  //       // producto.comentario = producto.comentario == 'null' ? null : producto.comentario;
+  //       producto.comentario = (producto.comentario == 'null' || producto.comentario?.length == 0) ? null : producto.comentario;
+  //
+  //       print('Comentario inicio ${producto.comentario} ${producto.comentario.runtimeType}');
+  //
+  //       print('Comentario medio ${producto.comentario} ${producto.comentario.runtimeType}');
+  //       // si existingDetail
+  //       if (existingDetail.isEmpty) {
+  //
+  //         String? comentarioHTML = limpiarPuntoComa(listaNota,producto,'');
+  //
+  //         Detalle_Pedido nuevoDetalle = Detalle_Pedido(
+  //           id_pedido: pedidoid,
+  //           id_producto: producto.id,
+  //           cantidad_producto: producto.stock,
+  //           cantidad_real: producto.stock,
+  //           precio_unitario: producto.precioproducto!,
+  //           precio_producto: producto.precioproducto! * producto.stock!,
+  //           comentario: comentarioHTML,
+  //           estado_detalle: 1,
+  //
+  //         );
+  //
+  //         await conn.query(
+  //             'INSERT INTO pedido_detalles (id_pedido, id_producto, cantidad_producto, cantidad_real, precio_unitario,precio_producto, comentario, estado_detalle, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?,?)',
+  //             [
+  //               nuevoDetalle.id_pedido,
+  //               nuevoDetalle.id_producto,
+  //               nuevoDetalle.cantidad_producto,
+  //               nuevoDetalle.cantidad_producto,
+  //               nuevoDetalle.precio_unitario,
+  //               nuevoDetalle.precio_producto,
+  //               nuevoDetalle.comentario,
+  //               nuevoDetalle.estado_detalle,
+  //               DateTime.now().toUtc(),
+  //               DateTime.now().toUtc()
+  //             ]);
+  //         nuevoDetalle.comentario = nuevoDetalle.comentario == null ? null : _extraerTextoComentario(nuevoDetalle.comentario);
+  //         detallesPedido.add(nuevoDetalle);
+  //       } else {
+  //
+  //         var detailRow = existingDetail.first;
+  //         int cantidadProductoExistente = detailRow['cantidad_producto'];
+  //         String? nomComent = _extraerTextoComentario(detailRow['comentario']?.toString());
+  //
+  //         print('nomComent : ${nomComent} ${nomComent.runtimeType} ');
+  //
+  //         int productoRestado = producto.stock! - cantidadProductoExistente;
+  //         print('Cantidad Restado $productoRestado');
+  //         print(' COMENTARIO ACTUALZIADO ${producto.comentario}');
+  //         if(productoRestado < 0 ){
+  //           Detalle_Pedido nuevoDetalle2 = Detalle_Pedido(
+  //             id_pedido: pedidoid,
+  //             id_producto: producto.id,
+  //             cantidad_producto: productoRestado,
+  //             cantidad_real: producto.stock,
+  //             precio_producto: producto.precioproducto,
+  //             comentario: producto.comentario,
+  //             estado_detalle: 1,
+  //           );
+  //           detallesPedido.add(nuevoDetalle2);
+  //         }else if(productoRestado>0){
+  //           Detalle_Pedido nuevoDetalle2 = Detalle_Pedido(
+  //             id_pedido: pedidoid,
+  //             id_producto: producto.id,
+  //             cantidad_producto: productoRestado,
+  //             cantidad_real: producto.stock,
+  //             precio_producto: producto.precioproducto,
+  //             comentario: producto.comentario,
+  //             estado_detalle: 1,
+  //           );
+  //           detallesPedido.add(nuevoDetalle2);
+  //         }else if(nomComent != producto.comentario){
+  //
+  //           print('Comparacion --C');
+  //           print('Com Base : ${nomComent} - ${nomComent.runtimeType}');
+  //           print('Com Sist : ${producto.comentario} - ${producto.comentario.runtimeType}');
+  //
+  //           String? comentarioHTML = limpiarPuntoComa(listaNota,producto,'');
+  //
+  //           Detalle_Pedido nuevoDetalle2 = Detalle_Pedido(
+  //             id_pedido: pedidoid,
+  //             id_producto: producto.id,
+  //             cantidad_producto: producto.stock,
+  //             cantidad_real: producto.stock,
+  //             precio_producto: producto.precioproducto,
+  //             // comentario: producto.comentario,
+  //             comentario: comentarioHTML,
+  //             estado_detalle: 1,
+  //           );
+  //
+  //           nuevoDetalle2.comentario = nuevoDetalle2.comentario == null ? null : _extraerTextoComentario(nuevoDetalle2.comentario);
+  //           detallesPedido.add(nuevoDetalle2);
+  //         }
+  //
+  //         String? comentarioHTML = limpiarPuntoComa(listaNota,producto,'');
+  //
+  //         double precio = producto.precioproducto! * producto.stock!;
+  //         await conn.query(
+  //             'UPDATE pedido_detalles SET cantidad_producto = ?, cantidad_real = ?, precio_producto = ?, comentario = ?, updated_at = ? WHERE id_pedido = ? AND id_producto = ?',
+  //             [
+  //               producto.stock,
+  //               producto.stock,
+  //               precio,
+  //               comentarioHTML,
+  //               DateTime.now().toUtc(),
+  //               pedidoid,
+  //               producto.id
+  //             ]
+  //         );
+  //       }
+  //     }
+  //     await conn.query('UPDATE pedidos SET Monto_total = ?, updated_at= ? WHERE id_pedido = ?',
+  //         [pedidoTotal, DateTime.now().toUtc(),pedidoid]);
+  //     print('LISTA DE INSERTAR AL ACTUALIZAR EL PEDIDO $detallesPedido');
+  //     return detallesPedido;
+  //   }catch (e) {
+  //     print('Error al realizar la consulta: $e');
+  //     return [];
+  //   } finally {
+  //     if (conn != null) {
+  //       await conn.close();
+  //     }
+  //   }
+  // }
+
+  Future<void> eliminarProductoPorItem(int id_pedido_detalle) async {
+    MySqlConnection? conn;
+
+    try {
+      conn = await _connectionSQL.getConnection();
+      await conn.query(
+          'DELETE FROM pedido_detalles WHERE id_pedido_detalle = ?',
+          [id_pedido_detalle]
+      );
+    } catch (e) {
+      print('Error al realizar la eliminación: $e');
+    } finally {
+      if (conn != null) {
+        await conn.close();
+      }
+    }
+  }
+
+  //tp2
+  // Future<void> notaProductoPorItem(String comentario, int id_pedido_detalle, BuildContext context) async {
+  //   MySqlConnection? conn;
+  //   List<Nota> listaNota = [];
+  //   late Mozo? mozo = Mozo();
+  //   var bdPedido = PedidoServicio();
+  //
+  //   final dynamic userData = await _sharedPref.read('user_data');
+  //   if (userData != null) {
+  //     final Map<String, dynamic> userDataMap = json.decode(userData);
+  //     mozo = Mozo.fromJson(userDataMap);
+  //   }
+  //   try {
+  //     listaNota = await bdPedido.obtenerListasNota(mozo.id_establecimiento!, context);
+  //     conn = await _connectionSQL.getConnection();
+  //     // String? nomComent = _extraerTextoComentario(comentario..toString());
+  //     print('COMENTARIO LLEGADA 1${comentario}');
+  //     String? formaComent = limpiarPuntoComa(listaNota, Producto() , comentario);
+  //
+  //     await conn.query(
+  //         'UPDATE pedido_detalles SET comentario = ?, updated_at = ? WHERE id_pedido_detalle = ?',
+  //         [
+  //           formaComent,
+  //           DateTime.now().toUtc(),
+  //           id_pedido_detalle
+  //         ]
+  //     );
+  //   } catch (e) {
+  //     print('Error al realizar la eliminación: $e');
+  //   } finally {
+  //     if (conn != null) {
+  //       await conn.close();
+  //     }
+  //   }
+  // }
+
+  // tp5
   Future<void> actualizarAgregarProductoDetallePedidoItem(int? pedidoid, double pedidoTotal, BuildContext context) async {
 
     MySqlConnection? conn;
@@ -174,471 +512,76 @@ class DetallePedidoServicio {
     }
   }
 
-  Future<Detalle_Pedido> AgregarProductoDetallePedidoItem(int? pedidoid, Producto producto, BuildContext context) async {
-    MySqlConnection? conn;
-    Detalle_Pedido detallePedidocreado = Detalle_Pedido();
-    List<Nota> listaNota = [];
-    late Mozo? mozo = Mozo();
-    var bdPedido = PedidoServicio();
-
-    final dynamic userData = await _sharedPref.read('user_data');
-    if (userData != null) {
-      final Map<String, dynamic> userDataMap = json.decode(userData);
-      mozo = Mozo.fromJson(userDataMap);
-    }
-    try {
-      conn = await _connectionSQL.getConnection();
-
-      // Obtener lista de notas
-      listaNota =
-      await bdPedido.obtenerListasNota(mozo.id_establecimiento!, context);
-
-
-      await conn.query(
-        'INSERT INTO pedido_detalles (id_pedido, id_producto, cantidad_producto, cantidad_real, precio_unitario, precio_producto, comentario, estado_detalle, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [
-          pedidoid, // id pedido
-          producto.id, // id prodcuto
-          producto.stock, // cantidad producto
-          producto.stock, // cantidad real
-          producto.precioproducto!,
-          producto.precioproducto! * producto.stock!, // precio producto
-          producto.comentario, //producto.comentario, // comentario
-          1, // estado detalle
-          DateTime.now().toUtc(),
-          DateTime.now().toUtc()
-        ],
-      );
-
-      final pedidoDetalleIdResult = await conn.query('SELECT LAST_INSERT_ID()');
-      int pedidoDetalleId = pedidoDetalleIdResult.first[0] as int;
-
-      final pedidoDetalleResult = await conn.query(
-          'SELECT * FROM pedido_detalles WHERE id_pedido_detalle  = ?',
-          [pedidoDetalleId]);
-
-      if (!pedidoDetalleResult.isEmpty) {
-        Detalle_Pedido detallePedido = pedidoDetalleResult
-            .map((row) => Detalle_Pedido.fromJson(row.fields))
-            .first;
-        print('COmentario bd = ${detallePedido.comentario} tipo: ${detallePedido
-            .comentario.runtimeType}');
-        detallePedido.comentario =
-        detallePedido.comentario == null ? null : _extraerTextoComentario(
-            detallePedido.comentario);
-        print('Detalle insertado correctamente para el producto ${producto
-            .nombreproducto}');
-        detallePedidocreado = detallePedido;
-      } else {
-        print('No se pudo insertar el detalle para el producto ${producto
-            .nombreproducto}');
-      }
-
-      return detallePedidocreado;
-    } catch (e) {
-      print('Error al realizar la consulta: $e');
-      return detallePedidocreado;
-    } finally {
-      if (conn != null) {
-        await conn.close();
-      }
-    }
-  }
-
-  // bingo 1
-  Future<List<Detalle_Pedido>>  actualizarCantidadProductoDetallePedidoPrueba(int? pedidoid, List<Producto> productos, double pedidoTotal, BuildContext context) async {
-    MySqlConnection? conn;
-    List<Detalle_Pedido> detallesPedido = [];
-
-    List<Nota> listaNota = [];
-    listaNota.clear();
-    late  Mozo? mozo = Mozo();
-    var bdPedido = PedidoServicio();
-
-    final dynamic userData = await _sharedPref.read('user_data');
-    if (userData != null) {
-      final Map<String, dynamic> userDataMap = json.decode(userData);
-      mozo = Mozo.fromJson(userDataMap);
-    }
-
-    detallesPedido.clear();
-    print('-------------- ID PEDIDO ${pedidoid}');
-    print('-------------- PRODUCTOS ${productos}');
-    print('-------------- PRECIO TOTAL ${pedidoTotal}');
-
-    try {
-
-      conn = await _connectionSQL.getConnection();
-      listaNota = await bdPedido.obtenerListasNota(mozo.id_establecimiento!, context);
-      final resultst = await conn.query('''
-      SELECT * FROM pedido_detalles WHERE id_pedido = ?
-      ''', [pedidoid]);
-
-      // List<Detalle_Pedido> listaBD = resultst.map((row) =>
-      //     Detalle_Pedido.fromJson(row.fields)).toList();
-
-      List<Detalle_Pedido> listaBD = resultst.map((row) {
-        Detalle_Pedido detalle = Detalle_Pedido.fromJson(row.fields);
-        detalle.comentario = detalle.comentario == null ? null : _extraerTextoComentario(detalle.comentario);
-        return detalle;
-      }).toList();
-
-      print('LISTADO OBTENIDO POR LA CONSULTA $listaBD');
-
-      for (var detalle in listaBD) {
-
-        print('P-Comentario ${detalle.comentario} Tipo :${detalle.comentario.runtimeType }');
-        bool found = false;
-        for (var product in productos) {
-          if (product.id == detalle.id_producto) {
-            found = true;
-            break;
-          }
-        }
-
-        if (!found) {
-          print('ID OBTENIDO PARA ELIMINAR: ${detalle.id_pedido_detalle}');
-          await conn.query(
-              'DELETE FROM pedido_detalles WHERE id_pedido_detalle = ?',
-              [detalle.id_pedido_detalle]);
-        }
-      }
-
-      for (final producto in productos) {
-        var existingDetail = await conn.query(
-            'SELECT id_pedido_detalle, cantidad_producto, comentario FROM pedido_detalles WHERE id_pedido = ? AND id_producto = ?',
-            [pedidoid, producto.id]);
-
-        print('LISTA $existingDetail');
-
-        print('Comentario cero ${producto.comentario} ${producto.comentario.runtimeType}');
-
-        // producto.comentario = producto.comentario == 'null' ? null : producto.comentario;
-        producto.comentario = (producto.comentario == 'null' || producto.comentario?.length == 0) ? null : producto.comentario;
-
-        print('Comentario inicio ${producto.comentario} ${producto.comentario.runtimeType}');
-        // if (producto.comentario?.length == ''){
-        //   producto.comentario = null;
-        // }
-        print('Comentario medio ${producto.comentario} ${producto.comentario.runtimeType}');
-        // si existingDetail
-        if (existingDetail.isEmpty) {
-
-          //---------------------------
-          // List<String> partesComentario = [];
-          // if (producto.comentario != null && producto.comentario!.isNotEmpty) {
-          //   partesComentario = producto.comentario!.split(';');
-          // }
-          //
-          // print('Los Dactualizar--> ${producto.comentario} tipo : ${producto.comentario.runtimeType}');
-
-          String? comentarioHTML = limpiarPuntoComa(listaNota,producto);
-          // if (partesComentario.isNotEmpty) {
-          //   comentarioHTML = partesComentario.map((parte) {
-          //     return '<span class="badge badge-pill badge-danger" id="texto-comentario-${listaNota.firstWhere((element) => element.descripcion_nota == parte.trim()).id_nota}">${parte.trim()}</span>';
-          //   }).join('');
-          // }
-          //
-          // if (comentarioHTML.isEmpty) {
-          //   comentarioHTML = null;
-          // }
-          //---------------------------
-
-          Detalle_Pedido nuevoDetalle = Detalle_Pedido(
-            id_pedido: pedidoid,
-            id_producto: producto.id,
-            cantidad_producto: producto.stock,
-            cantidad_real: producto.stock,
-            precio_unitario: producto.precioproducto!,
-            precio_producto: producto.precioproducto! * producto.stock!,
-            comentario: comentarioHTML,
-            estado_detalle: 1,
-
-          );
-
-          await conn.query(
-              'INSERT INTO pedido_detalles (id_pedido, id_producto, cantidad_producto, cantidad_real, precio_unitario,precio_producto, comentario, estado_detalle, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?,?)',
-              [
-                nuevoDetalle.id_pedido,
-                nuevoDetalle.id_producto,
-                nuevoDetalle.cantidad_producto,
-                nuevoDetalle.cantidad_producto,
-                nuevoDetalle.precio_unitario,
-                nuevoDetalle.precio_producto,
-                nuevoDetalle.comentario,
-                nuevoDetalle.estado_detalle,
-                DateTime.now().toUtc(),
-                DateTime.now().toUtc()
-              ]);
-          nuevoDetalle.comentario = nuevoDetalle.comentario == null ? null : _extraerTextoComentario(nuevoDetalle.comentario);
-          detallesPedido.add(nuevoDetalle);
-        } else {
-
-          var detailRow = existingDetail.first;
-          int cantidadProductoExistente = detailRow['cantidad_producto'];
-          String? nomComent = _extraerTextoComentario(detailRow['comentario']?.toString());
-
-          print('nomComent : ${nomComent} ${nomComent.runtimeType} ');
-
-          int productoRestado = producto.stock! - cantidadProductoExistente;
-          print('Cantidad Restado $productoRestado');
-          print(' COMENTARIO ACTUALZIADO ${producto.comentario}');
-          if(productoRestado < 0 ){
-            Detalle_Pedido nuevoDetalle2 = Detalle_Pedido(
-              id_pedido: pedidoid,
-              id_producto: producto.id,
-              cantidad_producto: productoRestado,
-              cantidad_real: producto.stock,
-              precio_producto: producto.precioproducto,
-              comentario: producto.comentario,
-              estado_detalle: 1,
-            );
-            detallesPedido.add(nuevoDetalle2);
-          }else if(productoRestado>0){
-            Detalle_Pedido nuevoDetalle2 = Detalle_Pedido(
-              id_pedido: pedidoid,
-              id_producto: producto.id,
-              cantidad_producto: productoRestado,
-              cantidad_real: producto.stock,
-              precio_producto: producto.precioproducto,
-              comentario: producto.comentario,
-              estado_detalle: 1,
-            );
-            detallesPedido.add(nuevoDetalle2);
-          }else if(nomComent != producto.comentario){
-
-            print('Comparacion --C');
-            print('Com Base : ${nomComent} - ${nomComent.runtimeType}');
-            print('Com Sist : ${producto.comentario} - ${producto.comentario.runtimeType}');
-
-            String? comentarioHTML = limpiarPuntoComa(listaNota,producto);
-
-            Detalle_Pedido nuevoDetalle2 = Detalle_Pedido(
-              id_pedido: pedidoid,
-              id_producto: producto.id,
-              cantidad_producto: producto.stock,
-              cantidad_real: producto.stock,
-              precio_producto: producto.precioproducto,
-              // comentario: producto.comentario,
-              comentario: comentarioHTML,
-              estado_detalle: 1,
-            );
-
-            nuevoDetalle2.comentario = nuevoDetalle2.comentario == null ? null : _extraerTextoComentario(nuevoDetalle2.comentario);
-            detallesPedido.add(nuevoDetalle2);
-          }
-
-          String? comentarioHTML = limpiarPuntoComa(listaNota,producto);
-
-          double precio = producto.precioproducto! * producto.stock!;
-          await conn.query(
-              'UPDATE pedido_detalles SET cantidad_producto = ?, cantidad_real = ?, precio_producto = ?, comentario = ?, updated_at = ? WHERE id_pedido = ? AND id_producto = ?',
-              [
-                producto.stock,
-                producto.stock,
-                precio,
-                comentarioHTML,
-                DateTime.now().toUtc(),
-                pedidoid,
-                producto.id
-              ]
-          );
-        }
-      }
-      await conn.query('UPDATE pedidos SET Monto_total = ?, updated_at= ? WHERE id_pedido = ?',
-          [pedidoTotal, DateTime.now().toUtc(),pedidoid]);
-      print('LISTA DE INSERTAR AL ACTUALIZAR EL PEDIDO $detallesPedido');
-      return detallesPedido;
-    }catch (e) {
-      print('Error al realizar la consulta: $e');
-      return [];
-    } finally {
-      if (conn != null) {
-        await conn.close();
-      }
-    }
-  }
-
-  Future<void> eliminarProductoPorItem(int id_pedido_detalle) async {
-    MySqlConnection? conn;
-    try {
-      conn = await _connectionSQL.getConnection();
-      await conn.query(
-          'DELETE FROM pedido_detalles WHERE id_pedido_detalle = ?',
-          [id_pedido_detalle]
-      );
-    } catch (e) {
-      print('Error al realizar la eliminación: $e');
-    } finally {
-      if (conn != null) {
-        await conn.close();
-      }
-    }
-  }
-
-
-
-  Future<void> notaProductoPorItem(String comentario, int id_pedido_detalle, BuildContext context) async {
-    MySqlConnection? conn;
-    List<Nota> listaNota = [];
-    late Mozo? mozo = Mozo();
-    var bdPedido = PedidoServicio();
-
-    final dynamic userData = await _sharedPref.read('user_data');
-    if (userData != null) {
-      final Map<String, dynamic> userDataMap = json.decode(userData);
-      mozo = Mozo.fromJson(userDataMap);
-    }
-    try {
-      listaNota = await bdPedido.obtenerListasNota(mozo.id_establecimiento!, context);
-      conn = await _connectionSQL.getConnection();
-      // String? nomComent = _extraerTextoComentario(comentario..toString());
-      print('COMENTARIO LLEGADA 1${comentario}');
-      String? formaComent = limpiarPuntoComaxItems(listaNota, Producto() , comentario);
-
-      await conn.query(
-          'UPDATE pedido_detalles SET comentario = ?, updated_at = ? WHERE id_pedido_detalle = ?',
-          [
-            formaComent,
-            DateTime.now().toUtc(),
-            id_pedido_detalle
-          ]
-      );
-    } catch (e) {
-      print('Error al realizar la eliminación: $e');
-    } finally {
-      if (conn != null) {
-        await conn.close();
-      }
-    }
-  }
-
-  // tp5
-  Future<List<Detalle_Pedido>> actualizarCantidadProductoDetallePedidoItem(int? pedidoid, List<Producto> productos, double pedidoTotal, BuildContext context) async {
-
-    MySqlConnection? conn;
-    List<Detalle_Pedido> detallesPedido = [];
-    List<Nota> listaNota = [];
-    late Mozo? mozo = Mozo();
-    var bdPedido = PedidoServicio();
-
-    final dynamic userData = await _sharedPref.read('user_data');
-    if (userData != null) {
-      final Map<String, dynamic> userDataMap = json.decode(userData);
-      mozo = Mozo.fromJson(userDataMap);
-    }
-    detallesPedido.clear();
-    try {
-      conn = await _connectionSQL.getConnection();
-
-      // Obtener lista de notas
-      listaNota = await bdPedido.obtenerListasNota(mozo.id_establecimiento!, context);
-
-      final resultst = await conn.query('''
-    SELECT * FROM pedido_detalles WHERE id_pedido = ?
-    ''', [pedidoid]);
-
-      List<Detalle_Pedido> listaBD = resultst.map((row) {
-        Detalle_Pedido detalle = Detalle_Pedido.fromJson(row.fields);
-        detalle.comentario = detalle.comentario == null ? null : _extraerTextoComentario(detalle.comentario);
-        return detalle;
-      }).toList();
-
-      // Crear un mapa de productos de la base de datos
-      Map<int, int> bdProductCounts = {};
-      for (var detalle in listaBD) {
-        bdProductCounts[detalle.id_producto ?? 0] = (bdProductCounts[detalle.id_producto ?? 0] ?? 0) + (detalle.cantidad_producto ?? 0);
-      }
-
-      // Crear un mapa de productos de la lista que se pasa
-      Map<int, int> incomingProductCounts = {};
-      for (var producto in productos) {
-        incomingProductCounts[producto.id ?? 0] = (incomingProductCounts[producto.id ?? 0] ?? 0) + (producto.stock ?? 0);
-      }
-
-      // Verificar y actualizar detalles de pedido existentes o agregar nuevos
-      for (final producto in productos) {
-        producto.comentario = (producto.comentario == 'null' || producto.comentario?.length == 0) ? null : producto.comentario;
-
-        int bdCount = bdProductCounts[producto.id ?? 0] ?? 0;
-        int incomingCount = incomingProductCounts[producto.id ?? 0] ?? 0;
-
-        // Insertar productos adicionales si la cantidad en la lista es mayor que en la base de datos
-        int additionalCount = incomingCount - bdCount;
-        while (additionalCount > 0) {
-          print('productos por agregar: ${additionalCount}');
-
-          String? comentarioHTML = limpiarPuntoComa(listaNota, producto);
-          Detalle_Pedido nuevoDetalle = Detalle_Pedido(
-            id_pedido: pedidoid,
-            id_producto: producto.id,
-            cantidad_producto: 1, // Insertar uno a uno
-            cantidad_real: 1, // Insertar uno a uno
-            precio_unitario: producto.precioproducto!,
-            precio_producto: producto.precioproducto!,
-            comentario: comentarioHTML,
-            estado_detalle: 1,
-          );
-
-          nuevoDetalle.comentario = comentarioHTML == null ? null : _extraerTextoComentario(nuevoDetalle.comentario);
-
-          await conn.query(
-            'INSERT INTO pedido_detalles (id_pedido, id_producto, cantidad_producto, cantidad_real, precio_unitario, precio_producto, comentario, estado_detalle, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-            [
-              nuevoDetalle.id_pedido,
-              nuevoDetalle.id_producto,
-              nuevoDetalle.cantidad_producto,
-              nuevoDetalle.cantidad_real,
-              nuevoDetalle.precio_unitario,
-              nuevoDetalle.precio_producto,
-              nuevoDetalle.comentario,
-              nuevoDetalle.estado_detalle,
-              DateTime.now().toUtc(),
-              DateTime.now().toUtc()
-            ],
-          );
-
-          // Actualiza el mapa y la cantidad adicional
-          bdProductCounts[producto.id ?? 0] = (bdProductCounts[producto.id ?? 0] ?? 0) + 1;
-          additionalCount--;
-          detallesPedido.add(nuevoDetalle);
-        }
-
-        // Actualizar comentarios si es necesario
-        for (var detalle in listaBD) {
-          String? nomComent = _extraerTextoComentario(detalle.comentario?.toString());
-
-          if (producto.id == detalle.id_producto && producto.precioproducto == detalle.precio_unitario) {
-            if (nomComent != producto.comentario) {
-              String? comentarioHTML = limpiarPuntoComa(listaNota, producto);
-
-              await conn.query(
-                'UPDATE pedido_detalles SET comentario = ?, updated_at = ? WHERE id_pedido_detalle = ?',
-                [
-                  comentarioHTML,
-                  DateTime.now().toUtc(),
-                  detalle.id_pedido_detalle
-                ],
-              );
-
-              detalle.comentario = comentarioHTML;
-            }
-          }
-        }
-      }
-
-      await conn.query('UPDATE pedidos SET Monto_total = ?, updated_at = ? WHERE id_pedido = ?', [pedidoTotal, DateTime.now().toUtc(), pedidoid]);
-
-      return detallesPedido;
-    } catch (e) {
-      print('Error al realizar la consulta: $e');
-      return [];
-    } finally {
-      if (conn != null) {
-        await conn.close();
-      }
-    }
-  }
+  // Future<Detalle_Pedido> AgregarProductoDetallePedidoItem(int? pedidoid, Producto producto, BuildContext context) async {
+  //   MySqlConnection? conn;
+  //   Detalle_Pedido detallePedidocreado = Detalle_Pedido();
+  //   List<Nota> listaNota = [];
+  //   late Mozo? mozo = Mozo();
+  //   var bdPedido = PedidoServicio();
+  //
+  //   final dynamic userData = await _sharedPref.read('user_data');
+  //   if (userData != null) {
+  //     final Map<String, dynamic> userDataMap = json.decode(userData);
+  //     mozo = Mozo.fromJson(userDataMap);
+  //   }
+  //   try {
+  //     conn = await _connectionSQL.getConnection();
+  //
+  //     // Obtener lista de notas
+  //     listaNota =
+  //     await bdPedido.obtenerListasNota(mozo.id_establecimiento!, context);
+  //
+  //
+  //     await conn.query(
+  //       'INSERT INTO pedido_detalles (id_pedido, id_producto, cantidad_producto, cantidad_real, precio_unitario, precio_producto, comentario, estado_detalle, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+  //       [
+  //         pedidoid, // id pedido
+  //         producto.id, // id prodcuto
+  //         producto.stock, // cantidad producto
+  //         producto.stock, // cantidad real
+  //         producto.precioproducto!,
+  //         producto.precioproducto! * producto.stock!, // precio producto
+  //         producto.comentario, //producto.comentario, // comentario
+  //         1, // estado detalle
+  //         DateTime.now().toUtc(),
+  //         DateTime.now().toUtc()
+  //       ],
+  //     );
+  //
+  //     final pedidoDetalleIdResult = await conn.query('SELECT LAST_INSERT_ID()');
+  //     int pedidoDetalleId = pedidoDetalleIdResult.first[0] as int;
+  //
+  //     final pedidoDetalleResult = await conn.query(
+  //         'SELECT * FROM pedido_detalles WHERE id_pedido_detalle  = ?',
+  //         [pedidoDetalleId]);
+  //
+  //     if (!pedidoDetalleResult.isEmpty) {
+  //       Detalle_Pedido detallePedido = pedidoDetalleResult
+  //           .map((row) => Detalle_Pedido.fromJson(row.fields))
+  //           .first;
+  //       print('COmentario bd = ${detallePedido.comentario} tipo: ${detallePedido
+  //           .comentario.runtimeType}');
+  //       detallePedido.comentario =
+  //       detallePedido.comentario == null ? null : _extraerTextoComentario(
+  //           detallePedido.comentario);
+  //       print('Detalle insertado correctamente para el producto ${producto
+  //           .nombreproducto}');
+  //       detallePedidocreado = detallePedido;
+  //     } else {
+  //       print('No se pudo insertar el detalle para el producto ${producto
+  //           .nombreproducto}');
+  //     }
+  //
+  //     return detallePedidocreado;
+  //   } catch (e) {
+  //     print('Error al realizar la consulta: $e');
+  //     return detallePedidocreado;
+  //   } finally {
+  //     if (conn != null) {
+  //       await conn.close();
+  //     }
+  //   }
+  // }
 
 
   Future<int> consultaObtenerDetallePedido(int? idMesa,  BuildContext context) async {
@@ -720,27 +663,7 @@ class DetallePedidoServicio {
     return textoLimpio;
   }
 
-  String? limpiarPuntoComa(List<Nota> listaNota, Producto producto){
-    List<String> partesComentario = [];
-    if (producto.comentario != null && producto.comentario!.isNotEmpty) {
-      partesComentario = producto.comentario!.split(';');
-
-      print('Los Dactualizar--> ${producto.comentario} tipo : ${producto.comentario.runtimeType}');
-
-      String? comentarioHTML = '';
-      if (partesComentario.isNotEmpty) {
-        comentarioHTML = partesComentario.map((parte) {
-          return '<span class="badge badge-pill badge-danger" id="texto-comentario-${listaNota.firstWhere((element) => element.descripcion_nota == parte.trim()).id_nota}">${parte.trim()}</span>';
-        }).join('');
-      }
-      return comentarioHTML;
-    }
-    return null;
-  }
-
-
-
-  String? limpiarPuntoComaxItems(List<Nota> listaNota, Producto producto, String comentariol){
+  String? limpiarPuntoComa(List<Nota> listaNota, Producto producto, String comentariol){
     List<String> partesComentario = [];
     if (producto.comentario != null && producto.comentario!.isNotEmpty) {
       partesComentario = producto.comentario!.split(';');
@@ -761,6 +684,4 @@ class DetallePedidoServicio {
 
     return comentarioHTML;
   }
-
-
 }

@@ -4,21 +4,93 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bcrypt/flutter_bcrypt.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:mysql1/mysql1.dart';
-import 'package:password_hash_plus/password_hash_plus.dart';
 import 'package:restauflutter/bd/conexion.dart';
 import 'package:restauflutter/model/mozo.dart';
-import 'package:restauflutter/model/piso.dart';
+import 'package:http/http.dart' as http;
 import 'package:restauflutter/services/piso_service.dart';
 import 'package:restauflutter/services/producto_service.dart';
 import 'package:restauflutter/utils/shared_pref.dart';
 
+import '../bd/api.dart';
+import '../model/usuario.dart';
+
 class LoginService {
   final SharedPref _sharedPreferences = SharedPref();
   final Connection _connectionSQL = Connection();
-  var generator = PBKDF2();
   var prod = ProductoServicio();
   var pisos = PisoServicio();
-  Mozo mozo = Mozo();
+  Usuario usuarioShared = Usuario();
+  Api _apiRuta = Api();
+  final String _api = '/api/auth';
+
+
+  Future<Usuario?> login(String email, String password, BuildContext context) async{
+    String _url =  await _apiRuta.readApi();
+
+    try {
+      Uri url = Uri.https(_url, '$_api/login');
+      String bodiParams = json.encode({
+        'email': email,
+        'password': password
+      });
+      Map<String, String> headers = {
+        'Content-type': 'application/json'
+      };
+      final res = await http.post(url, headers: headers, body: bodiParams);
+      if (res.statusCode == 200) {
+        final data = json.decode(res.body);
+        Usuario usuario = Usuario.fromJson(data); // Accede a la parte 'user' del JSON
+        print('${usuario.toJson()}');
+        final userData = json.encode(data);
+        _sharedPreferences.save('user_data', userData);
+        Fluttertoast.showToast(
+          msg: "Inicio de sesión exitoso.",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.CENTER,
+          timeInSecForIosWeb: 1,
+          backgroundColor: Colors.green,
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
+        final dynamic userDataShared = await _sharedPreferences.read('user_data');
+        if (userDataShared != null) {
+          final Map<String, dynamic> userDataMap = json.decode(userData);
+          usuarioShared = Usuario.fromJson(userDataMap);
+        }
+        await prod.consultarCategorias(usuarioShared.accessToken);
+        await prod.consultarProductos(usuarioShared.accessToken);
+        Navigator.pushNamedAndRemoveUntil(context, 'home', (route) => false);
+        return usuario;
+      } else if (res.statusCode == 401) {
+        Fluttertoast.showToast(
+          msg: "Usuario Incorrecto",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.CENTER,
+          timeInSecForIosWeb: 1,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
+        return null; // O maneja el error de alguna otra manera
+      } else {
+        print('Error: ${res.statusCode}');
+        return null;
+      }
+    }catch(e){
+      Fluttertoast.showToast(
+        msg: "No se detecta la URL ingresada",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.CENTER,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+      return null;
+    }
+  }
+
+
   Future<bool> consultarUsuarios(String email, String password,
       BuildContext context) async {
     MySqlConnection? conn;
@@ -99,20 +171,19 @@ class LoginService {
             print('Json entorno : ${jsonEntornoData}');
             _sharedPreferences.save('entorno_data', jsonEntornoData);
 
-            final dynamic userData = await _sharedPreferences.read('user_data');
+            //final dynamic userData = await _sharedPreferences.read('user_data');
             // final dynamic entornoDatar = await _sharedPreferences.read('entorno_data');
             //
             // final Map<String, dynamic> entornoDataMap = json.decode(entornoDatar);
             // final entornor = entornoDataMap['entorno'];
             // print('Entorno wazaaaa: $entornor');
 
-            if (userData != null) {
-              final Map<String, dynamic> userDataMap = json.decode(userData);
-              mozo = Mozo.fromJson(userDataMap);
-            }
-            await prod.consultarCategorias(context, mozo.id_establecimiento!);
-            await prod.consultarProductos(context, mozo.id_establecimiento!);
-            print('DATA OBTENIDO ${mozo.nombre_usuario}');
+            // if (userData != null) {
+            //   final Map<String, dynamic> userDataMap = json.decode(userData);
+            //   usuario = Usuario.fromJson(userDataMap);
+            // }
+            // await prod.consultarCategorias(usuario.accessToken);
+            //await prod.consultarProductos(context, mozo.id_establecimiento!);
             Navigator.pushNamedAndRemoveUntil(
                 context, 'home', (route) => false);
             return true;

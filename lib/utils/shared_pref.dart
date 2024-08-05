@@ -8,7 +8,7 @@ import 'dart:convert';
 
 class SharedPref {
 
-  void save (String key,  value) async {
+  Future<void>  save (String key,  value) async {
     final prefs = await SharedPreferences.getInstance();
     prefs.setString(key, json.encode(value));
   }

@@ -1,7 +1,5 @@
 
 
-import 'dart:convert';
-import 'dart:typed_data';
 
 class Detalle_Pedido {
   int? id_pedido_detalle;
@@ -33,7 +31,7 @@ class Detalle_Pedido {
   });
 
   factory Detalle_Pedido.fromJson(Map<String, dynamic> json) => Detalle_Pedido(
-    id_pedido_detalle: json["id_pedido_detalle"],
+    id_pedido_detalle: json["id_detalle"],
     id_pedido: json["id_pedido"],
     id_producto: json["id_producto"],
     cantidad_producto: json["cantidad_producto"],
@@ -45,12 +43,11 @@ class Detalle_Pedido {
     comentario: json["comentario"].toString(),
     estado_detalle: json["estado_detalle"],
     updated_at: json["updated_at"],
-
   );
 
 
   Map<String, dynamic> toJson() => {
-    "id_pedido_detalle": id_pedido_detalle,
+    "id_detalle": id_pedido_detalle,
     "id_pedido": id_pedido,
     "id_producto": id_producto,
     "cantidad_producto": cantidad_producto,

@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:mysql1/mysql1.dart';
 import 'package:restauflutter/bd/conexion.dart';
 import 'package:restauflutter/home/home_page.dart';
@@ -6,12 +9,100 @@ import 'package:restauflutter/model/detalle_pedido.dart';
 import 'package:restauflutter/model/mozo.dart';
 import 'package:restauflutter/model/nota.dart';
 import 'package:restauflutter/model/pedido.dart';
-import 'package:restauflutter/utils/shared_pref.dart';
 
-import '../model/pedido.dart';
+import '../model/PedidoResponse.dart';
+import 'package:http/http.dart' as http;
 
 class PedidoServicio {
   final Connection _connectionSQL = Connection();
+  final String _url = 'chifalingling.restaupe.com';
+  final String _api = '/api/auth';
+
+  Future<PedidoResponse?> registrarPedido(Map<String, dynamic> pedidoData, String? accessToken) async {
+    print('Datos del pedido enviados ->: ${json.encode(pedidoData)}');
+
+    final url = Uri.parse('https://chifalingling.restaupe.com/api/auth/registrarPedido');
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json',
+      'Authorization': 'Bearer $accessToken'
+        },
+        body: json.encode(pedidoData),
+      );
+
+      print('Código de respuesta: ${response.statusCode}');
+      print('Respuesta del servidor: ${response.body}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        agregarMsj('Pedido registrado exitosamente');
+        final responseData = json.decode(response.body);
+        return PedidoResponse.fromJson(responseData);
+      } else {
+        mostrarMensaje('Error al registrar el pedido: ${response.body}');
+      }
+    } catch (e) {
+      print('Error en la solicitud: $e');
+      mostrarMensaje('Error al registrar el pedido: $e');
+    }
+    return null;
+  }
+  void agregarMsj(String mensaje){
+    Fluttertoast.showToast(
+        msg: mensaje,
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.TOP,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.green,
+        textColor: Colors.white,
+        fontSize: 16.0
+    );
+  }
+
+  void mostrarMensaje(String mensaje) {
+    Fluttertoast.showToast(
+      msg: mensaje,
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+      timeInSecForIosWeb: 1,
+      backgroundColor: Colors.red,
+      textColor: Colors.white,
+      fontSize: 16.0,
+    );
+  }
+
+
+
+  Future<List<Nota>> obtenerListasNota(String? accessToken) async {
+    Uri url = Uri.https(_url, '$_api/notas');
+    Map<String, String> headers = {
+      'Content-type': 'application/json',
+      'Authorization': 'Bearer $accessToken'
+    };
+
+    final res = await http.get(url, headers: headers);
+
+    if (res.statusCode == 200) {
+      Map<String, dynamic> jsonResponse = json.decode(res.body);
+
+      // Extraer la lista de datos
+      List<dynamic> data = jsonResponse['data'];
+      // Convertir la lista de datos a una lista de objetos Nota
+      List<Nota> notas = Nota.fromJsonList(data);
+
+      print('OBTENER NOTAS: ${notas.map((nota) => nota.toJson()).toList()}');
+      return notas;
+    } else {
+      throw Exception('Failed to load notas');
+    }
+  }
+
+
+
+
+
+
+
 
   Future<int?> consultarMesasDisponibilidad( int? idUsuario, int? idMesa ,BuildContext context) async {
     MySqlConnection? conn;
@@ -221,30 +312,6 @@ class PedidoServicio {
 
 
 
-  Future<List<Nota>> obtenerListasNota(int idEstablecimiento,BuildContext context) async {
-    MySqlConnection? conn;
-    try {
-      conn = await _connectionSQL.getConnection();
-
-      const query = 'SELECT * FROM notas where id_establecimiento = ? ';
-      final results = await conn.query(query,[idEstablecimiento] );
-      if (results.isEmpty) {
-        print('No se encontraron datos en las tablas.');
-        return [];
-      } else {
-        List<Nota> listaNota = results.map((row) => Nota.fromJson(row.fields)).toList();
-        print('ID del pedido recuperado: $listaNota');
-        return listaNota;
-      }
-    } catch (e) {
-      print('Error al realizar la consulta: $e');
-      return [];
-    } finally {
-      if (conn != null) {
-        await conn.close();
-      }
-    }
-  }
 
   String? _extraerTextoComentario(String? comentarioHtml) {
     if (comentarioHtml == null) {

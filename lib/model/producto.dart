@@ -11,13 +11,16 @@ class     Producto {
   int? idPedido;
   int? id_pedido_detalle;
   int? id;
+  int? codigo;
   String? nombreproducto;
   String? foto;
   double? precioproducto;
   int? stock;
   String? codigo_interno;
   int? categoria_id;
+  int? establecimiento_id;
   String? comentario;
+  int? estado;
   List<Producto> productos = [];
 
 
@@ -26,15 +29,16 @@ class     Producto {
     this.idPedido,
     this.id_pedido_detalle,
     this.id,
+    this.codigo,
     this.nombreproducto,
     this.foto,
     this.precioproducto,
     this.stock,
     this.codigo_interno,
     this.categoria_id,
-    this.comentario
-
-
+    this.establecimiento_id,
+    this.comentario,
+    this.estado
   });
 
   @override
@@ -65,11 +69,13 @@ class     Producto {
     nombreproducto: json["nombreproducto"],
     foto: json["foto"],
     stock: json["stock"],
+    codigo: json["codigo"],
     categoria_id: json["categoria_id"],
     codigo_interno: json["codigo_interno"],
     precioproducto: double.tryParse(json["precioproducto"]?.toString() ?? "0.0"),
+    establecimiento_id: json["establecimiento_id"],
     comentario: json["comentario"],
-
+    estado: json["estado"]
   );
   Producto.fromJsonList(List<dynamic> jsonList) {
     try {
@@ -85,12 +91,15 @@ class     Producto {
     "idPedido": idPedido,
     "id_pedido_detalle": id_pedido_detalle,
     "id": id,
+    "codigo": codigo,
     "nombreproducto": nombreproducto,
     "foto": foto,
     "precioproducto": precioproducto,
     "stock": stock,
     "codigo_interno": codigo_interno,
     "categoria_id": categoria_id,
-    "comentario": comentario
+    "establecimiento_id": establecimiento_id,
+    "comentario": comentario,
+    "estado": estado
   };
 }

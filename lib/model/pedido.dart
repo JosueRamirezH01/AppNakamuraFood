@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'detalle_pedido.dart';
+
 Pedido responseApiFromJson(String str) => Pedido.fromJson(json.decode(str));
 String responseApiToJson(Pedido data) => json.encode(data.toJson());
 
@@ -14,13 +16,14 @@ class Pedido {
   int? idSeriePedido;
   int? correlativoPedido;
   double? montoTotal;
-  DateTime? fechaPedido;
+  String? fechaPedido;
   int? estadoPedido;
   String? motivo;
   String? anuladoPor;
   String? nombreCliente;
   DateTime? created_at;
   DateTime? updated_at;
+  List<Detalle_Pedido>? detalle = [];
 
   Pedido({
     this.idPedido,
@@ -39,7 +42,8 @@ class Pedido {
     this.anuladoPor,
     this.nombreCliente,
     this.created_at,
-    this.updated_at
+    this.updated_at,
+    this.detalle
   });
 
   factory Pedido.fromJson(Map<String, dynamic> json) => Pedido(
@@ -59,7 +63,8 @@ class Pedido {
     anuladoPor: json['anulado_por'],
     nombreCliente: json['nombrecliente'],
     created_at: json['created_at'],
-    updated_at: json['updated_at']
+    updated_at: json['updated_at'],
+    detalle: (json['detalle'] as List<dynamic>?)?.map((e) => Detalle_Pedido.fromJson(e as Map<String, dynamic>)).toList(),
   );
 
   Map<String, dynamic> toJson() => {
@@ -79,6 +84,8 @@ class Pedido {
     'anulado_por': anuladoPor,
     'nombrecliente': nombreCliente,
     'updated_at': updated_at,
-    'created_at': created_at
+    'created_at': created_at,
+    'detalle': detalle?.map((e) => e.toJson()).toList(),
+
   };
 }

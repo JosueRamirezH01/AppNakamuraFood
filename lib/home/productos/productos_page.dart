@@ -1,5 +1,3 @@
-
-
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
@@ -8,15 +6,12 @@ import 'package:restauflutter/home/details/datails_page.dart';
 import 'package:restauflutter/home/productos/producto_controller.dart';
 import 'package:restauflutter/model/producto.dart';
 
-
 class ProductosPage extends StatefulWidget {
   const ProductosPage({super.key});
 
   @override
   State<ProductosPage> createState() => _ProductosPageState();
 }
-
-
 
 class _ProductosPageState extends State<ProductosPage> with TickerProviderStateMixin {
   int estado = 1;
@@ -27,6 +22,7 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
   late TabController _tabController;
   late PageController _pageController;
   final FocusNode _productoFocus = FocusNode();
+
   @override
   void initState() {
     // TODO: implement initState
@@ -43,8 +39,6 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
     _pageController.dispose();
     super.dispose();
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -71,11 +65,11 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
               // backgroundColor: const Color(0xFF99CFB5),
               actions: [
                 Container(
-                  margin: EdgeInsets.only(top: 10,left: 15),
+                  margin: EdgeInsets.only(top: 10, left: 15),
                   child: ElevatedButton.icon(
                       style: const ButtonStyle(backgroundColor: MaterialStatePropertyAll(Colors.deepOrange)),
                       //tp2
-                      onPressed: (){
+                      onPressed: () {
                         //Navigator.pushNamed(context, 'home');
                        Navigator.pushNamedAndRemoveUntil(context, 'home', (route) => false);
                        },
@@ -85,7 +79,7 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
                 ),
                 Spacer(),
                 Container(
-                  margin: EdgeInsets.only( top: 10 ,right: 15),
+                  margin: EdgeInsets.only(top: 10, right: 15),
                   child: ElevatedButton(
                     style: ButtonStyle(
                       backgroundColor: MaterialStateProperty.all<Color>(Colors.grey[300]!),
@@ -152,16 +146,16 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
                     itemBuilder: (context, index) {
                       double screenWidth = MediaQuery.of(context).size.width;
 
-                      int crossAxisCount = 2;
-                      if (screenWidth > 1200) {
-                        crossAxisCount = 4;
-                      } else if (screenWidth > 800) {
-                        crossAxisCount = 4;
-                      } else if (screenWidth > 600) {
-                        crossAxisCount = 3;
-                      } else {
-                        crossAxisCount = 2;
-                      }
+                                  int crossAxisCount = 2;
+                                  if (screenWidth > 1200) {
+                                    crossAxisCount = 4;
+                                  } else if (screenWidth > 800) {
+                                    crossAxisCount = 4;
+                                  } else if (screenWidth > 600) {
+                                    crossAxisCount = 3;
+                                  } else {
+                                    crossAxisCount = 2;
+                                  }
 
                       return GridView.builder(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
@@ -260,16 +254,16 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
                     itemBuilder: (context, index) {
                       double screenWidth = MediaQuery.of(context).size.width;
 
-                      int crossAxisCount = 2;
-                      if (screenWidth > 1200) {
-                        crossAxisCount = 5;
-                      } else if (screenWidth > 800) {
-                        crossAxisCount = 4;
-                      } else if (screenWidth > 600) {
-                        crossAxisCount = 3;
-                      } else {
-                        crossAxisCount = 2;
-                      }
+                            int crossAxisCount = 2;
+                            if (screenWidth > 1200) {
+                              crossAxisCount = 5;
+                            } else if (screenWidth > 800) {
+                              crossAxisCount = 4;
+                            } else if (screenWidth > 600) {
+                              crossAxisCount = 3;
+                            } else {
+                              crossAxisCount = 2;
+                            }
 
                       return GridView.builder(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
@@ -322,12 +316,13 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
       },
     );
   }
-  Widget precio(){
+
+  Widget precio() {
     double total = calcularTotal();
     return Text('S/ ${total.toStringAsFixed(2)}', style: TextStyle(color: Colors.black),);
   }
 
-  Widget cantidad(){
+  Widget cantidad() {
     int cantidadProductos = calcularCantidadProductosSeleccionados();
     return Text('CANTIDAD: $cantidadProductos', style: TextStyle(color: Colors.black),);
   }
@@ -336,6 +331,7 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
     double total = 0;
     if (_con.productosSeleccionados != null) {
       for (Producto producto in _con.productosSeleccionados!) {
+        print('PRECIO ---- --- ${producto.precioproducto}');
         total += (producto.precioproducto ?? 0) * (producto.stock ?? 0);
       }
     }
@@ -359,13 +355,11 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
   }
 
   Future pedido() async {
-
     //List<Producto>? productosSeleccionadosCopy = List.from(_con.productosSeleccionados ?? []);
     int? idPedidoNuevo = await showCupertinoModalBottomSheet<int>(
       barrierColor: Colors.transparent,
       context: context,
       builder: (BuildContext context) {
-
         return SingleChildScrollView(
           child: SizedBox(
             height: MediaQuery.of(context).size.height * 0.87,
@@ -393,6 +387,64 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
 
   Widget _cardProduct(Producto producto) {
     return GestureDetector(
+      // onTap: () {
+      //   if (_con.items_independientes == true) {
+      //     _productoFocus.unfocus();
+      //     setState(() {
+      //       if (_con.mesa.estadoMesa != 2) {
+      //         // Agregar el producto directamente como un nuevo producto
+      //         _con.productosSeleccionados?.add(producto);
+      //
+      //         // Muestra un mensaje de confirmación
+      //         _con.agregarMsj(
+      //             '${producto.nombreproducto} se ha añadido a la lista.');
+      //         print('Productos seleccionados:');
+      //         _con.productosSeleccionados?.forEach((prod) {
+      //           print(prod.toJson());
+      //         });
+      //       } else {
+      //         _con.mostrarMensaje(
+      //             'No se pueden agregar productos porque el pedido está cerrado.');
+      //       }
+      //     });
+      //   } else {
+      //     setState(() {
+      //       if (_con.mesa.estadoMesa != 2) {
+      //         if (_con.productosSeleccionados?.any(
+      //                 (p) => p.nombreproducto == producto.nombreproducto) ??
+      //             false) {
+      //           final Producto? productoExistente = _con.productosSeleccionados
+      //               ?.firstWhere((p) =>
+      //                   p.nombreproducto == producto.nombreproducto &&
+      //                   p.precioproducto == producto.precioproducto);
+      //           if (productoExistente != null) {
+      //             print('------- ${_con.productosSeleccionados?.first.stock}');
+      //             setState(() {
+      //               productoExistente.stock =
+      //                   (productoExistente.stock ?? 0) + 1;
+      //             });
+      //             _con.agregarMsj(
+      //                 'Se ha aumentado el stock de ${productoExistente.nombreproducto} en 1.');
+      //           }
+      //         } else {
+      //           // El producto no está seleccionado, agrégalo a la lista de productos seleccionados
+      //           setState(() {
+      //             _con.productosSeleccionados?.add(producto);
+      //           });
+      //           // Muestra un mensaje de confirmación
+      //           _con.agregarMsj('El producto se ha añadido a la lista.');
+      //           print('Productos seleccionados:');
+      //           _con.productosSeleccionados?.forEach((prod) {
+      //             print(prod.toJson());
+      //           });
+      //         }
+      //       } else {
+      //         _con.mostrarMensaje(
+      //             'No se pueden agregar productos porque el pedido está cerrado.');
+      //       }
+      //     });
+      //   }
+      // },
       onTap: () {
         _productoFocus.unfocus();
         if(_con.items_independientes){
@@ -415,13 +467,13 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
               _con.productosSeleccionados?.add(newProducto);
 
               // Muestra un mensaje de confirmation
-              _con.agregarMsj('El producto se ha añadido a la lista.');
+              // _con.agregarMsj('El producto se ha añadido a la lista.');
 
               // Imprime los productos seleccionados para verificación
-              print('Productos seleccionados:');
-              _con.productosSeleccionados?.forEach((prod) {
-                print(prod.toJson());
-              });
+              // print('Productos seleccionados:');
+              // _con.productosSeleccionados?.forEach((prod) {
+              //   print(prod.toJson());
+              // });
             });
           } else {
             _con.mostrarMensaje('No se pueden agregar productos porque el pedido está cerrado.');
@@ -460,9 +512,7 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
         child: Card(
           clipBehavior: Clip.antiAlias,
           elevation: 3.0,
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(15)
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
           child: Stack(
             children: [
               Positioned(
@@ -476,11 +526,12 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
                         borderRadius: BorderRadius.only(
                           bottomLeft: Radius.circular(10),
                           topLeft: Radius.circular(15),
-                        )
+                        )),
+                    child: const Icon(
+                      Icons.add,
+                      color: Colors.white,
                     ),
-                    child: const Icon(Icons.add, color: Colors.white,),
-                  )
-              ),
+                  )),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -498,26 +549,22 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
                   Container(
                     margin: const EdgeInsets.symmetric(horizontal: 20),
                     height: 40,
-                    child:  Text(
+                    child: Text(
                       producto.nombreproducto ?? 'Nombre no disponible',
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                          fontSize: 15,
-                          fontFamily: 'NimbusSans'
-                      ),
+                      style: const TextStyle(fontSize: 15, fontFamily: 'NimbusSans'),
                     ),
                   ),
                   const SizedBox(height: 10),
                   Container(
                     margin: const EdgeInsets.symmetric(horizontal: 20),
                     child: Text(
-                      'S/ ${producto.precioproducto ?? 'Precio no disponible'} ' ,
+                      'S/ ${producto.precioproducto ?? 'Precio no disponible'} ',
                       style: const TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
-                          fontFamily: 'NimbusSans'
-                      ),
+                          fontFamily: 'NimbusSans'),
                     ),
                   )
                 ],
@@ -537,41 +584,27 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
         onChanged: _con.onChangeText,
         decoration: InputDecoration(
             hintText: 'Buscar',
-            suffixIcon: const Icon(
-                Icons.search,
-                color: Color(0xFF000000)
-            ),
-            hintStyle: const TextStyle(
-                fontSize: 15,
-                color: Color(0xFF000000)
-            ),
+            suffixIcon: const Icon(Icons.search, color: Color(0xFF000000)),
+            hintStyle: const TextStyle(fontSize: 15, color: Color(0xFF000000)),
             enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(
-                    color: Color(0xFF000000),
-                  width: 2
-                )
-            ),
+                borderSide:
+                    const BorderSide(color: Color(0xFF000000), width: 2)),
             focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(
-                    color: Color(0xFF000000),
-                  width: 2
-                )
-            ),
-            contentPadding: const EdgeInsets.all(10)
-        ),
+                borderSide:
+                    const BorderSide(color: Color(0xFF000000), width: 2)),
+            contentPadding: const EdgeInsets.all(10)),
       ),
     );
   }
 
-  void refresh(){
+  void refresh() {
     setState(() {
       _tabController = TabController(
-        length: _con.categorias.length,
-        vsync: this,
-        initialIndex: selectedIndex
-      );
+          length: _con.categorias.length,
+          vsync: this,
+          initialIndex: selectedIndex);
       _pageController = PageController();
     });
   }

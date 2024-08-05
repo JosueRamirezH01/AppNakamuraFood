@@ -29,19 +29,13 @@ class Nota {
       id_nota: json["id_nota"],
       descripcion_nota: json["descripcion_nota"],
       estado_nota: json["estado_nota"],
-      id_establecimiento: json["establecimiento_id"]
+      id_establecimiento: json["id_establecimiento"]
     //puntuacion: double.tryParse(json["puntuacion"]?.toString() ?? "0.0"),
 
   );
-  Nota.fromJsonList(List<dynamic> jsonList) {
-    try {
-      jsonList.forEach((item) {
-        Nota empresa = Nota.fromJson(item);
-        nota.add(empresa);
-      });
-    } catch (e) {
-      return;
-    }}
+  static List<Nota> fromJsonList(List<dynamic> jsonList) {
+    return jsonList.map((item) => Nota.fromJson(item)).toList();
+  }
 
   Map<String, dynamic> toJson() => {
     "id_nota": id_nota,

@@ -1,12 +1,17 @@
 import 'dart:convert';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:restauflutter/services/entorno_service.dart';
+import 'package:restauflutter/services/modulos_service.dart';
 import 'package:restauflutter/utils/shared_pref.dart';
 
 import '../../model/mozo.dart';
+import '../../model/usuario.dart';
 import '../../services/producto_service.dart';
+import '../../utils/impresoraBluetooth.dart';
 
 class AjustesPage extends StatefulWidget {
   @override
@@ -18,19 +23,26 @@ class _AjustesPageState extends State<AjustesPage> {
   TextEditingController _printer2Controller = TextEditingController();
   bool _showBarPrinter = false;
   bool _stateProduccion = false;
+  bool _stateConexionTicket = false;
+
+  // -- Modulos
+  bool _stateRestriccionStock = false;
+
   bool _ifChange = false;
   final _formKey = GlobalKey<FormState>(); // Agregar GlobalKey<FormState>
   final SharedPref _sharedPref = SharedPref();
   var prod = ProductoServicio();
   var entornoService = EntornoService();
-  Mozo mozo = Mozo();
+  var moduloService = ModuloServicio();
+  Usuario mozo = Usuario();
   SharedPref _pref = SharedPref();
 
   Future<void> UserShared() async {
     final dynamic userData = await _pref.read('user_data');
+    _stateConexionTicket = await _pref.read('stateConexionTicket') ?? false;
     if (userData != null) {
       final Map<String, dynamic> userDataMap = json.decode(userData);
-      mozo = Mozo.fromJson(userDataMap);
+      mozo = Usuario.fromJson(userDataMap);
     }
   }
 
@@ -40,6 +52,7 @@ class _AjustesPageState extends State<AjustesPage> {
     _loadSettings();
     _loadPrinters();
     UserShared();
+
   }
 
   @override
@@ -66,6 +79,9 @@ class _AjustesPageState extends State<AjustesPage> {
 
   void _loadSettings() async {
     int entornoId = await entornoService.consultarEntorno(context);
+    bool stateRestriccionStock = await moduloService.consultarRestriccion(context);
+
+    // Entorno
     if (entornoId == 2){
       setState(() {
         _stateProduccion = true;
@@ -76,6 +92,8 @@ class _AjustesPageState extends State<AjustesPage> {
       });
     }
 
+    //Restriccion de stock
+    _stateRestriccionStock = stateRestriccionStock ;
   }
 
   @override
@@ -91,7 +109,7 @@ class _AjustesPageState extends State<AjustesPage> {
             children: [
               Expanded(
                 child: Container(
-                  width: MediaQuery.of(context).size.width * 0.6,
+                  width: MediaQuery.of(context).size.width > 600 ? MediaQuery.of(context).size.width * 0.6 : null ,
                   child: Scrollbar(
                     thumbVisibility: true,
                     child: SingleChildScrollView(
@@ -162,66 +180,119 @@ class _AjustesPageState extends State<AjustesPage> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    'Configurar Impresoras',
-                                    style: TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                  Row(
+                                    children: [
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          color: _stateConexionTicket == true ? Color(0xFFFF562F)  : Colors.white, // Color de fondo del container
+                                          border: Border.all(
+                                            color: Colors.black, // Color del borde
+                                            width: 1.0, // Ancho del borde
+                                          ),
+                                          borderRadius: BorderRadius.circular(8.0), // Radio de esquina para bordes redondeados (opcional)
+                                        ),
+                                        padding: EdgeInsets.only(right: 10, top: 1,bottom: 1, left: 8),
+                                        child: Row(
+                                          children: [
+                                            Icon(Icons.bluetooth, size: 18, color: _stateConexionTicket ? Colors.white : Colors.black),
+                                            Text('Bluetooth', style: TextStyle(fontSize: 16,color: _stateConexionTicket ? Colors.white : Colors.black))
+                                          ],
+                                        ),
+                                      ),
+                                      SizedBox(width: 5),
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          color: _stateConexionTicket == false ? Color(0xFFFF562F)  : Colors.white, // Color de fondo del container
+                                          border: Border.all(
+                                            color: Colors.black, // Color del borde
+                                            width: 1.0, // Ancho del borde
+                                          ),
+                                          borderRadius: BorderRadius.circular(8.0), // Radio de esquina para bordes redondeados (opcional)
+                                        ),
+                                        padding: EdgeInsets.only(right: 10, top: 1,bottom: 1, left: 8),
+                                        child: Row(
+                                          children: [
+                                            Icon(Icons.wifi, size: 18, color: _stateConexionTicket ? Colors.black : Colors.white),
+                                            SizedBox(width: 2),
+                                            Text('Wi-Fi', style: TextStyle(fontSize: 16,color: _stateConexionTicket ? Colors.black : Colors.white),)
+                                          ],
+                                        ),
+                                      )
+                                    ],
+                                  ),
+                                  Row(
+                                    children: [
+                                      Text(
+                                        'Configurar Impresoras',
+                                        style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: Switch(
+                                            activeColor: Color(0xFFFF562F),
+                                            inactiveThumbColor: _stateConexionTicket ? Color(0xFFFF562F) : Colors.grey ,
+                                            inactiveTrackColor: Colors.black,
+                                            activeTrackColor: Colors.black,
+                                            // thumbColor: ,
+                                            value: _stateConexionTicket,
+                                            onChanged: (value) async {
+                                              setState(() {
+                                                _stateConexionTicket = value;
+                                              });
+                                              print('------------------ $_stateConexionTicket');
+                                              await _pref.save('stateConexionTicket', _stateConexionTicket);
+                                            },
+                                        ),
+                                      )
+                                    ],
                                   ),
                                   Divider(),
-                                  Container(
-                                    margin: EdgeInsets.only(bottom: 20),
-                                    child: const Text(
-                                      'Cocina',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
+                                  if (!_stateConexionTicket) ...[
+                                    Container(
+                                      margin: EdgeInsets.only(bottom: 20),
+                                      child: const Text(
+                                        'Cocina',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                  _buildPrinterInputField(_printer1Controller),
-                                  Container(
-                                    margin: EdgeInsets.only(top: 10),
-                                    child: Row(
-                                      children: [
-                                        const Text(
-                                          'Bar',
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
+                                    _buildPrinterInputField(_printer1Controller),
+                                    Container(
+                                      margin: EdgeInsets.only(top: 10),
+                                      child: Row(
+                                        children: [
+                                          const Text(
+                                            'Bar',
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                            ),
                                           ),
-                                        ),
-                                        const Spacer(),
-                                        Switch(
-                                          activeColor: Color(0xFFFF562F),
-                                          inactiveThumbColor: Colors.grey, // Color del interruptor cuando está inactivo
-                                          inactiveTrackColor: Colors.black, // Color del riel cuando está inactivo
-                                          activeTrackColor: Colors.black,
-                                          value: _showBarPrinter,
-                                          onChanged: (value) {
-                                            print(value);
-                                            setState(() {
-                                              _ifChange = value;
-                                              _showBarPrinter = value;
-                                              prod.consultarCategoriaIpBar(
-                                                  context, mozo.id_establecimiento).then((
-                                                  consultaExitosa) {
-                                                if (!consultaExitosa) {
-                                                  setState(() {
-                                                    _showBarPrinter = false;
-                                                  });
-                                                }
-                                              }
-                                              );
-                                            });
-                                          },
-                                        ),
-                                      ],
+                                          const Spacer(),
+                                          Switch(
+                                            activeColor: Color(0xFFFF562F),
+                                            inactiveThumbColor: Colors.grey,
+                                            inactiveTrackColor: Colors.black,
+                                            activeTrackColor: Colors.black,
+                                            value: _showBarPrinter,
+                                            onChanged: (value) {
+                                              setState(() {
+                                                _showBarPrinter = value;
+                                              });
+                                            },
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                  if (_showBarPrinter)
-                                    Container(margin: EdgeInsets.only(top: 10,bottom: 20),child: _buildPrinterInputField(_printer2Controller)),
+                                    if (_showBarPrinter)
+                                      Container(
+                                        margin: EdgeInsets.only(top: 10, bottom: 20),
+                                        child: _buildPrinterInputField(_printer2Controller),
+                                      ),
 
                                   ElevatedButton(
                                     style: ButtonStyle(
@@ -240,6 +311,11 @@ class _AjustesPageState extends State<AjustesPage> {
                                       style: TextStyle(color: Colors.white),
                                     ), // Color(0xFF111111)
                                   ),
+                                  ] else ...[
+                                    // Aquí puedes poner la clase o la página que deseas mostrar cuando _stateBlootho es true
+                                    StateBleotoothContent(), // Usa el widget correcto aquí
+
+                                  ],
                                 ],
                               ),
                             ),
@@ -288,6 +364,110 @@ class _AjustesPageState extends State<AjustesPage> {
                               ),
                             ),
                           ),
+
+                          //Para el futuro
+                          // Container(
+                          //   decoration: BoxDecoration(
+                          //     borderRadius: BorderRadius.circular(30),
+                          //     color: Color.fromRGBO(217, 217, 217, 0.8),
+                          //   ),
+                          //   margin: EdgeInsets.all(20),
+                          //   child: Padding(
+                          //     padding: const EdgeInsets.only(right: 20, left: 20,top: 5, bottom: 5),
+                          //     child: Column(
+                          //       crossAxisAlignment: CrossAxisAlignment.start,
+                          //       children: [
+                          //         Text(
+                          //           'Modulos',
+                          //           style: TextStyle(
+                          //             fontSize: 20,
+                          //             fontWeight: FontWeight.bold,
+                          //           ),
+                          //         ),
+                          //         Divider(),
+                          //         Row(
+                          //           children: [
+                          //             const Text(
+                          //               'Restrición de stock : ',
+                          //               style: TextStyle(
+                          //                 fontSize: 16,
+                          //                 fontWeight: FontWeight.bold,
+                          //               ),
+                          //             ),
+                          //             // SizedBox(width: 20),
+                          //             Container(
+                          //               decoration: BoxDecoration(
+                          //                   color: _stateRestriccionStock ? Color(0xFFFF562F) : Colors.grey,
+                          //                   borderRadius: BorderRadius.all(Radius.circular(20))
+                          //               ),
+                          //               child: Padding(
+                          //                 padding: const EdgeInsets.only(top: 2,bottom: 2,left: 10,right: 10),
+                          //                 child: Text(
+                          //                   _stateRestriccionStock ? 'On':'Off',
+                          //                   style: TextStyle(
+                          //                     color: _stateRestriccionStock ? Colors.white : Colors.black,
+                          //                     fontSize: 16,
+                          //                     fontWeight: FontWeight.bold,
+                          //                   ),
+                          //                 ),
+                          //               ),
+                          //             ),
+                          //             const Spacer(),
+                          //             Switch(
+                          //                 activeColor: Color(0xFFFF562F),
+                          //                 inactiveThumbColor: _stateRestriccionStock ? Color(0xFFFF562F) : Colors.grey ,
+                          //                 inactiveTrackColor: Colors.black,
+                          //                 activeTrackColor: Colors.black,
+                          //                 // thumbColor: ,
+                          //                 value: _stateRestriccionStock,
+                          //                 onChanged: null
+                          //             ),
+                          //           ],
+                          //         ),
+                          //         // Row(
+                          //         //   children: [
+                          //         //     const Text(
+                          //         //       'Restrición de stock : ',
+                          //         //       style: TextStyle(
+                          //         //         fontSize: 16,
+                          //         //         fontWeight: FontWeight.bold,
+                          //         //       ),
+                          //         //     ),
+                          //         //     // SizedBox(width: 20),
+                          //         //     Container(
+                          //         //       decoration: BoxDecoration(
+                          //         //           color: _stateProduccion ? Color(0xFFFF562F) : Colors.grey,
+                          //         //           borderRadius: BorderRadius.all(Radius.circular(20))
+                          //         //       ),
+                          //         //       child: Padding(
+                          //         //         padding: const EdgeInsets.only(top: 2,bottom: 2,left: 10,right: 10),
+                          //         //         child: Text(
+                          //         //           _stateProduccion? 'On':'Off',
+                          //         //           style: TextStyle(
+                          //         //             color: _stateProduccion ? Colors.white : Colors.black,
+                          //         //             fontSize: 16,
+                          //         //             fontWeight: FontWeight.bold,
+                          //         //           ),
+                          //         //         ),
+                          //         //       ),
+                          //         //     ),
+                          //         //     const Spacer(),
+                          //         //     Switch(
+                          //         //         activeColor: Color(0xFFFF562F),
+                          //         //         inactiveThumbColor: _stateProduccion ? Color(0xFFFF562F) : Colors.grey ,
+                          //         //         inactiveTrackColor: Colors.black,
+                          //         //         activeTrackColor: Colors.black,
+                          //         //         // thumbColor: ,
+                          //         //         value: _stateProduccion,
+                          //         //         onChanged: null
+                          //         //     ),
+                          //         //   ],
+                          //         // ),
+                          //
+                          //       ],
+                          //     ),
+                          //   ),
+                          // ),
                         ],
                       ),
                     ),
@@ -305,12 +485,12 @@ class _AjustesPageState extends State<AjustesPage> {
   }
 
   Future<void> actualziarProducto() async {
-    await prod.consultarProductos(context, mozo.id_establecimiento!);
+    await prod.consultarProductos(mozo.accessToken!);
     agregarMsj('Se actualizo correctamente los productos');
   }
 
   Future<void> actualziarCategoria() async {
-    await prod.consultarCategorias(context, mozo.id_establecimiento!);
+    await prod.consultarCategorias(mozo.accessToken);
     agregarMsj('Se actualizo correctamente los productos');
   }
 
@@ -321,6 +501,9 @@ class _AjustesPageState extends State<AjustesPage> {
         _sharedPref.remove('categorias');
         _sharedPref.remove('productos');
         _sharedPref.remove('ipBar');
+        _sharedPref.remove('stateConexionTicket');
+        _sharedPref.remove('conexionBluetooth');
+
         Navigator.pushNamedAndRemoveUntil(context, 'login', (route) => false);
 
         print('todos');
@@ -459,4 +642,6 @@ class _IPTextInputFormatter extends TextInputFormatter {
     final isValid = regExp.hasMatch(newValue.text);
     return isValid ? newValue : oldValue;
   }
+
+
 }
