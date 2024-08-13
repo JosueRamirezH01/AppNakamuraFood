@@ -13,6 +13,12 @@ class TicketBluetooth {
   bool conexion = false;
 
   Future<void> printLabelBluetooth(List<Producto>? producto, int estado, double total, String? nombreMesa, Usuario usuario, String? piso, String motivo) async {
+
+    print('cantidad de llegada ${producto!.length}');
+    producto!.forEach((element) {
+      print('LLEgada de prodcutos ${element.nombreproducto}');
+    });
+
     String tipoBoucher = '';
     if(estado == 1){
       tipoBoucher = 'Pedido';
@@ -29,9 +35,15 @@ class TicketBluetooth {
 
 
   Future<void> testReceipt(List<Producto>? producto, String tipoBoucher, double total, String? nombreMesa, Usuario mozo, String? piso, String motivo) async {
+
+    producto!.forEach((element) {
+      element.comentario = cleanComentario(element.comentario);
+    });
+
     conexion = await _pref.read('conexionBluetooth');
     if (conexion) {
       Map<String, dynamic> config = Map();
+      print('BC> ${config}');
 
       List<LineText> list = [];
 
@@ -362,5 +374,15 @@ class TicketBluetooth {
   String _twoDigits(int n) {
     if (n >= 10) return '$n';
     return '0$n';
+  }
+  String cleanComentario(String? comentario) {
+    if (comentario == null || comentario.isEmpty) {
+      return '';
+    }
+    final RegExp regExp = RegExp(r'<span[^>]*>([^<]+)<\/span>');
+    Iterable<Match> matches = regExp.allMatches(comentario);
+
+    String cleanedComentario = matches.map((match) => match.group(1)).join(';');
+    return cleanedComentario;
   }
 }

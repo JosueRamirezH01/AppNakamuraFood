@@ -32,36 +32,33 @@ class ProductoController {
   var dbDetallePedido = DetallePedidoServicio();
   var Modulos = ModuloServicio();
   List<Producto>? productosSeleccionados = [];
-  bool items_independientes = true; // CAMBIAR A FALSE, ESTA EN TRUE EN CUESTION DE PRUEBA
+  bool items_independientes = true;
 
   Future init(BuildContext context, Function refresh) async {
     this.context = context;
     this.refresh = refresh;
     _getCategorias();
     _getProductos();
+
     final dynamic userData = await _sharedPref.read('user_data');
     final Map<String, dynamic> userDataMap = json.decode(userData);
     final Usuario usuario = Usuario.fromJson(userDataMap);
 
-    //items_independientes = await Modulos.consultarItemsIndependientes(usuario.accessToken);
-    print('activo itemsindependientes : ${items_independientes}');
+    items_independientes = await Modulos.consultarItemsIndependientes(usuario.accessToken);
+    print('Activo itemsindependientes : ${items_independientes}');
 
     final args = ModalRoute.of(context)?.settings.arguments;
     if (args is Mesa) {
       mesa = args;
-      print('ESTADO DE MESA ${mesa.estadoMesa}');
-    }
-    // Verifica si los argumentos son de tipo List<Detalle_Pedido>
-    else if (args is MesaDetallePedido) {
+    }else
+      if (args is MesaDetallePedido) {
       mesa = args.mesa;
       detalle_pedido = args.detallePedido;
       IDPEDIDO = detalle_pedido.first.id_pedido!;
-      // Itera sobre los detalles del pedido, si es necesario
 
       detalle_pedido.forEach((detalle) async {
-        // Busca el producto correspondiente al detalle
+        print('Controller : ${detalle.toJson()}');
         Producto? producto = await _getProductoPorId(detalle.id_producto);
-        print('LISTA DE PRODUCTOS ${producto?.toJson()}');
         Producto? setproducto = Producto(
             id_pedido_detalle: detalle.id_pedido_detalle,
             id: producto?.id,
@@ -70,30 +67,22 @@ class ProductoController {
             stock: detalle.cantidad_producto,
             comentario: detalle.comentario,
             idPedido: detalle.id_pedido);
-        print('NOMBRE PRODUCTO ${producto?.nombreproducto}');
-        print('CANTIDAD PRODUCTO ${detalle.cantidad_producto}');
-        print('PRECIO PRODUCTO ${detalle.precio_producto}');
 
         if (producto != null) {
-          // Agrega el producto a la lista de productos encontrados
           productosSeleccionados?.add(setproducto);
         }
       });
     }
-
     refresh();
   }
 
-  Future<int> obtenerIdPedidoLast() async {
-    return await dbDetallePedido.consultaObtenerDetallePedido(mesa.id, context);
-  }
-
-  // Sin usar
-  Future<List<Detalle_Pedido>> obtenerDetallePedidoLastCreate(
-      int idPedido) async {
-    return await dbDetallePedido.obtenerDetallePedidoLastCreate(
-        idPedido, context);
-  }
+  // Future<int> obtenerIdPedidoLast() async {
+  //   return await dbDetallePedido.consultaObtenerDetallePedido(mesa.id, context);
+  // }
+  //
+  // Future<List<Detalle_Pedido>> obtenerDetallePedidoLastCreate( int idPedido) async {
+  //   return await dbDetallePedido.obtenerDetallePedidoLastCreate( idPedido, context);
+  // }
 
   Future<Producto?> _getProductoPorId(int? idProducto) async {
     try {
@@ -114,7 +103,6 @@ class ProductoController {
     return null; // Devuelve null si no se encuentra el producto
   }
 
-
   void onChangeText(String text) {
     const duration = Duration(milliseconds: 800);
     searchOnStoppedTyping.cancel();
@@ -123,7 +111,6 @@ class ProductoController {
       productName = text;
       refresh();
       _getProductos();
-      print('TEXTO COMPLETO $text');
     });
   }
 
@@ -149,7 +136,6 @@ class ProductoController {
         List<dynamic> productosData = json.decode(productosJson);
 
         if (productName.isNotEmpty) {
-          // Filtra los productos según el código interno exacto o el nombre basado en la búsqueda
           productos = productosData
               .map((productoJson) => Producto.fromJson(productoJson))
               .where((producto) {
@@ -160,19 +146,15 @@ class ProductoController {
 
 
             if (isNumeric) {
-              // Si el término de búsqueda es un número, buscar por código interno
               return codigoInterno.toLowerCase() == productName.toLowerCase();
             } else if (isAlphaNumeric) {
-              // Si el término de búsqueda es alfanumérico, buscar por nombre o código interno
               return codigoInterno.toLowerCase() == productName.toLowerCase() || nombreProducto.toLowerCase().contains(productName.toLowerCase());
             } else {
-              // Si el término de búsqueda no es ni un número ni alfanumérico, buscar solo por nombre
               return nombreProducto.toLowerCase().contains(productName.toLowerCase());
             }
           })
               .toList();
         } else {
-          // Si no se proporciona ningún texto de búsqueda, reinicia la lista de productos
           productos = await getProductosPorCategoria(categorias.isNotEmpty ? categorias.first  : null);
         }
       }
@@ -180,57 +162,6 @@ class ProductoController {
       print('Error al obtener los productos: $e');
     }
   }
-
-  // Future<void> _getProductos() async {
-  //   try {
-  //     final response = await http.get(Uri.parse('https://chifalingling.restaupe.com/api/obtener_lista_productos'));
-  //     late Mozo? mozo = Mozo();
-  //     final dynamic userData = await _sharedPref.read('user_data');
-  //     if (userData != null) {
-  //       final Map<String, dynamic> userDataMap = json.decode(userData);
-  //       mozo = Mozo.fromJson(userDataMap);
-  //     }
-  //
-  //     if (response.statusCode == 200) {
-  //       List<dynamic> productosData = json.decode(response.body);
-  //       productosData = productosData.where((producto) {
-  //         return producto['estado'] == 1 && producto['establecimiento_id'] == mozo!.id_establecimiento;
-  //       }).toList();
-  //
-  //       // Guardar productos filtrados en SharedPreferences
-  //       // SharedPreferences prefs = await SharedPreferences.getInstance();
-  //       _sharedPref.save('productos', json.encode(productosData));
-  //
-  //       if (productName.isNotEmpty) {
-  //         productos = productosData
-  //             .map((productoJson) => Producto.fromJson(productoJson))
-  //             .where((producto) {
-  //           final codigoInterno = producto.codigo_interno ?? "";
-  //           final nombreProducto = producto.nombreproducto ?? "";
-  //           final isNumeric = RegExp(r'^[0-9]+$').hasMatch(productName);
-  //           final isAlphaNumeric = RegExp(r'^[0-9a-zA-Z]+$').hasMatch(productName);
-  //
-  //           if (isNumeric) {
-  //             return codigoInterno.toLowerCase() == productName.toLowerCase();
-  //           } else if (isAlphaNumeric) {
-  //             return codigoInterno.toLowerCase() == productName.toLowerCase() ||
-  //                 nombreProducto.toLowerCase().contains(productName.toLowerCase());
-  //           } else {
-  //             return nombreProducto.toLowerCase().contains(productName.toLowerCase());
-  //           }
-  //         }).toList();
-  //       } else {
-  //         productos = productosData
-  //             .map((productoJson) => Producto.fromJson(productoJson))
-  //             .toList();
-  //       }
-  //     } else {
-  //       print('Error al obtener los productos: ${response.statusCode}');
-  //     }
-  //   } catch (e) {
-  //     print('Error al obtener los productos: $e');
-  //   }
-  // }
 
   Future<List<Producto>> getProductosPorCategoria(Categoria? categoria) async {
     try {

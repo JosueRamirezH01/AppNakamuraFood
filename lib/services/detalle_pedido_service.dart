@@ -13,7 +13,7 @@ import 'package:restauflutter/services/pedido_service.dart';
 import 'package:restauflutter/utils/shared_pref.dart';
 
 class DetallePedidoServicio {
-  final Connection _connectionSQL = Connection();
+  // final Connection _connectionSQL = Connection();
   final SharedPref _sharedPref = SharedPref();
 
   final String _url = 'chifalingling.restaupe.com';
@@ -43,19 +43,24 @@ class DetallePedidoServicio {
     }
   }
 
-  Future<void> actualizarPedidoApi(String? accessToken, Pedido pedido, int? idMesa) async {
+  Future<void> actualizarPedidoApi(String? accessToken, Map<String, dynamic> pedidoDetalle, int? idMesa) async {
     Uri uri = Uri.https(_url, '$_api/actualizarPedido/$idMesa');
-    String body = json.encode(pedido.toJson());
+    // pedidoDetalle['detalle'];
+    String body = json.encode(pedidoDetalle);
     Map<String, String> headers = {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer $accessToken',
     };
+    print('-Body- ${body}');
+
     // Realizar la solicitud PUT
     final response = await http.put(
       uri,
       headers: headers,
       body: body,
     );
+
+    print(response.body);
     // Verificar el estado de la respuesta
     if (response.statusCode == 200) {
       print('Pedido actualizado con éxito.');
@@ -64,8 +69,38 @@ class DetallePedidoServicio {
     }
   }
 
+  Future<Map<String, dynamic>> actualizarPedidoConRespuestaApi(String? accessToken, Map<String, dynamic> pedidoDetalle, int? idMesa) async {
+    Uri uri = Uri.https(_url, '$_api/actualizarPedido/$idMesa');
+    // pedidoDetalle['detalle'];
+    String body = json.encode(pedidoDetalle);
+    Map<String, String> headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $accessToken',
+    };
+    print('-Body- ${body} :end');
 
+    // Realizar la solicitud PUT
+    final response = await http.put(
+      uri,
+      headers: headers,
+      body: body,
+    );
 
+    print('✔️✔️✔️✔️');
+
+    // Verificar el estado de la respuesta
+    if (response.statusCode == 200) {
+      Map<String, dynamic> jsonResponse = json.decode(response.body);
+      // if
+      // print('jsonResponse :a ${jsonResponse}');
+      // List<dynamic> detalleActualizadoJson = jsonResponse['detalle_actualizado'];
+      // print('detalleActualizadoJson : ${detalleActualizadoJson}');
+      // List<Detalle_Pedido> detalleActualizado = detalleActualizadoJson.map((json) => Detalle_Pedido.fromJson(json)).toList();
+      return jsonResponse;
+    } else {
+      throw Exception('Error al actualizar el pedido: ${response.statusCode}');
+    }
+  }
 
   Future<void> eliminarDetallePedido(int id, String? accessToken) async {
 
@@ -194,58 +229,58 @@ class DetallePedidoServicio {
   //   }
   // }
 
-  Future<List<Detalle_Pedido>> eliminarCantidadProductoDetallePedidoImprimir( int? pedidoid,List<Producto> productos,double pedidoTotal, BuildContext context) async {
-    MySqlConnection? conn;
-    List<Detalle_Pedido> detallesPedido = [];
-    try {
-      conn = await _connectionSQL.getConnection();
-
-      final resultst = await conn.query('''
-      SELECT * FROM pedido_detalles WHERE id_pedido = ?
-      ''', [pedidoid]);
-
-      List<Detalle_Pedido> listaBD = resultst.map((row) {
-        Detalle_Pedido detalle = Detalle_Pedido.fromJson(row.fields);
-        detalle.comentario = detalle.comentario == null ? null : _extraerTextoComentario(detalle.comentario);
-        return detalle;
-      }).toList();
-
-
-      for (var detalle in listaBD) {
-        bool found = false;
-        for (var product in productos) {
-          if (product.id == detalle.id_producto) {
-            found = true;
-            break;
-          }
-
-        }
-        if (!found) {
-
-          print('ID OBTENIDO PARA ELIMINAR IMPRESORA----------------------------: ${detalle.id_pedido_detalle}');
-          detalle.cantidad_real = 0;
-          detalle.cantidad_producto = 0;
-          detallesPedido.add(detalle);
-        }
-
-      }
-
-      print('---- Productos para la otraq lista -----');
-      detallesPedido.forEach((element) {
-
-        print(element.id_producto);
-        print(element.cantidad_producto);
-      });
-      return detallesPedido;
-    }catch (e) {
-      print('Error al realizar la consulta: $e');
-      return []; // Retorna 0 si ocurre algún error
-    } finally {
-      if (conn != null) {
-        await conn.close();
-      }
-    }
-  }
+  // Future<List<Detalle_Pedido>> eliminarCantidadProductoDetallePedidoImprimir( int? pedidoid,List<Producto> productos,double pedidoTotal, BuildContext context) async {
+  //   MySqlConnection? conn;
+  //   List<Detalle_Pedido> detallesPedido = [];
+  //   try {
+  //     conn = await _connectionSQL.getConnection();
+  //
+  //     final resultst = await conn.query('''
+  //     SELECT * FROM pedido_detalles WHERE id_pedido = ?
+  //     ''', [pedidoid]);
+  //
+  //     List<Detalle_Pedido> listaBD = resultst.map((row) {
+  //       Detalle_Pedido detalle = Detalle_Pedido.fromJson(row.fields);
+  //       detalle.comentario = detalle.comentario == null ? null : _extraerTextoComentario(detalle.comentario);
+  //       return detalle;
+  //     }).toList();
+  //
+  //
+  //     for (var detalle in listaBD) {
+  //       bool found = false;
+  //       for (var product in productos) {
+  //         if (product.id == detalle.id_producto) {
+  //           found = true;
+  //           break;
+  //         }
+  //
+  //       }
+  //       if (!found) {
+  //
+  //         print('ID OBTENIDO PARA ELIMINAR IMPRESORA----------------------------: ${detalle.id_pedido_detalle}');
+  //         detalle.cantidad_real = 0;
+  //         detalle.cantidad_producto = 0;
+  //         detallesPedido.add(detalle);
+  //       }
+  //
+  //     }
+  //
+  //     print('---- Productos para la otraq lista -----');
+  //     detallesPedido.forEach((element) {
+  //
+  //       print(element.id_producto);
+  //       print(element.cantidad_producto);
+  //     });
+  //     return detallesPedido;
+  //   }catch (e) {
+  //     print('Error al realizar la consulta: $e');
+  //     return []; // Retorna 0 si ocurre algún error
+  //   } finally {
+  //     if (conn != null) {
+  //       await conn.close();
+  //     }
+  //   }
+  // }
 
   // bingo 1
   // Future<List<Detalle_Pedido>>  actualizarCantidadProductoDetallePedidoPrueba(int? pedidoid, List<Producto> productos, double pedidoTotal, BuildContext context) async {
@@ -441,23 +476,23 @@ class DetallePedidoServicio {
   //   }
   // }
 
-  Future<void> eliminarProductoPorItem(int id_pedido_detalle) async {
-    MySqlConnection? conn;
-
-    try {
-      conn = await _connectionSQL.getConnection();
-      await conn.query(
-          'DELETE FROM pedido_detalles WHERE id_pedido_detalle = ?',
-          [id_pedido_detalle]
-      );
-    } catch (e) {
-      print('Error al realizar la eliminación: $e');
-    } finally {
-      if (conn != null) {
-        await conn.close();
-      }
-    }
-  }
+  // Future<void> eliminarProductoPorItem(int id_pedido_detalle) async {
+  //   MySqlConnection? conn;
+  //
+  //   try {
+  //     conn = await _connectionSQL.getConnection();
+  //     await conn.query(
+  //         'DELETE FROM pedido_detalles WHERE id_pedido_detalle = ?',
+  //         [id_pedido_detalle]
+  //     );
+  //   } catch (e) {
+  //     print('Error al realizar la eliminación: $e');
+  //   } finally {
+  //     if (conn != null) {
+  //       await conn.close();
+  //     }
+  //   }
+  // }
 
   //tp2
   // Future<void> notaProductoPorItem(String comentario, int id_pedido_detalle, BuildContext context) async {
@@ -496,21 +531,21 @@ class DetallePedidoServicio {
   // }
 
   // tp5
-  Future<void> actualizarAgregarProductoDetallePedidoItem(int? pedidoid, double pedidoTotal, BuildContext context) async {
-
-    MySqlConnection? conn;
-    try {
-      conn = await _connectionSQL.getConnection();
-      await conn.query('UPDATE pedidos SET Monto_total = ?, updated_at = ? WHERE id_pedido = ?', [pedidoTotal, DateTime.now().toUtc(), pedidoid]);
-
-    } catch (e) {
-      print('Error al realizar la consulta: $e');
-    } finally {
-      if (conn != null) {
-        await conn.close();
-      }
-    }
-  }
+  // Future<void> actualizarAgregarProductoDetallePedidoItem(int? pedidoid, double pedidoTotal, BuildContext context) async {
+  //
+  //   MySqlConnection? conn;
+  //   try {
+  //     conn = await _connectionSQL.getConnection();
+  //     await conn.query('UPDATE pedidos SET Monto_total = ?, updated_at = ? WHERE id_pedido = ?', [pedidoTotal, DateTime.now().toUtc(), pedidoid]);
+  //
+  //   } catch (e) {
+  //     print('Error al realizar la consulta: $e');
+  //   } finally {
+  //     if (conn != null) {
+  //       await conn.close();
+  //     }
+  //   }
+  // }
 
   // Future<Detalle_Pedido> AgregarProductoDetallePedidoItem(int? pedidoid, Producto producto, BuildContext context) async {
   //   MySqlConnection? conn;
@@ -584,63 +619,63 @@ class DetallePedidoServicio {
   // }
 
 
-  Future<int> consultaObtenerDetallePedido(int? idMesa,  BuildContext context) async {
-    MySqlConnection? conn;
-    try {
-      conn = await _connectionSQL.getConnection();
-
-      const query = '''
-      SELECT p.id_pedido 
-      FROM pedidos AS p 
-      JOIN mesas AS m ON p.id_mesa = m.id 
-      WHERE m.id = ?
-      ORDER BY p.fecha_pedido DESC 
-      LIMIT 1
-    ''';
-
-      final results = await conn.query(query, [idMesa]);
-      if (results.isEmpty) {
-        print('No se encontraron datos en las tablas.');
-        return 0; // Retorna 0 si no se encuentra ningún dato
-      } else {
-        // Obtén el valor del campo id_pedido de la primera fila y conviértelo a entero
-        int detallePedido = results.first.fields['id_pedido'] as int;
-        print('ID del pedido recuperado: $detallePedido');
-        return detallePedido;
-      }
-    } catch (e) {
-      print('Error al realizar la consulta: $e');
-      return 0; // Retorna 0 si ocurre algún error
-    } finally {
-      if (conn != null) {
-        await conn.close();
-      }
-    }
-  }
+  // Future<int> consultaObtenerDetallePedido(int? idMesa,  BuildContext context) async {
+  //   MySqlConnection? conn;
+  //   try {
+  //     conn = await _connectionSQL.getConnection();
+  //
+  //     const query = '''
+  //     SELECT p.id_pedido
+  //     FROM pedidos AS p
+  //     JOIN mesas AS m ON p.id_mesa = m.id
+  //     WHERE m.id = ?
+  //     ORDER BY p.fecha_pedido DESC
+  //     LIMIT 1
+  //   ''';
+  //
+  //     final results = await conn.query(query, [idMesa]);
+  //     if (results.isEmpty) {
+  //       print('No se encontraron datos en las tablas.');
+  //       return 0; // Retorna 0 si no se encuentra ningún dato
+  //     } else {
+  //       // Obtén el valor del campo id_pedido de la primera fila y conviértelo a entero
+  //       int detallePedido = results.first.fields['id_pedido'] as int;
+  //       print('ID del pedido recuperado: $detallePedido');
+  //       return detallePedido;
+  //     }
+  //   } catch (e) {
+  //     print('Error al realizar la consulta: $e');
+  //     return 0; // Retorna 0 si ocurre algún error
+  //   } finally {
+  //     if (conn != null) {
+  //       await conn.close();
+  //     }
+  //   }
+  // }
 
   // no actualizar
-  Future<List<Detalle_Pedido>> obtenerDetallePedidoLastCreate(int? idPedido,  BuildContext context) async {
-    MySqlConnection? conn;
-    try {
-      conn = await _connectionSQL.getConnection();
-
-      final results = await conn.query('''
-      SELECT * FROM pedido_detalles WHERE id_pedido = ?
-      ''', [idPedido]);
-
-      List<Detalle_Pedido> detallePedidoActualizado = results.map((row) => Detalle_Pedido.fromJson(row.fields)).toList();
-
-      print('Cantidad actualizada correctamente en los detalles de pedido');
-      return detallePedidoActualizado;
-    } catch (e) {
-      print('Error al realizar la consulta: $e');
-      return []; // Retorna 0 si ocurre algún error
-    } finally {
-      if (conn != null) {
-        await conn.close();
-      }
-    }
-  }
+  // Future<List<Detalle_Pedido>> obtenerDetallePedidoLastCreate(int? idPedido,  BuildContext context) async {
+  //   MySqlConnection? conn;
+  //   try {
+  //     conn = await _connectionSQL.getConnection();
+  //
+  //     final results = await conn.query('''
+  //     SELECT * FROM pedido_detalles WHERE id_pedido = ?
+  //     ''', [idPedido]);
+  //
+  //     List<Detalle_Pedido> detallePedidoActualizado = results.map((row) => Detalle_Pedido.fromJson(row.fields)).toList();
+  //
+  //     print('Cantidad actualizada correctamente en los detalles de pedido');
+  //     return detallePedidoActualizado;
+  //   } catch (e) {
+  //     print('Error al realizar la consulta: $e');
+  //     return []; // Retorna 0 si ocurre algún error
+  //   } finally {
+  //     if (conn != null) {
+  //       await conn.close();
+  //     }
+  //   }
+  // }
 
   String? _extraerTextoComentario(String? comentarioHtml) {
     if (comentarioHtml == null) {

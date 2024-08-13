@@ -72,12 +72,13 @@ class _LoginPageState extends State<LoginPage> {
             child: Column(
               children: [
                Container(
+                   margin: EdgeInsets.only(top: 20),
                  alignment: AlignmentDirectional.bottomStart,
                    child: IconButton(onPressed: (){
                      _con.configurarApi();
                    }, icon:Icon(Icons.settings, color: Colors.grey, size: 40,))),
                 const Padding(
-                  padding: EdgeInsets.only(left: 30, top: 50),
+                  padding: EdgeInsets.only(left: 30, top: 0),
                   child: Image(image: AssetImage('assets/img/Background.png')),
                 ),
                 const SizedBox(height: 30),

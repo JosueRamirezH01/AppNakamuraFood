@@ -31,9 +31,9 @@ class MesaServicio {
       };
       final res = await http.get(url, headers: headers);
       final data = json.decode(res.body);
-      print('Datos recibidos: $data');
+      // print('Datos recibidos: $data');
       Mesa mesa = Mesa.fromJsonList(data);
-      print('MESA LIST ${mesa.listMesa[0].toJson()}');
+      // print('MESA LIST ${mesa.listMesa[0].toJson()}');
       return mesa.listMesa;
     } catch (e) {
       print('Error Mesa: $e');

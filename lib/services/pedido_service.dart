@@ -71,8 +71,6 @@ class PedidoServicio {
     );
   }
 
-
-
   Future<List<Nota>> obtenerListasNota(String? accessToken) async {
     Uri url = Uri.https(_url, '$_api/notas');
     Map<String, String> headers = {
@@ -85,12 +83,9 @@ class PedidoServicio {
     if (res.statusCode == 200) {
       Map<String, dynamic> jsonResponse = json.decode(res.body);
 
-      // Extraer la lista de datos
       List<dynamic> data = jsonResponse['data'];
-      // Convertir la lista de datos a una lista de objetos Nota
       List<Nota> notas = Nota.fromJsonList(data);
 
-      print('OBTENER NOTAS: ${notas.map((nota) => nota.toJson()).toList()}');
       return notas;
     } else {
       throw Exception('Failed to load notas');

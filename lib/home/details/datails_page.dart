@@ -153,38 +153,88 @@ class _DetailsPageState extends State<DetailsPage> {
             itemBuilder: (_, int index) {
               return Column(
                 children: [
-                  ListTile(
-                    title: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            '${widget.productosSeleccionados?[index].nombreproducto}',
-                            maxLines: 3,
-                            overflow: TextOverflow.ellipsis,
+                  Container(
+                    decoration: widget.productosSeleccionados?[index]
+                                .id_pedido_detalle ==
+                            null
+                        ? BoxDecoration(
+                            border: Border.all(
+                              color: Colors.purpleAccent,
+                              width: 2.0,
+                            ),
+                            borderRadius: BorderRadius.circular(10.0),
+                          )
+                        : null,
+                    margin: const EdgeInsets.symmetric(
+                        vertical: 5.0, horizontal: 10.0),
+                    padding: widget.productosSeleccionados?[index]
+                                .id_pedido_detalle ==
+                            null
+                        ? const EdgeInsets.all(8.0)
+                        : null,
+                    child: ListTile(
+                      title: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              '${widget.productosSeleccionados?[index].nombreproducto}',
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
-                        ),
-                        Column(
-                          children: [
-                            if (widget.mesa!.estadoMesa != 2 && widget.items_independientes == false)
-                            _addOrRemoveItem(index),
-                            _precioProducto(index)
-                          ],
-                        ),
+                          Column(
+                            children: [
+                              if (widget.mesa!.estadoMesa != 2 &&
+                                  widget.items_independientes == false)
+                                _addOrRemoveItem(index),
+                              _precioProducto(index),
+                            ],
+                          ),
                           const SizedBox(width: 5),
-                        if(selectObjmesa.estadoMesa != 2 || widget.mesa!.estadoMesa != 2)
-                          _iconDelete(index, widget.productosSeleccionados?[index].id_pedido_detalle),
-                        const SizedBox(width: 5),
-                        if(selectObjmesa.estadoMesa != 2 || widget.mesa!.estadoMesa != 2)
-                          _iconNota(index, widget.productosSeleccionados?[index].id_pedido_detalle),
-                      ],
+                          if (selectObjmesa.estadoMesa != 2 ||
+                              widget.mesa!.estadoMesa != 2)
+                            Container(
+                              decoration: BoxDecoration(
+                                  color: Colors.grey[200],
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(20))),
+                              margin: widget.items_independientes == false ? EdgeInsets.only(bottom: 25) : null ,
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: _iconDelete(
+                                    index,
+                                    widget.productosSeleccionados?[index]
+                                        .id_pedido_detalle),
+                              ),
+                            ),
+                          const SizedBox(width: 5),
+                          if (selectObjmesa.estadoMesa != 2 ||
+                              widget.mesa!.estadoMesa != 2)
+                            Container(
+                              decoration: BoxDecoration(
+                                  color: Colors.grey[200],
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(20))),
+                              margin: widget.items_independientes == false ? EdgeInsets.only(bottom: 25) : null ,
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: _iconNota(
+                                    index,
+                                    widget.productosSeleccionados?[index]
+                                        .id_pedido_detalle),
+                              ),
+                            ),
+                        ],
+                      ),
                     ),
                   ),
-                  if (index != widget.productosSeleccionados!.length - 1) const Divider(
-                    height: 1,
-                    thickness: 2,
-                    indent: 10,
-                    endIndent: 10,
-                  ),
+                  if (index != widget.productosSeleccionados!.length - 1)
+                    const Divider(
+                      height: 1,
+                      thickness: 2,
+                      indent: 10,
+                      endIndent: 10,
+                    ),
                 ],
               );
             },
@@ -198,9 +248,24 @@ class _DetailsPageState extends State<DetailsPage> {
     print('---------${widget.productosSeleccionados![index].precioproducto}');
     double p = widget.productosSeleccionados![index].precioproducto! *  (widget.productosSeleccionados![index].stock ?? 0);
     // Devuelve un widget vacío si el índice está fuera de rango o el detalle del pedido es nulo
-    return  Text(
-      '$p',
-      // Agrega el estilo de texto necesario aquí
+    return Container(
+      decoration: widget.items_independientes == true ?
+        BoxDecoration(
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(8),
+            bottomLeft: Radius.circular(8),
+            bottomRight: Radius.circular(8),
+            topRight: Radius.circular(8)
+          ),
+          color: Colors.grey[200],
+        ) : null ,
+      child: Padding(
+        padding: widget.items_independientes == true ?  EdgeInsets.all(8.0) : EdgeInsets.all(0),
+        child: Text(
+          '$p',
+          // Agrega el estilo de texto necesario aquí
+        ),
+      ),
     );
   }
 
@@ -254,25 +319,25 @@ class _DetailsPageState extends State<DetailsPage> {
             child: Row(
               children: [
                 // const SizedBox(width: 5),
-                Container(
-                  margin: EdgeInsets.only(left: 10 ),
-                  child: ElevatedButton(
-                      style:  ButtonStyle(
-                          elevation: MaterialStateProperty.all(2), backgroundColor: MaterialStateProperty.all(const Color(0xFF4C95DD))),
-                      onPressed: () async {
-                        gif();
-                        //mesasDisponibles = await bdMesas.consultarMesasDisponibles(widget.mesa?.pisoId, context);
-                        //listaPisos = await bdPisos.consultarPisos(mozo!.id_establecimiento!, context);----- SOMBREADO
-                        mesasDisponibles = await bdMesas.consultarTodasMesas(listaPisos, context);
-                        List<Mesa> mesasDisponiblesFiltradas = mesasDisponibles.where((mesa) => mesa.estadoMesa == 1).toList();
-                        Navigator.pop(context);
-                        mostrarMesa(mesasDisponiblesFiltradas);
-                      },
-                      child: const Text(
-                        'Cambiar Mesa',
-                        style: TextStyle(color: Colors.white, fontSize: 16),
-                      )),
-                ),
+                // Container(
+                //   margin: EdgeInsets.only(left: 10 ),
+                //   child: ElevatedButton(
+                //       style:  ButtonStyle(
+                //           elevation: MaterialStateProperty.all(2), backgroundColor: MaterialStateProperty.all(const Color(0xFF4C95DD))),
+                //       onPressed: () async {
+                //         gif();
+                //         //mesasDisponibles = await bdMesas.consultarMesasDisponibles(widget.mesa?.pisoId, context);
+                //         //listaPisos = await bdPisos.consultarPisos(mozo!.id_establecimiento!, context);----- SOMBREADO
+                //         mesasDisponibles = await bdMesas.consultarTodasMesas(listaPisos, context);
+                //         List<Mesa> mesasDisponiblesFiltradas = mesasDisponibles.where((mesa) => mesa.estadoMesa == 1).toList();
+                //         Navigator.pop(context);
+                //         mostrarMesa(mesasDisponiblesFiltradas);
+                //       },
+                //       child: const Text(
+                //         'Cambiar Mesa',
+                //         style: TextStyle(color: Colors.white, fontSize: 16),
+                //       )),
+                // ),
                 // const SizedBox(width: 10),
                 Spacer(),
                 Container(
@@ -282,11 +347,282 @@ class _DetailsPageState extends State<DetailsPage> {
                           elevation: MaterialStateProperty.all(2), backgroundColor: MaterialStateProperty.all(const Color(0xFF634FD2))),
                       onPressed: () async {
                         print('---->BA BOTON ACTUALIZAR');
-                        if(widget.items_independientes){
+                        if (widget.items_independientes) {
+                          String? printerIP = await _pref.read('ipCocina');
+                          bool _stateConexionTicket = await _pref.read('stateConexionTicket') ?? false;
+                          bool conexionBluetooth = await _pref.read('conexionBluetooth') ?? false;
 
-                        }else{
+                          if (_stateConexionTicket) {
+                            if (conexionBluetooth) {
+                              _operacionACitemsIndependiente(1);
+                            } else {
+                              String messague = 'No se ha encontrado conectado a un dispositivo Bluetooth.';
+                              showMessangueDialog(messague);
+                              return;
+                            }
+                          } else {
+                            if (printerIP == null) {
+                              String messague = 'No se ha encontrado la dirección IP de la impresora.';
+                              showMessangueDialog(messague);
+                              return; // Salir del método printLabel
+                            } else {
+                              _operacionACitemsIndependiente(2);
+                            }
+                          }
 
+                        } else {
+                          String? printerIP = await _pref.read('ipCocina');
+                          bool _stateConexionTicket = await _pref.read('stateConexionTicket') ?? false;
+                          bool conexionBluetooth = await _pref.read('conexionBluetooth') ?? false;
+
+                          if (_stateConexionTicket) {
+                            if (conexionBluetooth) {
+                              _operacionAC(1);
+                              refresh();
+                            } else {
+                              String messague = 'No se ha encontrado conectado a un dispositivo Bluetooth.';
+                              showMessangueDialog(messague);
+                              return;
+                            }
+                          } else {
+                            if (printerIP == null) {
+                              String messague = 'No se ha encontrado la dirección IP de la impresora.';
+                              showMessangueDialog(messague);
+                              return; // Salir del método printLabel
+                            } else {
+                              _operacionAC(2);
+                              refresh();
+                            }
+                          }
                         }
+                      },
+                      child: const Text('Actualizar',
+                          style: TextStyle(color: Colors.white, fontSize: 16))),
+                ),
+                const SizedBox(width: 5),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _operacionACitemsIndependiente(int WifiOBlue) {
+    if (widget.productosSeleccionados!.length > 0) {
+      gif();
+      List<Producto> productosToPrint = [];
+
+      for (final producto in widget.productosSeleccionados!) {
+        int index = widget.productosSeleccionados!.indexOf(producto);
+        print('Índice del producto: $index');
+
+        print('Antes de actualizar: Producto ID: ${producto.id}, ID Pedido Detalle: ${producto.id_pedido_detalle}');
+      }
+
+      if (productosToPrint.isNotEmpty) {
+        // await detallePedidoServicio.actualizarAgregarProductoDetallePedidoItem(widget.idPedido, pedidoTotal,context);
+
+        if (WifiOBlue == 1) {
+          ticketBluetooth.printLabelBluetooth(productosToPrint, 2, pedidoTotal, selectObjmesa.nombreMesa, usuario!, selectObjmesa.nombrePiso, '');
+        } else if (WifiOBlue == 2) {
+          imprimir(productosToPrint, 2);
+        }
+
+        imprimir(productosToPrint, 2);
+        print('Hay productos que Actualizar');
+        Navigator.pop(context);
+      } else {
+        mostrarMensajeActualizado(
+            'No hay productos que Actualizar', true);
+        print('No hay productos que Actualizar');
+        Navigator.pop(context);
+      }
+    } else {
+      mostrarMensajeActualizado(
+          'No puedes dejar la lista vacia', true);
+    }
+  }
+
+  void _operacionAC(int WifiOBlue) async {
+    if (widget.productosSeleccionados!.length > 0) {
+      gif();
+      List<Producto> productosToPrint = [];
+
+      List<Producto> productosConIdDetalle = [];
+      List<Producto> productosSinIdDetalle = [];
+
+      List<Detalle_Pedido> detallepedidosToCompare = widget.detallePedidoLista;
+
+      widget.productosSeleccionados!.forEach((producto) {
+        if (producto.id_pedido_detalle != null) {
+          if (detallepedidosToCompare.any((detalle) =>
+              detalle.id_pedido_detalle == producto.id_pedido_detalle)) {
+            productosConIdDetalle.add(producto);
+          }
+        } else {
+          productosSinIdDetalle.add(producto);
+        }
+      });
+
+      print('productosSinIdDetalle : ${productosSinIdDetalle.length}');
+      print('productosConIdDetalle : ${productosConIdDetalle.length}');
+
+      Map<String, dynamic> pedidoDetalleAc = {
+        "monto_total": pedidoTotal,
+        "detalle": widget.productosSeleccionados!
+            .map((producto) => {
+                  "id_pedido_detalle": producto.id_pedido_detalle,
+                  "id_pedido": producto.idPedido,
+                  "id_producto": producto.id,
+                  "cantidad_producto": producto.stock,
+                  "cantidad_real": producto.stock,
+                  "precio_unitario": producto.precioproducto,
+                  "precio_producto":
+                      producto.precioproducto! * producto.stock!.toInt(),
+                  "comentario": producto.comentario,
+                  "estado_detalle": 1
+                })
+            .toList()
+      };
+      print('pedidoDetalleAc : ${pedidoDetalleAc['detalle']}');
+
+      Map<String, dynamic> detalleActualizadoJson =
+          await detallePedidoServicio.actualizarPedidoConRespuestaApi(
+              usuario?.accessToken, pedidoDetalleAc, widget.mesa?.id);
+      print(' respuesta ; ${detalleActualizadoJson}');
+      bool statusAcJson = detalleActualizadoJson['status'];
+
+      print('statusAcJson ${statusAcJson}');
+      print('detalleToAc ${detalleActualizadoJson}');
+
+      if (statusAcJson) {
+        List<dynamic> detalleAcJson =
+            detalleActualizadoJson['detalle_actualizado'];
+        print('Respuesta ${detalleAcJson}');
+
+        List<Detalle_Pedido> detalleActualizado = detalleAcJson
+            .map((json) => Detalle_Pedido.fromJson({
+                  "id_detalle": json["id_pedido_detalle"],
+                  "id_pedido": json["id_pedido"],
+                  "id_producto": json["id_producto"],
+                  "cantidad_producto": json["cantidad_producto"],
+                  "cantidad_actualizada": json["cantidad_actualizada"],
+                  "cantidad_exacta": json["cantidad_exacta"],
+                  "cantidad_real": json["cantidad_real"],
+                  "precio_producto": double.tryParse(
+                      json["precio_producto"]?.toString() ?? "0.0"),
+                  "precio_unitario": double.tryParse(
+                      json["precio_unitario"]?.toString() ?? "0.0"),
+                  "comentario": json["comentario"],
+                  "estado_detalle": json["estado_detalle"],
+                  "updated_at": DateTime.parse(json["updated_at"]),
+                }))
+            .toList();
+
+        detalleActualizado.forEach((element) {
+          print('LIsta detalles : ${element.toJson()}');
+        });
+
+        productosSinIdDetalle.forEach((producto) {
+          Detalle_Pedido? detalleCorrespondiente = detalleActualizado.firstWhere(
+                (detalle) =>
+                  detalle.id_producto == producto.id &&
+                  detalle.precio_unitario == producto.precioproducto,
+          );
+
+          if (detalleCorrespondiente != null) {
+            producto.id_pedido_detalle =
+                detalleCorrespondiente.id_pedido_detalle;
+            producto.stock = detalleCorrespondiente.cantidad_actualizada;
+            productosToPrint.add(producto);
+            // int index = widget.productosSeleccionados!.indexOf(producto);
+            //
+            // if (index != -1) {
+            //   setState(() {
+            //     widget.productosSeleccionados![index].id_pedido_detalle = detalleCorrespondiente.id_pedido_detalle;
+            //   });
+            //   refresh();
+            // }
+          }
+        });
+
+        detalleActualizado.forEach((element) {
+          print('detalles ${element}');
+        });
+
+        productosConIdDetalle.forEach((producto) {
+          // Detalle_Pedido detalleCorrespondiente = detalleActualizado.firstWhere(
+          //       (detalle) => detalle.id_producto == producto.id && detalle.precio_unitario == producto.precioproducto,
+          // );
+          //
+          // producto.stock = detalleCorrespondiente.cantidad_actualizada;
+
+          print(' productosConIdDetalle : ${producto.id_pedido_detalle}');
+          if (detalleActualizado.any((detalle) =>
+              detalle.id_pedido_detalle == producto.id_pedido_detalle)) {
+            Detalle_Pedido? detalleCorrespondiente =
+                detalleActualizado.firstWhere(
+              (detalle) =>
+                  detalle.id_producto == producto.id &&
+                  detalle.id_pedido_detalle == producto.id_pedido_detalle,
+            );
+
+            productosToPrint.add(Producto(
+                codigo: producto.codigo,
+                codigo_interno: producto.codigo_interno,
+                estado: producto.codigo,
+                id_pedido_detalle: producto.id_pedido_detalle,
+                identificador: producto.identificador,
+                categoria_id: producto.categoria_id,
+                establecimiento_id: producto.establecimiento_id,
+                comentario: detalleCorrespondiente.comentario,
+                idPedido: detalleCorrespondiente.id_pedido,
+                nombreproducto: producto.nombreproducto,
+                id: detalleCorrespondiente.id_producto,
+                stock: detalleCorrespondiente.cantidad_actualizada));
+          }
+        });
+
+        print('Cantidad para imprimir ${productosToPrint.length}');
+
+        productosToPrint.forEach((element) {
+          print('Productos para imprimir ${element.nombreproducto}');
+        });
+
+        if (productosToPrint.isNotEmpty){
+          if (WifiOBlue == 1) {
+            ticketBluetooth.printLabelBluetooth(productosToPrint, 2, pedidoTotal, selectObjmesa.nombreMesa, usuario!, selectObjmesa.nombrePiso, '');
+          } else if (WifiOBlue == 2) {
+            imprimir(productosToPrint, 2);
+          }
+          print('Hay productos que Actualizar');
+          Navigator.pop(context);
+        }else{
+          mostrarMensajeActualizado('Revisal la lista productosToPrint : ${productosToPrint.length}', true);
+          print('No hay productos que Actualizar');
+          Navigator.pop(context);
+        }
+
+
+
+        widget.productosSeleccionados!.forEach((element) {
+          print(
+              'RQ->Productos :${element.nombreproducto}, ID_Detalle ${element.id_pedido_detalle}');
+        });
+
+
+
+      } else {
+        mostrarMensajeActualizado('No hay productos que Actualizar', true);
+        print('No hay productos que Actualizar');
+        Navigator.pop(context);
+      }
+    } else {
+      mostrarMensajeActualizado('No puedes dejar la lista vacia', true);
+    }
+  }
+
                       },
                       child: const Text('Actualizar', style: TextStyle(color: Colors.white, fontSize: 16))),
                 ),
@@ -372,6 +708,36 @@ class _DetailsPageState extends State<DetailsPage> {
     return selectedOptions.join(';');
   }
 
+  String cleanComentario(String? comentario) {
+    if (comentario == null || comentario.isEmpty) {
+      return '';
+    }
+    final RegExp regExp = RegExp(r'<span[^>]*>([^<]+)<\/span>');
+    Iterable<Match> matches = regExp.allMatches(comentario);
+
+    String cleanedComentario = matches.map((match) => match.group(1)).join(';');
+    return cleanedComentario;
+  }
+
+  String? convertToSpan(String? comentario) {
+    // print('convertToSpan : ${listaNota}');
+    if (comentario == null || comentario.isEmpty) {
+      return null;
+    }
+
+    List<String> partes = comentario.split(';');
+
+    List<String> spans = [];
+
+    for (int i = 0; i < partes.length; i++) {
+      spans.add(
+          '<span class="style_nota" id="texto-comentario-${listaNota.firstWhere((element) => element.descripcion_nota == partes[i]).id_nota}">${partes[i]}</span>');
+    }
+    print(spans);
+
+    return spans.join();
+  }
+
   List<String> convertStringToList(String selectedOptionsString) {
     return selectedOptionsString.split(';');
   }
@@ -444,22 +810,86 @@ class _DetailsPageState extends State<DetailsPage> {
                 backgroundColor: MaterialStateProperty.all(Color(0xFF634FD2)),
               ),
               onPressed: () async {
-                print('Comidas : ${comidas}');
-                String selectedOptionsString = generateSelectedOptionsString(comidas);
+                String selectedOptionsString =
+                    generateSelectedOptionsString(comidas);
+                String? comentarioSpan = convertToSpan(selectedOptionsString);
+
                 if (widget.items_independientes) {
                   if (id_pedido_detalle != null) {
-                    //await detallePedidoServicio.notaProductoPorItem(selectedOptionsString, id_pedido_detalle, context);
+                    var productoSeleccionado =
+                        widget.productosSeleccionados![indexProducto];
+                    productoSeleccionado.comentario = comentarioSpan;
+
+                    Map<String, dynamic> pedidoDetalle = {
+                      "monto_total": pedidoTotal,
+                      "detalle": [
+                        {
+                          "id_pedido_detalle":
+                              productoSeleccionado.id_pedido_detalle,
+                          "id_pedido": productoSeleccionado.idPedido,
+                          "id_producto": productoSeleccionado.id,
+                          "cantidad_producto": productoSeleccionado.stock,
+                          "cantidad_real": productoSeleccionado.stock,
+                          "precio_unitario":
+                              productoSeleccionado.precioproducto,
+                          "precio_producto":
+                              productoSeleccionado.precioproducto! *
+                                  productoSeleccionado.stock!.toInt(),
+                          "comentario": productoSeleccionado.comentario,
+                          "estado_detalle": 1
+                        }
+                      ]
+                    };
+                    await detallePedidoServicio.actualizarPedidoApi(
+                        usuario?.accessToken, pedidoDetalle, widget.mesa?.id);
+
                     agregarMsj('Se agregó una nota al producto');
-                    imprimir([widget.productosSeleccionados![indexProducto]], 2);
+                  } else {
+                    widget.productosSeleccionados?[indexProducto].comentario =
+                        comentarioSpan;
                   }
                   // Aquí nos aseguramos de actualizar solo el producto seleccionado
                   widget.productosSeleccionados?[indexProducto].comentario = selectedOptionsString;
                   print('Índice seleccionado (independiente): $indexProducto');
 
                 } else {
-                  widget.productosSeleccionados?[indexProducto].comentario = selectedOptionsString;
-                  print('Opciones seleccionadas: $selectedOptionsString');
-                  print('Índice seleccionado: $indexProducto');
+                  if (id_pedido_detalle != null) {
+                    var productoSeleccionado =
+                        widget.productosSeleccionados![indexProducto];
+                    productoSeleccionado.comentario = comentarioSpan;
+
+                    Map<String, dynamic> pedidoDetalle = {
+                      "monto_total": pedidoTotal,
+                      "detalle": [
+                        {
+                          "id_pedido_detalle":
+                              productoSeleccionado.id_pedido_detalle,
+                          "id_pedido": productoSeleccionado.idPedido,
+                          "id_producto": productoSeleccionado.id,
+                          "cantidad_producto": productoSeleccionado.stock,
+                          "cantidad_real": productoSeleccionado.stock,
+                          "precio_unitario":
+                              productoSeleccionado.precioproducto,
+                          "precio_producto":
+                              productoSeleccionado.precioproducto! *
+                                  productoSeleccionado.stock!.toInt(),
+                          "comentario": productoSeleccionado.comentario,
+                          "estado_detalle": 1
+                        }
+                      ]
+                    };
+                    await detallePedidoServicio.actualizarPedidoApi(
+                        usuario?.accessToken, pedidoDetalle, widget.mesa?.id);
+
+                    agregarMsj('Se agregó una nota al producto');
+                  } else {
+                    widget.productosSeleccionados?[indexProducto].comentario =
+                        comentarioSpan;
+                  }
+
+                  // widget.productosSeleccionados?[indexProducto].comentario = comentarioSpan;
+                  // print('Opciones seleccionadas: $selectedOptionsString');
+                  // print('Índice seleccionado: $indexProducto');
                 }
                 Navigator.pop(context, 'OK');
               },
@@ -494,13 +924,27 @@ class _DetailsPageState extends State<DetailsPage> {
                       widget.detallePedidoLista.remove(id_pedido_detalle);
 
                     });
-                    // Actualizar los productos seleccionados en el widget padre si es necesario
-                    await  detallePedidoServicio.eliminarDetallePedido(id_pedido_detalle, usuario?.accessToken);
-                    Pedido pedido = new Pedido(
-                      montoTotal: pedidoTotal,
-                      detalle: widget.detallePedidoLista
-                    );
-                    await detallePedidoServicio.actualizarPedidoApi(usuario?.accessToken,pedido ,widget.mesa?.id);
+                    Map<String, dynamic> pedidoDetalle = {
+                      "monto_total": pedidoTotal,
+                      "detalle": widget.productosSeleccionados!
+                          .map((producto) => {
+                                "id_pedido_detalle": producto.id_pedido_detalle,
+                                "id_pedido": producto.idPedido,
+                                "id_producto": producto.id,
+                                "cantidad_producto": producto.stock,
+                                "cantidad_real": producto.stock,
+                                "precio_unitario": producto.precioproducto,
+                                "precio_producto": producto.precioproducto! *
+                                    producto.stock!.toInt(),
+                                "comentario": producto.comentario,
+                                "estado_detalle": 1
+                              })
+                          .toList()
+                    };
+                    print('<---Eliminar--->');
+                    print('Envio data : ${pedidoDetalle}');
+                    await detallePedidoServicio.actualizarPedidoApi(
+                        usuario?.accessToken, pedidoDetalle, widget.mesa?.id);
                     _actualizarProductosSeleccionados();
                   }
                   agregarMsj('El producto se ha eliminado');
@@ -515,15 +959,19 @@ class _DetailsPageState extends State<DetailsPage> {
                     _actualizarProductosSeleccionados();
                   }
                 }
-              }else {
-                index = widget.productosSeleccionados!.indexWhere((producto) => producto == widget.productosSeleccionados![index]);
-                if (index != -1) {
-                  // Eliminar el producto de la lista
-                  setState(() {
-                    widget.productosSeleccionados!.removeAt(index);
-                  });
-                  // Actualizar los productos seleccionados en el widget padre si es necesario
-                  _actualizarProductosSeleccionados();
+              } else {
+                if (id_pedido_detalle != null) {
+                  index = widget.productosSeleccionados!.indexWhere(
+                      (producto) =>
+                          producto == widget.productosSeleccionados![index]);
+                  if (index != -1) {
+                    // Eliminar el producto de la lista
+                    setState(() {
+                      widget.productosSeleccionados!.removeAt(index);
+                    });
+                    // Actualizar los productos seleccionados en el widget padre si es necesario
+                    _actualizarProductosSeleccionados();
+                  }
                 }
               }
               Navigator.pop(context, 'OK');
@@ -806,8 +1254,8 @@ class _DetailsPageState extends State<DetailsPage> {
               margin: EdgeInsets.only(right: 20),
               child: Row(
                 children: [
-                  const Text('TOTAL : ', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                  Text('S/ ${total.toStringAsFixed(2)}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold))
+                  Text('TOTAL : ', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  Text('S/ ${total.toStringAsFixed(2)}', style: const TextStyle( fontSize: 16, fontWeight: FontWeight.bold))
                 ],
               ),
             ),
@@ -827,40 +1275,48 @@ class _DetailsPageState extends State<DetailsPage> {
   Widget _addOrRemoveItem(int index) {
     return Row(
       children: [
-        GestureDetector(
-          onTap: () {
-            final productoSeleccionado = widget.productosSeleccionados?[index];
-            //final productoSeleccionadoDetalle = widget.detallePedidoLista[index];
-            if (productoSeleccionado != null && productoSeleccionado.stock != null && productoSeleccionado.stock! > 1) {
-
-              setState(() {
-                productoSeleccionado.stock = productoSeleccionado.stock! - 1; // Restar al stock
-
-                // double precioTotalProductoDetalle = productoSeleccionadoDetalle.precio_producto! - productoSeleccionado.precioproducto!;
-                // productoSeleccionadoDetalle.precio_producto = precioTotalProductoDetalle;
-              });
-
-            } else if (productoSeleccionado != null && productoSeleccionado.stock != null && productoSeleccionado.stock! == 1) {
-              // Aquí puedes mostrar un mensaje o tomar alguna acción adicional si el stock ya es 1
-            }
-            _actualizarProductosSeleccionados(); // Llama a la función para actualizar los productos seleccionados
-          },
-
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-            decoration: BoxDecoration(
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(8),
-                bottomLeft: Radius.circular(8),
-              ),
-              color: Colors.grey[200],
-            ),
-            child: const Text('-'),
-          ),
-        ),
+        // GestureDetector(
+        //   onTap: () {
+        //     final productoSeleccionado = widget.productosSeleccionados?[index];
+        //     //final productoSeleccionadoDetalle = widget.detallePedidoLista[index];
+        //     if (productoSeleccionado != null &&
+        //         productoSeleccionado.stock != null &&
+        //         productoSeleccionado.stock! > 1) {
+        //       setState(() {
+        //         productoSeleccionado.stock =
+        //             productoSeleccionado.stock! - 1; // Restar al stock
+        //
+        //         // double precioTotalProductoDetalle = productoSeleccionadoDetalle.precio_producto! - productoSeleccionado.precioproducto!;
+        //         // productoSeleccionadoDetalle.precio_producto = precioTotalProductoDetalle;
+        //       });
+        //     } else if (productoSeleccionado != null &&
+        //         productoSeleccionado.stock != null &&
+        //         productoSeleccionado.stock! == 1) {
+        //       // Aquí puedes mostrar un mensaje o tomar alguna acción adicional si el stock ya es 1
+        //     }
+        //     _actualizarProductosSeleccionados(); // Llama a la función para actualizar los productos seleccionados
+        //   },
+        //   child: Container(
+        //     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        //     decoration: BoxDecoration(
+        //       borderRadius: const BorderRadius.only(
+        //         topLeft: Radius.circular(8),
+        //         bottomLeft: Radius.circular(8),
+        //       ),
+        //       color: Colors.grey[200],
+        //     ),
+        //     child: const Text('-'),
+        //   ),
+        // ),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-          color: Colors.grey[200],
+          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+          decoration: BoxDecoration(
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(8),
+              bottomLeft: Radius.circular(8),
+            ),
+            color: Colors.grey[200],
+          ),
           child: Text(
             '${widget.productosSeleccionados?[index].stock ?? ""}',
           ),
@@ -892,7 +1348,7 @@ class _DetailsPageState extends State<DetailsPage> {
                 topRight: Radius.circular(8),
                 bottomRight: Radius.circular(8),
               ),
-              color: Colors.grey[200],
+              color: Colors.grey[100],
             ),
             child: const Text('+'),
           ),

@@ -1,16 +1,18 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
-import 'package:intl/intl.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:restauflutter/model/detalle_pedido.dart';
 import 'package:restauflutter/model/mesa.dart';
 import 'package:restauflutter/model/mesaDetallePedido.dart';
+import 'package:restauflutter/model/mozo.dart';
 import 'package:restauflutter/model/pedido.dart';
 import 'package:restauflutter/model/piso.dart';
 import 'package:restauflutter/model/producto.dart';
@@ -110,18 +112,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
     if (userData != null) {
       final Map<String, dynamic> userDataMap = json.decode(userData);
       usuario = Usuario.fromJson(userDataMap);
-      //idEstablecimiento = mozo!.id_establecimiento ?? 0;
-      ///----- VENCIMIENTO DEL TOKEN DIRECCIONANDO AL LOGIN
-      int? expiresIn = usuario?.expiresIn;
-      print('---- DATO A EXPIRAR $expiresIn');
-      DateTime receivedAt = DateTime.now();
-      DateTime expiryTime = receivedAt.add(Duration(seconds: expiresIn!));
-      String formattedExpiryTime = DateFormat('yyyy-MM-dd HH:mm:ss').format(expiryTime);
-
-      print('El token expira en Home Page en: $formattedExpiryTime');
-
-
-      /// ---------------------------------------------------------------------
+      idEstablecimiento = mozo!.id_establecimiento ?? 0;
     }
     print('--L---L--');
   }
@@ -208,11 +199,23 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
     }
   }
 
+  String cleanComentario(String? comentario) {
+    if (comentario == null || comentario.isEmpty) {
+      return '';
+    }
+    final RegExp regExp = RegExp(r'<span[^>]*>([^<]+)<\/span>');
+    Iterable<Match> matches = regExp.allMatches(comentario);
+
+    String cleanedComentario = matches.map((match) => match.group(1)).join(';');
+    return cleanedComentario;
+  }
+
   Future<void> consultarPisos() async {
     print('-----');
     final dynamic userData = await _pref.read('user_data');
       final Map<String, dynamic> userDataMap = json.decode(userData);
       usuario = Usuario.fromJson(userDataMap);
+
     List<Piso>? listaPisos = await dbPisos.getAll(usuario?.accessToken);
     print('LISTADO DE PISOS ------- ${listaPisos}');
     setState(() {
@@ -225,8 +228,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
       }
       pisoSelect = listaPisos[0].id!;
       consultarMesas(pisoSelect,context);
+      refresh2();
     });
-    refresh2();
   }
 
   Future<void> consultarMesas(int idPiso, BuildContext context) async {
