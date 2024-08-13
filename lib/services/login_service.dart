@@ -3,9 +3,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_bcrypt/flutter_bcrypt.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:intl/intl.dart';
 import 'package:mysql1/mysql1.dart';
 import 'package:restauflutter/bd/conexion.dart';
-import 'package:restauflutter/model/mozo.dart';
 import 'package:http/http.dart' as http;
 import 'package:restauflutter/services/piso_service.dart';
 import 'package:restauflutter/services/producto_service.dart';
@@ -41,6 +41,13 @@ class LoginService {
         final data = json.decode(res.body);
         Usuario usuario = Usuario.fromJson(data); // Accede a la parte 'user' del JSON
         print('${usuario.toJson()}');
+        int expiresIn = data['expires_in'];
+        print('---- DATO A EXPIRAR $expiresIn');
+        DateTime receivedAt = DateTime.now();
+        DateTime expiryTime = receivedAt.add(Duration(seconds: expiresIn));
+        String formattedExpiryTime = DateFormat('yyyy-MM-dd HH:mm:ss').format(expiryTime);
+
+        print('El token expira en: $formattedExpiryTime');
         final userData = json.encode(data);
         _sharedPreferences.save('user_data', userData);
         Fluttertoast.showToast(

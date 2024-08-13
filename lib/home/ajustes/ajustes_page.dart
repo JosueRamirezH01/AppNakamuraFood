@@ -642,6 +642,4 @@ class _IPTextInputFormatter extends TextInputFormatter {
     final isValid = regExp.hasMatch(newValue.text);
     return isValid ? newValue : oldValue;
   }
-
-
 }

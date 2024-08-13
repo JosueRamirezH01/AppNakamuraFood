@@ -1,18 +1,16 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'package:http/http.dart' as http;
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
+import 'package:intl/intl.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:restauflutter/model/detalle_pedido.dart';
 import 'package:restauflutter/model/mesa.dart';
 import 'package:restauflutter/model/mesaDetallePedido.dart';
-import 'package:restauflutter/model/mozo.dart';
 import 'package:restauflutter/model/pedido.dart';
 import 'package:restauflutter/model/piso.dart';
 import 'package:restauflutter/model/producto.dart';
@@ -64,11 +62,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
 
   //----------------------------------------------------
   late TabController _tabController;
-  int _selectedIndex = 0;
   late int _listSize;
   late SubOptTypes _subOptType;
   final SharedPref _pref = SharedPref();
-  late  Mozo? mozo = Mozo();
   late Piso piso = Piso();
   bool isLoading = true;
   late List<Pedido> listaPedido = [];
@@ -114,7 +110,18 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
     if (userData != null) {
       final Map<String, dynamic> userDataMap = json.decode(userData);
       usuario = Usuario.fromJson(userDataMap);
-      idEstablecimiento = mozo!.id_establecimiento ?? 0;
+      //idEstablecimiento = mozo!.id_establecimiento ?? 0;
+      ///----- VENCIMIENTO DEL TOKEN DIRECCIONANDO AL LOGIN
+      int? expiresIn = usuario?.expiresIn;
+      print('---- DATO A EXPIRAR $expiresIn');
+      DateTime receivedAt = DateTime.now();
+      DateTime expiryTime = receivedAt.add(Duration(seconds: expiresIn!));
+      String formattedExpiryTime = DateFormat('yyyy-MM-dd HH:mm:ss').format(expiryTime);
+
+      print('El token expira en Home Page en: $formattedExpiryTime');
+
+
+      /// ---------------------------------------------------------------------
     }
     print('--L---L--');
   }
@@ -140,14 +147,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
 
   var impresora = Impresora();
   late int initialTabIndex;
-  // late int initialTabIndex = 0;
 
 
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 1, vsync: this);
     _tabController.addListener(_handleTabSelection);
     _listSize = 10;
     _subOptType = SubOptTypes.local;
@@ -207,7 +213,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
     final dynamic userData = await _pref.read('user_data');
       final Map<String, dynamic> userDataMap = json.decode(userData);
       usuario = Usuario.fromJson(userDataMap);
-
     List<Piso>? listaPisos = await dbPisos.getAll(usuario?.accessToken);
     print('LISTADO DE PISOS ------- ${listaPisos}');
     setState(() {
@@ -220,8 +225,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
       }
       pisoSelect = listaPisos[0].id!;
       consultarMesas(pisoSelect,context);
-      refresh2();
     });
+    refresh2();
   }
 
   Future<void> consultarMesas(int idPiso, BuildContext context) async {
@@ -642,162 +647,162 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
     );
   }
 
-  Widget mainListado() {
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        // children: [_textFieldSearch(), pedidosList()],
-        children: [ pedidosList()],
-      ),
-    );
-  }
+  // Widget mainListado() {
+  //   return Padding(
+  //     padding: const EdgeInsets.all(20),
+  //     child: Column(
+  //       crossAxisAlignment: CrossAxisAlignment.start,
+  //       // children: [_textFieldSearch(), pedidosList()],
+  //       children: [ pedidosList()],
+  //     ),
+  //   );
+  // }
 
-  Widget pedidosList() {
-    String buttonText = 'Cliente';
-    List<Pedido> listaFiltrada = listaPedido;
-
-    if (_subOptType == SubOptTypes.local) {
-      buttonText = 'Mesa';
-      listaFiltrada = listaPedido.where((pedido) => pedido.idUsuario == mozo?.id && pedido.estadoPedido != 0).toList();
-      refresh();
-    }
-
-    return Expanded(
-      child: Container(
-        //margin: const EdgeInsets.only(top: 20, left: 20, right: 20, bottom: 20),
-        decoration: BoxDecoration(
-          border: Border.all(width: 2),
-          borderRadius: BorderRadius.circular(20),
-          color: const Color(0xFFD1D1D1),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(10),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Container(
-                      alignment: Alignment.center,
-                      child: const Text(
-                        'Pedido',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontWeight: FontWeight.w600),
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    child: Container(
-                      alignment: Alignment.center,
-                      decoration: const BoxDecoration(
-                        border: Border(
-                          left: BorderSide(width: 2),
-                          right: BorderSide(width: 2),
-                        ),
-                      ),
-                      child: Text(
-                        buttonText ,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(fontWeight: FontWeight.w600),
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    child: Container(
-                      alignment: Alignment.center,
-                      child: const Text(
-                        'Total',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontWeight: FontWeight.w600),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-              child: Container(
-                clipBehavior: Clip.antiAlias,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: isLoading
-                    ? const Center(
-                  child: CircularProgressIndicator(
-                    color: Color( 0xFFFF562F),
-                  ),
-                )
-                    : ListView.builder(
-                  //itemCount: listaPedido.length,
-                  itemCount: listaFiltrada.length,
-                  itemBuilder: (_, index) {
-                    //if (index < listaPedido.length) {
-                    if (index < listaFiltrada.length) {
-                      // Funcional
-                      //Pedido listPedido = listaPedido[index];
-                      Pedido listPedido = listaFiltrada[index];
-                      //tp1
-                      return Card(
-                         child: ListTile(
-                          title: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text('PD-${listPedido.correlativoPedido}'),
-                              Text('${_subOptType == SubOptTypes.local ? (ListadoMesas.isNotEmpty ? (AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa, orElse: () => Mesa()).nombreMesa ?? "") : "") : listPedido.idCliente}',overflow: TextOverflow.ellipsis),
-                              Text('${listPedido.montoTotal}',overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  color: Color(0xFF111111),
-                                  decoration: TextDecoration.none,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500
-                                ),
-                              )
-                            ],
-                          ),
-                          subtitle: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text('${ListadoPisos.firstWhere((element) => element.id == AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa).pisoId).nombrePiso}' ),
-                              Container(
-                                  decoration: BoxDecoration(
-                                    color: colores[AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa).estadoMesa! - 1],
-                                    borderRadius: BorderRadius.all(Radius.circular(10))
-                                  ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.only(top: 1.5,bottom: 1.5,right: 10,left: 10),
-                                    child: Text(AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa).estadoMesa != 0 ? AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa).estadoMesa == 2 ? 'Pre-Cuenta': 'Ocupado': 'Disponible',
-                                      style: TextStyle(
-                                        color: AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa).estadoMesa != 0 ? AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa).estadoMesa == 2 ? Colors.black : Colors.white: Colors.black,
-                                      ),
-                                    ),
-                                  )
-                              ),
-                            ],
-                          ),
-                          onTap: () async {
-                            List<Detalle_Pedido> listadoDetalle = await dbDetallePedido.obtenerDetallePedidoLastCreate(listPedido.idPedido, context);
-                            setState(() {
-                              initialTabIndex == 0;
-                            });
-                            pedido(listPedido, listadoDetalle);
-                          },
-                        ),
-                      );
-                    } else {
-                      return null;
-                    }
-                  },
-                ),
-              ),
-            )
-          ],
-        ),
-      ),
-    );
-  }
+  // Widget pedidosList() {
+  //   String buttonText = 'Cliente';
+  //   List<Pedido> listaFiltrada = listaPedido;
+  //
+  //   if (_subOptType == SubOptTypes.local) {
+  //     buttonText = 'Mesa';
+  //     listaFiltrada = listaPedido.where((pedido) => pedido.idUsuario == mozo?.id && pedido.estadoPedido != 0).toList();
+  //     refresh();
+  //   }
+  //
+  //   return Expanded(
+  //     child: Container(
+  //       //margin: const EdgeInsets.only(top: 20, left: 20, right: 20, bottom: 20),
+  //       decoration: BoxDecoration(
+  //         border: Border.all(width: 2),
+  //         borderRadius: BorderRadius.circular(20),
+  //         color: const Color(0xFFD1D1D1),
+  //       ),
+  //       child: Column(
+  //         crossAxisAlignment: CrossAxisAlignment.stretch,
+  //         children: [
+  //           Padding(
+  //             padding: const EdgeInsets.all(10),
+  //             child: Row(
+  //               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //               children: [
+  //                 Expanded(
+  //                   child: Container(
+  //                     alignment: Alignment.center,
+  //                     child: const Text(
+  //                       'Pedido',
+  //                       textAlign: TextAlign.center,
+  //                       style: TextStyle(fontWeight: FontWeight.w600),
+  //                     ),
+  //                   ),
+  //                 ),
+  //                 Expanded(
+  //                   child: Container(
+  //                     alignment: Alignment.center,
+  //                     decoration: const BoxDecoration(
+  //                       border: Border(
+  //                         left: BorderSide(width: 2),
+  //                         right: BorderSide(width: 2),
+  //                       ),
+  //                     ),
+  //                     child: Text(
+  //                       buttonText ,
+  //                       textAlign: TextAlign.center,
+  //                       style: const TextStyle(fontWeight: FontWeight.w600),
+  //                     ),
+  //                   ),
+  //                 ),
+  //                 Expanded(
+  //                   child: Container(
+  //                     alignment: Alignment.center,
+  //                     child: const Text(
+  //                       'Total',
+  //                       textAlign: TextAlign.center,
+  //                       style: TextStyle(fontWeight: FontWeight.w600),
+  //                     ),
+  //                   ),
+  //                 ),
+  //               ],
+  //             ),
+  //           ),
+  //           Expanded(
+  //             child: Container(
+  //               clipBehavior: Clip.antiAlias,
+  //               decoration: BoxDecoration(
+  //                 borderRadius: BorderRadius.circular(20),
+  //               ),
+  //               child: isLoading
+  //                   ? const Center(
+  //                 child: CircularProgressIndicator(
+  //                   color: Color( 0xFFFF562F),
+  //                 ),
+  //               )
+  //                   : ListView.builder(
+  //                 //itemCount: listaPedido.length,
+  //                 itemCount: listaFiltrada.length,
+  //                 itemBuilder: (_, index) {
+  //                   //if (index < listaPedido.length) {
+  //                   if (index < listaFiltrada.length) {
+  //                     // Funcional
+  //                     //Pedido listPedido = listaPedido[index];
+  //                     Pedido listPedido = listaFiltrada[index];
+  //                     //tp1
+  //                     return Card(
+  //                        child: ListTile(
+  //                         title: Row(
+  //                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //                           children: [
+  //                             Text('PD-${listPedido.correlativoPedido}'),
+  //                             Text('${_subOptType == SubOptTypes.local ? (ListadoMesas.isNotEmpty ? (AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa, orElse: () => Mesa()).nombreMesa ?? "") : "") : listPedido.idCliente}',overflow: TextOverflow.ellipsis),
+  //                             Text('${listPedido.montoTotal}',overflow: TextOverflow.ellipsis,
+  //                               style: const TextStyle(
+  //                                 color: Color(0xFF111111),
+  //                                 decoration: TextDecoration.none,
+  //                                 fontSize: 16,
+  //                                 fontWeight: FontWeight.w500
+  //                               ),
+  //                             )
+  //                           ],
+  //                         ),
+  //                         subtitle: Row(
+  //                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //                           children: [
+  //                             Text('${ListadoPisos.firstWhere((element) => element.id == AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa).pisoId).nombrePiso}' ),
+  //                             Container(
+  //                                 decoration: BoxDecoration(
+  //                                   color: colores[AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa).estadoMesa! - 1],
+  //                                   borderRadius: BorderRadius.all(Radius.circular(10))
+  //                                 ),
+  //                                 child: Padding(
+  //                                   padding: const EdgeInsets.only(top: 1.5,bottom: 1.5,right: 10,left: 10),
+  //                                   child: Text(AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa).estadoMesa != 0 ? AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa).estadoMesa == 2 ? 'Pre-Cuenta': 'Ocupado': 'Disponible',
+  //                                     style: TextStyle(
+  //                                       color: AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa).estadoMesa != 0 ? AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa).estadoMesa == 2 ? Colors.black : Colors.white: Colors.black,
+  //                                     ),
+  //                                   ),
+  //                                 )
+  //                             ),
+  //                           ],
+  //                         ),
+  //                         onTap: () async {
+  //                           List<Detalle_Pedido> listadoDetalle = await dbDetallePedido.obtenerDetallePedidoLastCreate(listPedido.idPedido, context);
+  //                           setState(() {
+  //                             initialTabIndex == 0;
+  //                           });
+  //                           pedido(listPedido, listadoDetalle);
+  //                         },
+  //                       ),
+  //                     );
+  //                   } else {
+  //                     return null;
+  //                   }
+  //                 },
+  //               ),
+  //             ),
+  //           )
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
   bool _isModalOpen = false;
   Future pedido(Pedido listPedido, List<Detalle_Pedido> listadoDetalle) {
 
@@ -1032,7 +1037,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
                                                 listProduct.forEach((element) {
                                                   print(' - ${element.toJson()}');
                                                 });
-                                                impresora.printLabel(printerIP,listProduct,3, listPedido.montoTotal!, AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa).nombreMesa , mozo!, ListadoPisos.firstWhere((element) => element.id == AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa).pisoId),'');
+                                               // impresora.printLabel(printerIP,listProduct,3, listPedido.montoTotal!, AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa).nombreMesa , mozo!, ListadoPisos.firstWhere((element) => element.id == AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa).pisoId),'');
                                                 print('Imprimir');
                                               }else{
                                                 showDialog(
@@ -1434,167 +1439,167 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
     );
   }
 
-  Future<void> mostrarDialogoAnulacion(String printerIP, List<Producto> listProduct ,Pedido pedido, BuildContext context) async {
-    String motivo = '';
-    bool motivoVacio = false;
-    bool usarMotivoPorDefecto = false;
-
-    return showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (BuildContext context, StateSetter setState) {
-            return AlertDialog(
-              // backgroundColor: Color.fromRGBO(217, 217, 217, 1.0),
-              title: Text('Anular pedido : ${pedido.correlativoPedido}'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    children: [
-                      Checkbox(
-                        activeColor: Color( 0xFFFF562F),
-                        value: usarMotivoPorDefecto,
-                        onChanged: (newValue) {
-                          setState(() {
-                            usarMotivoPorDefecto = newValue!;
-                            // Si se marca el checkbox, vaciamos el motivo del TextField
-                            if (usarMotivoPorDefecto) {
-                              motivo = '';
-                              motivoVacio = false;
-                            }
-                          });
-                        },
-                      ),
-                      Text('Usar motivo por defecto'),
-                    ],
-                  ),
-                  TextField(
-                    onChanged: (value) {
-                      motivo = value;
-                      setState(() {
-                        // motivoVacio = motivo.isEmpty;
-                        motivoVacio = motivo.isEmpty && !usarMotivoPorDefecto;
-                      });
-                    },
-                    enabled: !usarMotivoPorDefecto,
-                    // decoration: InputDecoration(
-                    //   labelText: 'Motivo de anulación',
-                    //   errorText: motivoVacio ? 'Este campo no puede estar vacío' : null,
-                    //   focusedBorder: UnderlineInputBorder(
-                    //     borderSide: BorderSide(color: motivoVacio ? Colors.red : Theme.of(context).primaryColor),
-                    //   ),
-                    // ),
-                    decoration: InputDecoration(
-                        labelText: 'Motivo de anulación',
-                        hintText: 'Ej. Abandono de mesa',
-                        errorText: motivoVacio ? 'Este campo no puede estar vacío' : null,
-                        border:OutlineInputBorder(
-                            borderSide: BorderSide(
-                                color: Colors.black
-                            )
-                        ),
-                        floatingLabelStyle: TextStyle(fontSize: 15, color: Color(0xFF000000)),
-                        hintStyle: TextStyle(
-                            fontSize: 15,
-                            color: Color(0xFF000000)
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(20),
-                          borderSide: BorderSide(
-                              color: Color(0xFF000000),
-                              width: 2
-                          ),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(20),
-                          borderSide: BorderSide(
-                              color: motivoVacio ? Colors.red : Color(0xFF000000),
-                              width: 2
-                          ),
-                        ),
-                        contentPadding: EdgeInsets.all(10),
-                        // prefixIcon: Icon(Icons.print, color: Colors.black),
-                        // error
-                        errorBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(20),
-                          borderSide: BorderSide(
-                              color: motivoVacio ? Colors.red : Color(0xFF000000),
-                              width: 2
-                          ),
-                        ),
-                        focusedErrorBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(20),
-                          borderSide: BorderSide(
-                              color: motivoVacio ? Colors.red : Color(0xFF000000),
-                              width: 2
-                          ),
-                        ),
-                      disabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(20),
-                        borderSide: BorderSide(
-                            color: Colors.grey,
-                            width: 2
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              actions: <Widget>[
-                TextButton(
-                  style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all( Color.fromRGBO(217, 217, 217, 0.8) ),
-                  ),
-                  child: Text('Cancelar',style: TextStyle(color: Colors.black),),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-                TextButton(
-                  style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all( Colors.redAccent ),
-                  ),
-                  child: Text('Anular',style: TextStyle(color: Colors.white),),
-                  onPressed: () {
-                    // if (motivo.isEmpty) {
-                    //   setState(() {
-                    //     motivoVacio = true;
-                    //   });
-                    // } else {
-                    //   impresora.printLabel( printerIP, listProduct ,4, pedido.montoTotal!, AllListadoMesas.firstWhere((element) => element.id == pedido.idMesa).nombreMesa, mozo!, ListadoPisos.firstWhere((element) => element.id == AllListadoMesas.firstWhere((element) => element.id == pedido.idMesa).pisoId),motivo);
-                    //   dbMesas.actualizarMesa(pedido.idMesa, 1, context);
-                    //   dbPedido.anularPedido(motivo, mozo!, pedido.idPedido!, context);
-                    //   Navigator.of(context).pop();
-                    //   refresh();
-                    // }
-                    String motivoFinal = usarMotivoPorDefecto ? 'Motivo por defecto' : motivo;
-
-                    if (motivoFinal.isEmpty && !usarMotivoPorDefecto) {
-                      setState(() {
-                        motivoVacio = true;
-                      });
-                    } else {
-                      impresora.printLabel(
-                          printerIP, listProduct, 4, pedido.montoTotal!, AllListadoMesas.firstWhere((element) => element.id == pedido.idMesa).nombreMesa, mozo!,
-                          ListadoPisos.firstWhere((element) => element.id == AllListadoMesas.firstWhere((element) => element.id == pedido.idMesa).pisoId),
-                          motivoFinal);
-                      //dbMesas.actualizarMesa(pedido.idMesa, 1, context); API ACTIALZIAR MESA
-                      dbPedido.anularPedido(motivoFinal, mozo!, pedido.idPedido!, context);
-                      // refresh();
-                      Navigator.of(context).pop();
-                      Navigator.pop(context);
-                    }
-                    refresh();
-                  },
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
+  // Future<void> mostrarDialogoAnulacion(String printerIP, List<Producto> listProduct ,Pedido pedido, BuildContext context) async {
+  //   String motivo = '';
+  //   bool motivoVacio = false;
+  //   bool usarMotivoPorDefecto = false;
+  //
+  //   return showDialog(
+  //     context: context,
+  //     builder: (BuildContext context) {
+  //       return StatefulBuilder(
+  //         builder: (BuildContext context, StateSetter setState) {
+  //           return AlertDialog(
+  //             // backgroundColor: Color.fromRGBO(217, 217, 217, 1.0),
+  //             title: Text('Anular pedido : ${pedido.correlativoPedido}'),
+  //             content: Column(
+  //               mainAxisSize: MainAxisSize.min,
+  //               children: [
+  //                 Row(
+  //                   children: [
+  //                     Checkbox(
+  //                       activeColor: Color( 0xFFFF562F),
+  //                       value: usarMotivoPorDefecto,
+  //                       onChanged: (newValue) {
+  //                         setState(() {
+  //                           usarMotivoPorDefecto = newValue!;
+  //                           // Si se marca el checkbox, vaciamos el motivo del TextField
+  //                           if (usarMotivoPorDefecto) {
+  //                             motivo = '';
+  //                             motivoVacio = false;
+  //                           }
+  //                         });
+  //                       },
+  //                     ),
+  //                     Text('Usar motivo por defecto'),
+  //                   ],
+  //                 ),
+  //                 TextField(
+  //                   onChanged: (value) {
+  //                     motivo = value;
+  //                     setState(() {
+  //                       // motivoVacio = motivo.isEmpty;
+  //                       motivoVacio = motivo.isEmpty && !usarMotivoPorDefecto;
+  //                     });
+  //                   },
+  //                   enabled: !usarMotivoPorDefecto,
+  //                   // decoration: InputDecoration(
+  //                   //   labelText: 'Motivo de anulación',
+  //                   //   errorText: motivoVacio ? 'Este campo no puede estar vacío' : null,
+  //                   //   focusedBorder: UnderlineInputBorder(
+  //                   //     borderSide: BorderSide(color: motivoVacio ? Colors.red : Theme.of(context).primaryColor),
+  //                   //   ),
+  //                   // ),
+  //                   decoration: InputDecoration(
+  //                       labelText: 'Motivo de anulación',
+  //                       hintText: 'Ej. Abandono de mesa',
+  //                       errorText: motivoVacio ? 'Este campo no puede estar vacío' : null,
+  //                       border:OutlineInputBorder(
+  //                           borderSide: BorderSide(
+  //                               color: Colors.black
+  //                           )
+  //                       ),
+  //                       floatingLabelStyle: TextStyle(fontSize: 15, color: Color(0xFF000000)),
+  //                       hintStyle: TextStyle(
+  //                           fontSize: 15,
+  //                           color: Color(0xFF000000)
+  //                       ),
+  //                       enabledBorder: OutlineInputBorder(
+  //                         borderRadius: BorderRadius.circular(20),
+  //                         borderSide: BorderSide(
+  //                             color: Color(0xFF000000),
+  //                             width: 2
+  //                         ),
+  //                       ),
+  //                       focusedBorder: OutlineInputBorder(
+  //                         borderRadius: BorderRadius.circular(20),
+  //                         borderSide: BorderSide(
+  //                             color: motivoVacio ? Colors.red : Color(0xFF000000),
+  //                             width: 2
+  //                         ),
+  //                       ),
+  //                       contentPadding: EdgeInsets.all(10),
+  //                       // prefixIcon: Icon(Icons.print, color: Colors.black),
+  //                       // error
+  //                       errorBorder: OutlineInputBorder(
+  //                         borderRadius: BorderRadius.circular(20),
+  //                         borderSide: BorderSide(
+  //                             color: motivoVacio ? Colors.red : Color(0xFF000000),
+  //                             width: 2
+  //                         ),
+  //                       ),
+  //                       focusedErrorBorder: OutlineInputBorder(
+  //                         borderRadius: BorderRadius.circular(20),
+  //                         borderSide: BorderSide(
+  //                             color: motivoVacio ? Colors.red : Color(0xFF000000),
+  //                             width: 2
+  //                         ),
+  //                       ),
+  //                     disabledBorder: OutlineInputBorder(
+  //                       borderRadius: BorderRadius.circular(20),
+  //                       borderSide: BorderSide(
+  //                           color: Colors.grey,
+  //                           width: 2
+  //                       ),
+  //                     ),
+  //                   ),
+  //                 ),
+  //               ],
+  //             ),
+  //             actions: <Widget>[
+  //               TextButton(
+  //                 style: ButtonStyle(
+  //                   backgroundColor: MaterialStateProperty.all( Color.fromRGBO(217, 217, 217, 0.8) ),
+  //                 ),
+  //                 child: Text('Cancelar',style: TextStyle(color: Colors.black),),
+  //                 onPressed: () {
+  //                   Navigator.of(context).pop();
+  //                 },
+  //               ),
+  //               TextButton(
+  //                 style: ButtonStyle(
+  //                   backgroundColor: MaterialStateProperty.all( Colors.redAccent ),
+  //                 ),
+  //                 child: Text('Anular',style: TextStyle(color: Colors.white),),
+  //                 onPressed: () {
+  //                   // if (motivo.isEmpty) {
+  //                   //   setState(() {
+  //                   //     motivoVacio = true;
+  //                   //   });
+  //                   // } else {
+  //                   //   impresora.printLabel( printerIP, listProduct ,4, pedido.montoTotal!, AllListadoMesas.firstWhere((element) => element.id == pedido.idMesa).nombreMesa, mozo!, ListadoPisos.firstWhere((element) => element.id == AllListadoMesas.firstWhere((element) => element.id == pedido.idMesa).pisoId),motivo);
+  //                   //   dbMesas.actualizarMesa(pedido.idMesa, 1, context);
+  //                   //   dbPedido.anularPedido(motivo, mozo!, pedido.idPedido!, context);
+  //                   //   Navigator.of(context).pop();
+  //                   //   refresh();
+  //                   // }
+  //                   String motivoFinal = usarMotivoPorDefecto ? 'Motivo por defecto' : motivo;
+  //
+  //                   if (motivoFinal.isEmpty && !usarMotivoPorDefecto) {
+  //                     setState(() {
+  //                       motivoVacio = true;
+  //                     });
+  //                   } else {
+  //                     impresora.printLabel(
+  //                         printerIP, listProduct, 4, pedido.montoTotal!, AllListadoMesas.firstWhere((element) => element.id == pedido.idMesa).nombreMesa, mozo!,
+  //                         ListadoPisos.firstWhere((element) => element.id == AllListadoMesas.firstWhere((element) => element.id == pedido.idMesa).pisoId),
+  //                         motivoFinal);
+  //                     //dbMesas.actualizarMesa(pedido.idMesa, 1, context); API ACTIALZIAR MESA
+  //                     dbPedido.anularPedido(motivoFinal, mozo!, pedido.idPedido!, context);
+  //                     // refresh();
+  //                     Navigator.of(context).pop();
+  //                     Navigator.pop(context);
+  //                   }
+  //                   refresh();
+  //                 },
+  //               ),
+  //             ],
+  //           );
+  //         },
+  //       );
+  //     },
+  //   );
+  // }
 
   Widget _buildAnimatedContent({required Key key, required Widget child}) {
     return AnimatedSwitcher(
@@ -1608,7 +1613,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
 
   void refreshTabController(){
     setState(() {
-      _tabController = TabController( length: 2, vsync: this);
+      _tabController = TabController( length: 1, vsync: this);
     });
   }
   void refresh(){
