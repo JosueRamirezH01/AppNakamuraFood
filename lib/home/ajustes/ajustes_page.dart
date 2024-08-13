@@ -78,7 +78,8 @@ class _AjustesPageState extends State<AjustesPage> {
   }
 
   void _loadSettings() async {
-    int entornoId = await entornoService.consultarEntorno(context);
+    // int entornoId = await entornoService.consultarEntorno(context);
+    int entornoId = 2;
     bool stateRestriccionStock = await moduloService.consultarRestriccion(context);
 
     // Entorno
@@ -311,7 +312,8 @@ class _AjustesPageState extends State<AjustesPage> {
                                       style: TextStyle(color: Colors.white),
                                     ), // Color(0xFF111111)
                                   ),
-                                  ] else ...[
+                                  ]
+                                  else ...[
                                     // Aquí puedes poner la clase o la página que deseas mostrar cuando _stateBlootho es true
                                     StateBleotoothContent(), // Usa el widget correcto aquí
 

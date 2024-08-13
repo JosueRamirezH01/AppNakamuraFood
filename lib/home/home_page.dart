@@ -116,7 +116,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
       usuario = Usuario.fromJson(userDataMap);
       idEstablecimiento = mozo!.id_establecimiento ?? 0;
     }
-    print('--L---L--');
+    print('->Datos del usuario cargados');
   }
   var dbPisos = PisoServicio();
   var dbMesas = MesaServicio();
@@ -153,7 +153,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
     _subOptType = SubOptTypes.local;
     getConnectivity();
     UserShared().then((_) {
-      // Una vez que UserShared() haya terminado de ejecutarse y se haya actualizado idEstablecimiento, entonces llamamos a las funciones de consulta.
       consultarPisos().then((_) {
         consultarMesas(pisoSelect, context).then((value) async {
           _subOptType = SubOptTypes.local;
@@ -202,11 +201,22 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
     }
   }
 
+  String cleanComentario(String? comentario) {
+    if (comentario == null || comentario.isEmpty) {
+      return '';
+    }
+    final RegExp regExp = RegExp(r'<span[^>]*>([^<]+)<\/span>');
+    Iterable<Match> matches = regExp.allMatches(comentario);
+
+    String cleanedComentario = matches.map((match) => match.group(1)).join(';');
+    return cleanedComentario;
+  }
+
   Future<void> consultarPisos() async {
     print('-----');
     final dynamic userData = await _pref.read('user_data');
-      final Map<String, dynamic> userDataMap = json.decode(userData);
-      usuario = Usuario.fromJson(userDataMap);
+    final Map<String, dynamic> userDataMap = json.decode(userData);
+    usuario = Usuario.fromJson(userDataMap);
 
     List<Piso>? listaPisos = await dbPisos.getAll(usuario?.accessToken);
     print('LISTADO DE PISOS ------- ${listaPisos}');
@@ -228,19 +238,17 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
     final dynamic userData = await _pref.read('user_data');
     final Map<String, dynamic> userDataMap = json.decode(userData);
     usuario = Usuario.fromJson(userDataMap);
-    print(' piso enviado: $idPiso');
+    print(' Mesas del piso: $idPiso');
     ListadoMesas = await dbMesas.getAll(usuario?.accessToken,idPiso);
     refresh();
-    //refresh2();
   }
 
   Stream<List<Mesa>> consultarMesasStream(int idPiso, BuildContext context) async* {
     while (true) {
-      // Consultar las mesas y emitir el resultado a través del stream
       List<Mesa> mesas = await dbMesas.getAll(usuario?.accessToken,idPiso);
       ListadoMesas = mesas ;
       yield mesas;
-      await Future.delayed(const Duration(seconds: 5)); // Esperar 5 segundos antes de la próxima consulta
+      await Future.delayed(const Duration(seconds: 5));
     }
   }
 
@@ -269,8 +277,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
     } else {
       crossAxisCount = 2;
     }
-    //initialTabIndex = ModalRoute.of(context)!.settings.arguments as int? ?? 0;
-    print('ARGUMENTO DE LLEGADA DE PEDIDO --------${initialTabIndex}');
+
+    print('Tab HOME : ${initialTabIndex}');
     return Scaffold(
         appBar: AppBar(
           bottom: PreferredSize(
@@ -642,162 +650,162 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
     );
   }
 
-  Widget mainListado() {
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        // children: [_textFieldSearch(), pedidosList()],
-        children: [ pedidosList()],
-      ),
-    );
-  }
+  // Widget mainListado() {
+  //   return Padding(
+  //     padding: const EdgeInsets.all(20),
+  //     child: Column(
+  //       crossAxisAlignment: CrossAxisAlignment.start,
+  //       // children: [_textFieldSearch(), pedidosList()],
+  //       children: [ pedidosList()],
+  //     ),
+  //   );
+  // }
 
-  Widget pedidosList() {
-    String buttonText = 'Cliente';
-    List<Pedido> listaFiltrada = listaPedido;
-
-    if (_subOptType == SubOptTypes.local) {
-      buttonText = 'Mesa';
-      listaFiltrada = listaPedido.where((pedido) => pedido.idUsuario == mozo?.id && pedido.estadoPedido != 0).toList();
-      refresh();
-    }
-
-    return Expanded(
-      child: Container(
-        //margin: const EdgeInsets.only(top: 20, left: 20, right: 20, bottom: 20),
-        decoration: BoxDecoration(
-          border: Border.all(width: 2),
-          borderRadius: BorderRadius.circular(20),
-          color: const Color(0xFFD1D1D1),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(10),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Container(
-                      alignment: Alignment.center,
-                      child: const Text(
-                        'Pedido',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontWeight: FontWeight.w600),
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    child: Container(
-                      alignment: Alignment.center,
-                      decoration: const BoxDecoration(
-                        border: Border(
-                          left: BorderSide(width: 2),
-                          right: BorderSide(width: 2),
-                        ),
-                      ),
-                      child: Text(
-                        buttonText ,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(fontWeight: FontWeight.w600),
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    child: Container(
-                      alignment: Alignment.center,
-                      child: const Text(
-                        'Total',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontWeight: FontWeight.w600),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-              child: Container(
-                clipBehavior: Clip.antiAlias,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: isLoading
-                    ? const Center(
-                  child: CircularProgressIndicator(
-                    color: Color( 0xFFFF562F),
-                  ),
-                )
-                    : ListView.builder(
-                  //itemCount: listaPedido.length,
-                  itemCount: listaFiltrada.length,
-                  itemBuilder: (_, index) {
-                    //if (index < listaPedido.length) {
-                    if (index < listaFiltrada.length) {
-                      // Funcional
-                      //Pedido listPedido = listaPedido[index];
-                      Pedido listPedido = listaFiltrada[index];
-                      //tp1
-                      return Card(
-                         child: ListTile(
-                          title: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text('PD-${listPedido.correlativoPedido}'),
-                              Text('${_subOptType == SubOptTypes.local ? (ListadoMesas.isNotEmpty ? (AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa, orElse: () => Mesa()).nombreMesa ?? "") : "") : listPedido.idCliente}',overflow: TextOverflow.ellipsis),
-                              Text('${listPedido.montoTotal}',overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  color: Color(0xFF111111),
-                                  decoration: TextDecoration.none,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500
-                                ),
-                              )
-                            ],
-                          ),
-                          subtitle: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text('${ListadoPisos.firstWhere((element) => element.id == AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa).pisoId).nombrePiso}' ),
-                              Container(
-                                  decoration: BoxDecoration(
-                                    color: colores[AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa).estadoMesa! - 1],
-                                    borderRadius: BorderRadius.all(Radius.circular(10))
-                                  ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.only(top: 1.5,bottom: 1.5,right: 10,left: 10),
-                                    child: Text(AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa).estadoMesa != 0 ? AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa).estadoMesa == 2 ? 'Pre-Cuenta': 'Ocupado': 'Disponible',
-                                      style: TextStyle(
-                                        color: AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa).estadoMesa != 0 ? AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa).estadoMesa == 2 ? Colors.black : Colors.white: Colors.black,
-                                      ),
-                                    ),
-                                  )
-                              ),
-                            ],
-                          ),
-                          onTap: () async {
-                            List<Detalle_Pedido> listadoDetalle = await dbDetallePedido.obtenerDetallePedidoLastCreate(listPedido.idPedido, context);
-                            setState(() {
-                              initialTabIndex == 0;
-                            });
-                            pedido(listPedido, listadoDetalle);
-                          },
-                        ),
-                      );
-                    } else {
-                      return null;
-                    }
-                  },
-                ),
-              ),
-            )
-          ],
-        ),
-      ),
-    );
-  }
+  // Widget pedidosList() {
+  //   String buttonText = 'Cliente';
+  //   List<Pedido> listaFiltrada = listaPedido;
+  //
+  //   if (_subOptType == SubOptTypes.local) {
+  //     buttonText = 'Mesa';
+  //     listaFiltrada = listaPedido.where((pedido) => pedido.idUsuario == mozo?.id && pedido.estadoPedido != 0).toList();
+  //     refresh();
+  //   }
+  //
+  //   return Expanded(
+  //     child: Container(
+  //       //margin: const EdgeInsets.only(top: 20, left: 20, right: 20, bottom: 20),
+  //       decoration: BoxDecoration(
+  //         border: Border.all(width: 2),
+  //         borderRadius: BorderRadius.circular(20),
+  //         color: const Color(0xFFD1D1D1),
+  //       ),
+  //       child: Column(
+  //         crossAxisAlignment: CrossAxisAlignment.stretch,
+  //         children: [
+  //           Padding(
+  //             padding: const EdgeInsets.all(10),
+  //             child: Row(
+  //               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //               children: [
+  //                 Expanded(
+  //                   child: Container(
+  //                     alignment: Alignment.center,
+  //                     child: const Text(
+  //                       'Pedido',
+  //                       textAlign: TextAlign.center,
+  //                       style: TextStyle(fontWeight: FontWeight.w600),
+  //                     ),
+  //                   ),
+  //                 ),
+  //                 Expanded(
+  //                   child: Container(
+  //                     alignment: Alignment.center,
+  //                     decoration: const BoxDecoration(
+  //                       border: Border(
+  //                         left: BorderSide(width: 2),
+  //                         right: BorderSide(width: 2),
+  //                       ),
+  //                     ),
+  //                     child: Text(
+  //                       buttonText ,
+  //                       textAlign: TextAlign.center,
+  //                       style: const TextStyle(fontWeight: FontWeight.w600),
+  //                     ),
+  //                   ),
+  //                 ),
+  //                 Expanded(
+  //                   child: Container(
+  //                     alignment: Alignment.center,
+  //                     child: const Text(
+  //                       'Total',
+  //                       textAlign: TextAlign.center,
+  //                       style: TextStyle(fontWeight: FontWeight.w600),
+  //                     ),
+  //                   ),
+  //                 ),
+  //               ],
+  //             ),
+  //           ),
+  //           Expanded(
+  //             child: Container(
+  //               clipBehavior: Clip.antiAlias,
+  //               decoration: BoxDecoration(
+  //                 borderRadius: BorderRadius.circular(20),
+  //               ),
+  //               child: isLoading
+  //                   ? const Center(
+  //                 child: CircularProgressIndicator(
+  //                   color: Color( 0xFFFF562F),
+  //                 ),
+  //               )
+  //                   : ListView.builder(
+  //                 //itemCount: listaPedido.length,
+  //                 itemCount: listaFiltrada.length,
+  //                 itemBuilder: (_, index) {
+  //                   //if (index < listaPedido.length) {
+  //                   if (index < listaFiltrada.length) {
+  //                     // Funcional
+  //                     //Pedido listPedido = listaPedido[index];
+  //                     Pedido listPedido = listaFiltrada[index];
+  //                     //tp1
+  //                     return Card(
+  //                        child: ListTile(
+  //                         title: Row(
+  //                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //                           children: [
+  //                             Text('PD-${listPedido.correlativoPedido}'),
+  //                             Text('${_subOptType == SubOptTypes.local ? (ListadoMesas.isNotEmpty ? (AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa, orElse: () => Mesa()).nombreMesa ?? "") : "") : listPedido.idCliente}',overflow: TextOverflow.ellipsis),
+  //                             Text('${listPedido.montoTotal}',overflow: TextOverflow.ellipsis,
+  //                               style: const TextStyle(
+  //                                 color: Color(0xFF111111),
+  //                                 decoration: TextDecoration.none,
+  //                                 fontSize: 16,
+  //                                 fontWeight: FontWeight.w500
+  //                               ),
+  //                             )
+  //                           ],
+  //                         ),
+  //                         subtitle: Row(
+  //                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //                           children: [
+  //                             Text('${ListadoPisos.firstWhere((element) => element.id == AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa).pisoId).nombrePiso}' ),
+  //                             Container(
+  //                                 decoration: BoxDecoration(
+  //                                   color: colores[AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa).estadoMesa! - 1],
+  //                                   borderRadius: BorderRadius.all(Radius.circular(10))
+  //                                 ),
+  //                                 child: Padding(
+  //                                   padding: const EdgeInsets.only(top: 1.5,bottom: 1.5,right: 10,left: 10),
+  //                                   child: Text(AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa).estadoMesa != 0 ? AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa).estadoMesa == 2 ? 'Pre-Cuenta': 'Ocupado': 'Disponible',
+  //                                     style: TextStyle(
+  //                                       color: AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa).estadoMesa != 0 ? AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa).estadoMesa == 2 ? Colors.black : Colors.white: Colors.black,
+  //                                     ),
+  //                                   ),
+  //                                 )
+  //                             ),
+  //                           ],
+  //                         ),
+  //                         onTap: () async {
+  //                           List<Detalle_Pedido> listadoDetalle = await dbDetallePedido.obtenerDetallePedidoLastCreate(listPedido.idPedido, context);
+  //                           setState(() {
+  //                             initialTabIndex == 0;
+  //                           });
+  //                           pedido(listPedido, listadoDetalle);
+  //                         },
+  //                       ),
+  //                     );
+  //                   } else {
+  //                     return null;
+  //                   }
+  //                 },
+  //               ),
+  //             ),
+  //           )
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
   bool _isModalOpen = false;
   Future pedido(Pedido listPedido, List<Detalle_Pedido> listadoDetalle) {
 

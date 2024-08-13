@@ -1,4 +1,3 @@
-
 import 'dart:convert';
 import 'dart:core';
 
@@ -26,31 +25,28 @@ import '../../model/PedidoResponse.dart';
 import '../../model/categoria.dart';
 import '../../model/usuario.dart';
 
-
 class DetailsPage extends StatefulWidget {
   final List<Producto>? productosSeleccionados;
   List<Detalle_Pedido> detallePedidoLista;
   final Mesa? mesa;
   int? idPedido;
   bool items_independientes;
-  final void Function(List<Producto>?)? onProductosActualizados; // Función de devolución de llamada
+  final void Function(List<Producto>?)? onProductosActualizados;
 
-  DetailsPage({
-    super.key,
-    required this.productosSeleccionados,
-    required this.detallePedidoLista,
-    required this.mesa,
-    required this.idPedido,
-    required this.items_independientes,
-    this.onProductosActualizados
-  });
+  DetailsPage(
+      {super.key,
+      required this.productosSeleccionados,
+      required this.detallePedidoLista,
+      required this.mesa,
+      required this.idPedido,
+      required this.items_independientes,
+      this.onProductosActualizados});
 
   @override
   State<DetailsPage> createState() => _DetailsPageState();
 }
 
 class _DetailsPageState extends State<DetailsPage> {
-
   TextEditingController notaController = TextEditingController();
   var bdPisos = PisoServicio();
   var bdMesas = MesaServicio();
@@ -58,7 +54,7 @@ class _DetailsPageState extends State<DetailsPage> {
   var impresora = Impresora();
   var ticketBluetooth = TicketBluetooth();
   final SharedPref _pref = SharedPref();
-  late  Usuario? usuario = Usuario();
+  late Usuario? usuario = Usuario();
   late Piso piso = Piso();
   late int? IDPEDIDOPRUEBA = 0;
   List<bool> _checkedItems = [];
@@ -74,30 +70,24 @@ class _DetailsPageState extends State<DetailsPage> {
 
   List<Mesa> mesasDisponibles = [];
   List<Detalle_Pedido> detalles_pedios_tmp = [];
-  List<Piso> listaPisos =[];
+  List<Piso> listaPisos = [];
   late Mesa selectObjmesa;
-  PedidoServicio pedidoServicio= PedidoServicio();
+  PedidoServicio pedidoServicio = PedidoServicio();
   MesaServicio mesaServicio = MesaServicio();
   var entornoService = EntornoService();
 
   DetallePedidoServicio detallePedidoServicio = DetallePedidoServicio();
   late Pedido newpedido = Pedido();
-  late double pedidoTotal ;
+  late double pedidoTotal;
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     selectObjmesa = widget.mesa!;
-    detalles_pedios_tmp = widget.detallePedidoLista ;
+    detalles_pedios_tmp = widget.detallePedidoLista;
     UserShared();
     _checkedItems = List.filled(listaNota.length, false);
-
-  }
-
-  Future<int> _getEntornoId() async {
-    int entornoId = await entornoService.consultarEntorno(context);
-    return entornoId;
   }
 
   @override
@@ -107,9 +97,8 @@ class _DetailsPageState extends State<DetailsPage> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            if (screenWidth < 600)
-              icono(),
-            if( widget.mesa!.estadoMesa != 1 && widget.mesa!.estadoMesa != 2)
+            if (screenWidth < 600) icono(),
+            if (widget.mesa!.estadoMesa != 1 && widget.mesa!.estadoMesa != 2)
               cabecera(),
             contenido(),
             debajo()
@@ -120,7 +109,6 @@ class _DetailsPageState extends State<DetailsPage> {
   }
 
   Widget contenido() {
-
     double screenWidth = MediaQuery.of(context).size.width;
 
     int crossAxisCount = 2;
@@ -133,58 +121,119 @@ class _DetailsPageState extends State<DetailsPage> {
     } else {
       crossAxisCount = 2;
     }
-    double sizeHeigth= widget.mesa!.estadoMesa != 1 && widget.mesa!.estadoMesa != 2 ? 0.56 : 0.65;
+    double sizeHeigth =
+        widget.mesa!.estadoMesa != 1 && widget.mesa!.estadoMesa != 2
+            ? 0.56
+            : 0.65;
     return NotificationListener<ScrollNotification>(
       onNotification: (notification) {
-        if (notification is ScrollUpdateNotification && notification.metrics.atEdge && notification.metrics.pixels <= 0) {
+        if (notification is ScrollUpdateNotification &&
+            notification.metrics.atEdge &&
+            notification.metrics.pixels <= 0) {
           return false;
         }
         return true;
       },
       child: SingleChildScrollView(
         child: Container(
-          margin: crossAxisCount <= 3 ? EdgeInsets.only(top:15 ,left: 15,right: 15) : null,
-
+          margin: crossAxisCount <= 3
+              ? EdgeInsets.only(top: 15, left: 15, right: 15)
+              : null,
           height: MediaQuery.of(context).size.height * sizeHeigth,
-          width: screenWidth > 600 ? MediaQuery.of(context).size.width * 0.9 : MediaQuery.of(context).size.width * 8,
-          decoration: BoxDecoration(borderRadius: const BorderRadius.all(Radius.circular(15)), border: Border.all(width: 2),),
+          width: screenWidth > 600
+              ? MediaQuery.of(context).size.width * 0.9
+              : MediaQuery.of(context).size.width * 8,
+          decoration: BoxDecoration(
+            borderRadius: const BorderRadius.all(Radius.circular(15)),
+            border: Border.all(width: 2),
+          ),
           child: ListView.builder(
             itemCount: widget.productosSeleccionados?.length,
             itemBuilder: (_, int index) {
               return Column(
                 children: [
-                  ListTile(
-                    title: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            '${widget.productosSeleccionados?[index].nombreproducto}',
-                            maxLines: 3,
-                            overflow: TextOverflow.ellipsis,
+                  Container(
+                    decoration: widget.productosSeleccionados?[index]
+                                .id_pedido_detalle ==
+                            null
+                        ? BoxDecoration(
+                            border: Border.all(
+                              color: Colors.purpleAccent,
+                              width: 2.0,
+                            ),
+                            borderRadius: BorderRadius.circular(10.0),
+                          )
+                        : null,
+                    margin: const EdgeInsets.symmetric(
+                        vertical: 5.0, horizontal: 10.0),
+                    padding: widget.productosSeleccionados?[index]
+                                .id_pedido_detalle ==
+                            null
+                        ? const EdgeInsets.all(8.0)
+                        : null,
+                    child: ListTile(
+                      title: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              '${widget.productosSeleccionados?[index].nombreproducto}',
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
-                        ),
-                        Column(
-                          children: [
-                            if (widget.mesa!.estadoMesa != 2 && widget.items_independientes == false)
-                            _addOrRemoveItem(index),
-                            _precioProducto(index)
-                          ],
-                        ),
+                          Column(
+                            children: [
+                              if (widget.mesa!.estadoMesa != 2 &&
+                                  widget.items_independientes == false)
+                                _addOrRemoveItem(index),
+                              _precioProducto(index),
+                            ],
+                          ),
                           const SizedBox(width: 5),
-                        if(selectObjmesa.estadoMesa != 2 || widget.mesa!.estadoMesa != 2)
-                          _iconDelete(index, widget.productosSeleccionados?[index].id_pedido_detalle),
-                        const SizedBox(width: 5),
-                        if(selectObjmesa.estadoMesa != 2 || widget.mesa!.estadoMesa != 2)
-                          _iconNota(index, widget.productosSeleccionados?[index].id_pedido_detalle),
-                      ],
+                          if (selectObjmesa.estadoMesa != 2 ||
+                              widget.mesa!.estadoMesa != 2)
+                            Container(
+                              decoration: BoxDecoration(
+                                  color: Colors.grey[200],
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(20))),
+                              margin: widget.items_independientes == false ? EdgeInsets.only(bottom: 25) : null ,
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: _iconDelete(
+                                    index,
+                                    widget.productosSeleccionados?[index]
+                                        .id_pedido_detalle),
+                              ),
+                            ),
+                          const SizedBox(width: 5),
+                          if (selectObjmesa.estadoMesa != 2 ||
+                              widget.mesa!.estadoMesa != 2)
+                            Container(
+                              decoration: BoxDecoration(
+                                  color: Colors.grey[200],
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(20))),
+                              margin: widget.items_independientes == false ? EdgeInsets.only(bottom: 25) : null ,
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: _iconNota(
+                                    index,
+                                    widget.productosSeleccionados?[index]
+                                        .id_pedido_detalle),
+                              ),
+                            ),
+                        ],
+                      ),
                     ),
                   ),
-                  if (index != widget.productosSeleccionados!.length - 1) const Divider(
-                    height: 1,
-                    thickness: 2,
-                    indent: 10,
-                    endIndent: 10,
-                  ),
+                  if (index != widget.productosSeleccionados!.length - 1)
+                    const Divider(
+                      height: 1,
+                      thickness: 2,
+                      indent: 10,
+                      endIndent: 10,
+                    ),
                 ],
               );
             },
@@ -196,17 +245,33 @@ class _DetailsPageState extends State<DetailsPage> {
 
   Widget _precioProducto(int index) {
     print('---------${widget.productosSeleccionados![index].precioproducto}');
-    double p = widget.productosSeleccionados![index].precioproducto! *  (widget.productosSeleccionados![index].stock ?? 0);
+    double p = widget.productosSeleccionados![index].precioproducto! *
+        (widget.productosSeleccionados![index].stock ?? 0);
     // Devuelve un widget vacío si el índice está fuera de rango o el detalle del pedido es nulo
-    return  Text(
-      '$p',
-      // Agrega el estilo de texto necesario aquí
+    return Container(
+      decoration: widget.items_independientes == true ?
+        BoxDecoration(
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(8),
+            bottomLeft: Radius.circular(8),
+            bottomRight: Radius.circular(8),
+            topRight: Radius.circular(8)
+          ),
+          color: Colors.grey[200],
+        ) : null ,
+      child: Padding(
+        padding: widget.items_independientes == true ?  EdgeInsets.all(8.0) : EdgeInsets.all(0),
+        child: Text(
+          '$p',
+          // Agrega el estilo de texto necesario aquí
+        ),
+      ),
     );
   }
 
   Widget _iconDelete(int index, int? id_pedido_detalle) {
     return GestureDetector(
-      onTap: (){
+      onTap: () {
         print("CODIGO A ELIMINAR ${id_pedido_detalle}");
         _eliminar(index, id_pedido_detalle);
       },
@@ -215,17 +280,20 @@ class _DetailsPageState extends State<DetailsPage> {
   }
 
   Widget _iconNota(int index, int? id_pedido_detalle) {
+    print('_iconNota : ${index}');
+    print(
+        'Comentario Llegada : ${widget.productosSeleccionados?[index].comentario}');
     return GestureDetector(
       onTap: () async {
         listaNota = await bdPedido.obtenerListasNota(usuario?.accessToken);
         print('INDEX ${index}');
-        _nota(listaNota,index, id_pedido_detalle);
+        _nota(listaNota, index, id_pedido_detalle);
       },
       child: const Icon(Icons.edit, color: Colors.amber),
     );
   }
 
-  Widget icono(){
+  Widget icono() {
     return const Padding(
       padding: EdgeInsets.only(top: 10, bottom: 10),
       child: Divider(
@@ -237,194 +305,102 @@ class _DetailsPageState extends State<DetailsPage> {
   }
 
   Widget cabecera() {
-
     double screenWidth = MediaQuery.of(context).size.width;
 
     return Center(
       child: Column(
         children: [
           Container(
-            margin: EdgeInsets.only(top : screenWidth < 600 ? 20 : 1, bottom: 10),
+            margin:
+                EdgeInsets.only(top: screenWidth < 600 ? 20 : 1, bottom: 10),
             width: MediaQuery.of(context).size.width * 0.9,
-            height: MediaQuery.of(context).size.height * 0.08,
+            // height: MediaQuery.of(context).size.height * 0.08,
             decoration: BoxDecoration(
-              border: Border.fromBorderSide(BorderSide(width: 2)),
-                borderRadius: BorderRadius.all(Radius.circular(20)), color: Color(0xFF99CFB5)
-            ),
+                border: Border.fromBorderSide(BorderSide(width: 2)),
+                borderRadius: BorderRadius.all(Radius.circular(20)),
+                color: Colors.transparent //Color(0xFF99CFB5)
+                ),
             child: Row(
               children: [
                 // const SizedBox(width: 5),
-                Container(
-                  margin: EdgeInsets.only(left: 10 ),
-                  child: ElevatedButton(
-                      style:  ButtonStyle(
-                          elevation: MaterialStateProperty.all(2), backgroundColor: MaterialStateProperty.all(const Color(0xFF4C95DD))),
-                      onPressed: () async {
-                        gif();
-                        //mesasDisponibles = await bdMesas.consultarMesasDisponibles(widget.mesa?.pisoId, context);
-                        //listaPisos = await bdPisos.consultarPisos(mozo!.id_establecimiento!, context);----- SOMBREADO
-                        mesasDisponibles = await bdMesas.consultarTodasMesas(listaPisos, context);
-                        List<Mesa> mesasDisponiblesFiltradas = mesasDisponibles.where((mesa) => mesa.estadoMesa == 1).toList();
-                        Navigator.pop(context);
-                        mostrarMesa(mesasDisponiblesFiltradas);
-                      },
-                      child: const Text(
-                        'Cambiar Mesa',
-                        style: TextStyle(color: Colors.white, fontSize: 16),
-                      )),
-                ),
+                // Container(
+                //   margin: EdgeInsets.only(left: 10 ),
+                //   child: ElevatedButton(
+                //       style:  ButtonStyle(
+                //           elevation: MaterialStateProperty.all(2), backgroundColor: MaterialStateProperty.all(const Color(0xFF4C95DD))),
+                //       onPressed: () async {
+                //         gif();
+                //         //mesasDisponibles = await bdMesas.consultarMesasDisponibles(widget.mesa?.pisoId, context);
+                //         //listaPisos = await bdPisos.consultarPisos(mozo!.id_establecimiento!, context);----- SOMBREADO
+                //         mesasDisponibles = await bdMesas.consultarTodasMesas(listaPisos, context);
+                //         List<Mesa> mesasDisponiblesFiltradas = mesasDisponibles.where((mesa) => mesa.estadoMesa == 1).toList();
+                //         Navigator.pop(context);
+                //         mostrarMesa(mesasDisponiblesFiltradas);
+                //       },
+                //       child: const Text(
+                //         'Cambiar Mesa',
+                //         style: TextStyle(color: Colors.white, fontSize: 16),
+                //       )),
+                // ),
                 // const SizedBox(width: 10),
                 Spacer(),
                 Container(
-                  margin: EdgeInsets.only(right: 10),
+                  margin: EdgeInsets.only(right: 0),
                   child: ElevatedButton(
-                      style:  ButtonStyle(
-                          elevation: MaterialStateProperty.all(2), backgroundColor: MaterialStateProperty.all(const Color(0xFF634FD2))),
+                      style: ButtonStyle(elevation: MaterialStateProperty.all(2),backgroundColor: MaterialStateProperty.all(const Color(0xFF634FD2))),
                       onPressed: () async {
                         print('---->BA BOTON ACTUALIZAR');
-                        if(widget.items_independientes){
+                        if (widget.items_independientes) {
                           String? printerIP = await _pref.read('ipCocina');
-                          if (printerIP == null) {
-                            // Mostrar un AlertDialog
-                            showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return AlertDialog(
-                                  title: const Text('Error de Impresión'),
-                                  content: const Text(
-                                      'No se ha encontrado la dirección IP de la impresora.'),
-                                  actions: <Widget>[
-                                    TextButton(
-                                      child: const Text('OK'),
-                                      onPressed: () {
-                                        Navigator.of(context)
-                                            .pop(); // Cerrar el AlertDialog
-                                        Navigator.pushNamed(context,
-                                            'home/ajustes'); // Dirigir a otra pantalla
-                                      },
-                                    ),
-                                  ],
-                                );
-                              },
-                            );
-                            return; // Salir del método printLabel
-                          }else if (widget.productosSeleccionados!.length > 0){
-                            gif();
-                            List<Producto> nombresProductos = [];
+                          bool _stateConexionTicket = await _pref.read('stateConexionTicket') ?? false;
+                          bool conexionBluetooth = await _pref.read('conexionBluetooth') ?? false;
 
-                            // for (final producto in widget.productosSeleccionados!) {
-                            //   print('Antes de actualizar: Producto ID: ${producto.id}, ID Pedido Detalle: ${producto.id_pedido_detalle}');
-                            //
-                            //   if (producto.id_pedido_detalle == null) {
-                            //     Detalle_Pedido detalles_pedido = await detallePedidoServicio.AgregarProductoDetallePedidoItem(widget.idPedido, producto, context);
-                            //     producto.id_pedido_detalle = detalles_pedido.id_pedido_detalle;
-                            //     nombresProductos.add(producto);
-                            //     detalles_pedios_tmp.add(detalles_pedido);
-                            //     print('Después de actualizar: Producto ID: ${producto.id}, ID Pedido Detalle: ${widget.productosSeleccionados.}');
-                            //   }
-                            // }
-
-                            for (final producto in widget.productosSeleccionados!) {
-                              int index = widget.productosSeleccionados!.indexOf(producto);
-                              print('Índice del producto: $index');
-
-                              // Resto de tu lógica aquí
-                              print('Antes de actualizar: Producto ID: ${producto.id}, ID Pedido Detalle: ${producto.id_pedido_detalle}');
-
-                              // if (producto.id_pedido_detalle == null) {
-                              //   Detalle_Pedido detalles_pedido = await detallePedidoServicio.AgregarProductoDetallePedidoItem(widget.idPedido, producto, context);
-                              //   setState(() {
-                              //     widget.productosSeleccionados![index].id_pedido_detalle = detalles_pedido.id_pedido_detalle;
-                              //   });
-                              //   nombresProductos.add(producto);
-                              //   detalles_pedios_tmp.add(detalles_pedido);
-                              //   print('Después de actualizar: Producto ID: ${producto.id}, ID Pedido Detalle: ${widget.productosSeleccionados![index].id_pedido_detalle}');
-                              // }
-                            }
-
-                            if (nombresProductos.isNotEmpty) {
-                              await detallePedidoServicio.actualizarAgregarProductoDetallePedidoItem(widget.idPedido, pedidoTotal,context);
-                              imprimir(nombresProductos, 2);
-                              print('Hay productos que Actualizar');
-                              Navigator.pop(context);
+                          if (_stateConexionTicket) {
+                            if (conexionBluetooth) {
+                              _operacionACitemsIndependiente(1);
                             } else {
-                              mostrarMensajeActualizado('No hay productos que Actualizar', true);
-                              print('No hay productos que Actualizar');
-                              Navigator.pop(context);
+                              String messague = 'No se ha encontrado conectado a un dispositivo Bluetooth.';
+                              showMessangueDialog(messague);
+                              return;
                             }
-                          }else {
-                            mostrarMensajeActualizado('No puedes dejar la lista vacia', true);
+                          } else {
+                            if (printerIP == null) {
+                              String messague = 'No se ha encontrado la dirección IP de la impresora.';
+                              showMessangueDialog(messague);
+                              return; // Salir del método printLabel
+                            } else {
+                              _operacionACitemsIndependiente(2);
+                            }
                           }
-                        }else {
+
+                        } else {
                           String? printerIP = await _pref.read('ipCocina');
-                          if (printerIP == null) {
-                            // Mostrar un AlertDialog
-                            showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return AlertDialog(
-                                  title: const Text('Error de Impresión'),
-                                  content: const Text(
-                                      'No se ha encontrado la dirección IP de la impresora.'),
-                                  actions: <Widget>[
-                                    TextButton(
-                                      child: const Text('OK'),
-                                      onPressed: () {
-                                        Navigator.of(context)
-                                            .pop(); // Cerrar el AlertDialog
-                                        Navigator.pushNamed(context,
-                                            'home/ajustes'); // Dirigir a otra pantalla
-                                      },
-                                    ),
-                                  ],
-                                );
-                              },
-                            );
-                            return; // Salir del método printLabel
-                          }else if (widget.productosSeleccionados!.length > 0){
-                            gif();
-                            List<Producto> nombresProductos = [];
-                            List<Detalle_Pedido> detalleCompletos = await detallePedidoServicio.eliminarCantidadProductoDetallePedidoImprimir(widget.idPedido, widget.productosSeleccionados!, pedidoTotal, context);
-                            //detalles_pedios_tmp = await detallePedidoServicio.actualizarCantidadProductoDetallePedidoPrueba(widget.idPedido, widget.productosSeleccionados!, pedidoTotal, context);
-                            if (detalles_pedios_tmp.isNotEmpty) {
-                              for (var detalle in detalles_pedios_tmp) {
-                                Producto? producto = await buscarNombreProductoPorId(detalle.id_producto);
-                                if (producto != null) {
-                                  nombresProductos.add(Producto(
-                                      categoria_id: producto.categoria_id,
-                                      nombreproducto: producto.nombreproducto,
-                                      stock: detalle.cantidad_producto,
-                                      comentario: detalle.comentario
-                                  ));
-                                }
-                              }
-                            }
-                            // Agregar productos de detalleCompletos si no está vacío
-                            if (detalleCompletos.isNotEmpty) {
-                              for (var element in detalleCompletos) {
-                                Producto? producto = await buscarNombreProductoPorId(element.id_producto);
-                                if (producto != null) {
-                                  producto.stock = 0;
-                                  nombresProductos.add(producto);
-                                }
-                              }
-                            }
-                            if (nombresProductos.isNotEmpty) {
-                              imprimir(nombresProductos, 2);
-                              print('Hay productos que Actualizar');
-                              Navigator.pop(context);
+                          bool _stateConexionTicket = await _pref.read('stateConexionTicket') ?? false;
+                          bool conexionBluetooth = await _pref.read('conexionBluetooth') ?? false;
+
+                          if (_stateConexionTicket) {
+                            if (conexionBluetooth) {
+                              _operacionAC(1);
+                              refresh();
                             } else {
-                              mostrarMensajeActualizado('No hay productos que Actualizar', true);
-                              print('No hay productos que Actualizar');
-                              Navigator.pop(context);
+                              String messague = 'No se ha encontrado conectado a un dispositivo Bluetooth.';
+                              showMessangueDialog(messague);
+                              return;
                             }
-                          }else {
-                            mostrarMensajeActualizado('No puedes dejar la lista vacia', true);
+                          } else {
+                            if (printerIP == null) {
+                              String messague = 'No se ha encontrado la dirección IP de la impresora.';
+                              showMessangueDialog(messague);
+                              return; // Salir del método printLabel
+                            } else {
+                              _operacionAC(2);
+                              refresh();
+                            }
                           }
                         }
-
                       },
-                      child: const Text('Actualizar', style: TextStyle(color: Colors.white, fontSize: 16))),
+                      child: const Text('Actualizar',
+                          style: TextStyle(color: Colors.white, fontSize: 16))),
                 ),
                 const SizedBox(width: 5),
               ],
@@ -435,13 +411,228 @@ class _DetailsPageState extends State<DetailsPage> {
     );
   }
 
+  void _operacionACitemsIndependiente(int WifiOBlue) {
+    if (widget.productosSeleccionados!.length > 0) {
+      gif();
+      List<Producto> productosToPrint = [];
+
+      for (final producto in widget.productosSeleccionados!) {
+        int index = widget.productosSeleccionados!.indexOf(producto);
+        print('Índice del producto: $index');
+
+        print('Antes de actualizar: Producto ID: ${producto.id}, ID Pedido Detalle: ${producto.id_pedido_detalle}');
+      }
+
+      if (productosToPrint.isNotEmpty) {
+        // await detallePedidoServicio.actualizarAgregarProductoDetallePedidoItem(widget.idPedido, pedidoTotal,context);
+
+        if (WifiOBlue == 1) {
+          ticketBluetooth.printLabelBluetooth(productosToPrint, 2, pedidoTotal, selectObjmesa.nombreMesa, usuario!, selectObjmesa.nombrePiso, '');
+        } else if (WifiOBlue == 2) {
+          imprimir(productosToPrint, 2);
+        }
+
+        imprimir(productosToPrint, 2);
+        print('Hay productos que Actualizar');
+        Navigator.pop(context);
+      } else {
+        mostrarMensajeActualizado(
+            'No hay productos que Actualizar', true);
+        print('No hay productos que Actualizar');
+        Navigator.pop(context);
+      }
+    } else {
+      mostrarMensajeActualizado(
+          'No puedes dejar la lista vacia', true);
+    }
+  }
+
+  void _operacionAC(int WifiOBlue) async {
+    if (widget.productosSeleccionados!.length > 0) {
+      gif();
+      List<Producto> productosToPrint = [];
+
+      List<Producto> productosConIdDetalle = [];
+      List<Producto> productosSinIdDetalle = [];
+
+      List<Detalle_Pedido> detallepedidosToCompare = widget.detallePedidoLista;
+
+      widget.productosSeleccionados!.forEach((producto) {
+        if (producto.id_pedido_detalle != null) {
+          if (detallepedidosToCompare.any((detalle) =>
+              detalle.id_pedido_detalle == producto.id_pedido_detalle)) {
+            productosConIdDetalle.add(producto);
+          }
+        } else {
+          productosSinIdDetalle.add(producto);
+        }
+      });
+
+      print('productosSinIdDetalle : ${productosSinIdDetalle.length}');
+      print('productosConIdDetalle : ${productosConIdDetalle.length}');
+
+      Map<String, dynamic> pedidoDetalleAc = {
+        "monto_total": pedidoTotal,
+        "detalle": widget.productosSeleccionados!
+            .map((producto) => {
+                  "id_pedido_detalle": producto.id_pedido_detalle,
+                  "id_pedido": producto.idPedido,
+                  "id_producto": producto.id,
+                  "cantidad_producto": producto.stock,
+                  "cantidad_real": producto.stock,
+                  "precio_unitario": producto.precioproducto,
+                  "precio_producto":
+                      producto.precioproducto! * producto.stock!.toInt(),
+                  "comentario": producto.comentario,
+                  "estado_detalle": 1
+                })
+            .toList()
+      };
+      print('pedidoDetalleAc : ${pedidoDetalleAc['detalle']}');
+
+      Map<String, dynamic> detalleActualizadoJson =
+          await detallePedidoServicio.actualizarPedidoConRespuestaApi(
+              usuario?.accessToken, pedidoDetalleAc, widget.mesa?.id);
+      print(' respuesta ; ${detalleActualizadoJson}');
+      bool statusAcJson = detalleActualizadoJson['status'];
+
+      print('statusAcJson ${statusAcJson}');
+      print('detalleToAc ${detalleActualizadoJson}');
+
+      if (statusAcJson) {
+        List<dynamic> detalleAcJson =
+            detalleActualizadoJson['detalle_actualizado'];
+        print('Respuesta ${detalleAcJson}');
+
+        List<Detalle_Pedido> detalleActualizado = detalleAcJson
+            .map((json) => Detalle_Pedido.fromJson({
+                  "id_detalle": json["id_pedido_detalle"],
+                  "id_pedido": json["id_pedido"],
+                  "id_producto": json["id_producto"],
+                  "cantidad_producto": json["cantidad_producto"],
+                  "cantidad_actualizada": json["cantidad_actualizada"],
+                  "cantidad_exacta": json["cantidad_exacta"],
+                  "cantidad_real": json["cantidad_real"],
+                  "precio_producto": double.tryParse(
+                      json["precio_producto"]?.toString() ?? "0.0"),
+                  "precio_unitario": double.tryParse(
+                      json["precio_unitario"]?.toString() ?? "0.0"),
+                  "comentario": json["comentario"],
+                  "estado_detalle": json["estado_detalle"],
+                  "updated_at": DateTime.parse(json["updated_at"]),
+                }))
+            .toList();
+
+        detalleActualizado.forEach((element) {
+          print('LIsta detalles : ${element.toJson()}');
+        });
+
+        productosSinIdDetalle.forEach((producto) {
+          Detalle_Pedido? detalleCorrespondiente = detalleActualizado.firstWhere(
+                (detalle) =>
+                  detalle.id_producto == producto.id &&
+                  detalle.precio_unitario == producto.precioproducto,
+          );
+
+          if (detalleCorrespondiente != null) {
+            producto.id_pedido_detalle =
+                detalleCorrespondiente.id_pedido_detalle;
+            producto.stock = detalleCorrespondiente.cantidad_actualizada;
+            productosToPrint.add(producto);
+            // int index = widget.productosSeleccionados!.indexOf(producto);
+            //
+            // if (index != -1) {
+            //   setState(() {
+            //     widget.productosSeleccionados![index].id_pedido_detalle = detalleCorrespondiente.id_pedido_detalle;
+            //   });
+            //   refresh();
+            // }
+          }
+        });
+
+        detalleActualizado.forEach((element) {
+          print('detalles ${element}');
+        });
+
+        productosConIdDetalle.forEach((producto) {
+          // Detalle_Pedido detalleCorrespondiente = detalleActualizado.firstWhere(
+          //       (detalle) => detalle.id_producto == producto.id && detalle.precio_unitario == producto.precioproducto,
+          // );
+          //
+          // producto.stock = detalleCorrespondiente.cantidad_actualizada;
+
+          print(' productosConIdDetalle : ${producto.id_pedido_detalle}');
+          if (detalleActualizado.any((detalle) =>
+              detalle.id_pedido_detalle == producto.id_pedido_detalle)) {
+            Detalle_Pedido? detalleCorrespondiente =
+                detalleActualizado.firstWhere(
+              (detalle) =>
+                  detalle.id_producto == producto.id &&
+                  detalle.id_pedido_detalle == producto.id_pedido_detalle,
+            );
+
+            productosToPrint.add(Producto(
+                codigo: producto.codigo,
+                codigo_interno: producto.codigo_interno,
+                estado: producto.codigo,
+                id_pedido_detalle: producto.id_pedido_detalle,
+                identificador: producto.identificador,
+                categoria_id: producto.categoria_id,
+                establecimiento_id: producto.establecimiento_id,
+                comentario: detalleCorrespondiente.comentario,
+                idPedido: detalleCorrespondiente.id_pedido,
+                nombreproducto: producto.nombreproducto,
+                id: detalleCorrespondiente.id_producto,
+                stock: detalleCorrespondiente.cantidad_actualizada));
+          }
+        });
+
+        print('Cantidad para imprimir ${productosToPrint.length}');
+
+        productosToPrint.forEach((element) {
+          print('Productos para imprimir ${element.nombreproducto}');
+        });
+
+        if (productosToPrint.isNotEmpty){
+          if (WifiOBlue == 1) {
+            ticketBluetooth.printLabelBluetooth(productosToPrint, 2, pedidoTotal, selectObjmesa.nombreMesa, usuario!, selectObjmesa.nombrePiso, '');
+          } else if (WifiOBlue == 2) {
+            imprimir(productosToPrint, 2);
+          }
+          print('Hay productos que Actualizar');
+          Navigator.pop(context);
+        }else{
+          mostrarMensajeActualizado('Revisal la lista productosToPrint : ${productosToPrint.length}', true);
+          print('No hay productos que Actualizar');
+          Navigator.pop(context);
+        }
+
+
+
+        widget.productosSeleccionados!.forEach((element) {
+          print(
+              'RQ->Productos :${element.nombreproducto}, ID_Detalle ${element.id_pedido_detalle}');
+        });
+
+
+
+      } else {
+        mostrarMensajeActualizado('No hay productos que Actualizar', true);
+        print('No hay productos que Actualizar');
+        Navigator.pop(context);
+      }
+    } else {
+      mostrarMensajeActualizado('No puedes dejar la lista vacia', true);
+    }
+  }
+
   Future<List<Producto>> leerProductosDesdeSharedPreferences() async {
     String? jsonProductoData = await _pref.read('productos');
     if (jsonProductoData != null) {
       Iterable decoded = json.decode(jsonProductoData);
       return decoded.map((producto) => Producto.fromJson(producto)).toList();
     }
-    return []; // Otra opción: lanzar una excepción si no hay datos
+    return [];
   }
 
   Future<Producto?> buscarNombreProductoPorId(int? idProducto) async {
@@ -454,7 +645,7 @@ class _DetailsPageState extends State<DetailsPage> {
     return null;
   }
 
-  Future gif(){
+  Future gif() {
     return showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -472,28 +663,15 @@ class _DetailsPageState extends State<DetailsPage> {
         controller: notaController,
         decoration: InputDecoration(
             hintText: 'Observacion',
-            suffixIcon: const Icon(
-                Icons.note_alt_rounded,
-                color: Colors.grey
-            ),
-            hintStyle: const TextStyle(
-                fontSize: 17,
-                color: Colors.grey
-            ),
+            suffixIcon: const Icon(Icons.note_alt_rounded, color: Colors.grey),
+            hintStyle: const TextStyle(fontSize: 17, color: Colors.grey),
             enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(25),
-                borderSide: const BorderSide(
-                    color: Colors.grey
-                )
-            ),
+                borderSide: const BorderSide(color: Colors.grey)),
             focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(25),
-                borderSide: const BorderSide(
-                    color: Colors.grey
-                )
-            ),
-            contentPadding: const EdgeInsets.all(10)
-        ),
+                borderSide: const BorderSide(color: Colors.grey)),
+            contentPadding: const EdgeInsets.all(10)),
       ),
     );
   }
@@ -503,18 +681,58 @@ class _DetailsPageState extends State<DetailsPage> {
     for (int i = 0; i < _checkedItems.length; i++) {
       if (_checkedItems[i]) {
         selectedOptions.add(comidas[i].descripcion_nota!);
+        print(comidas[i].descripcion_nota!);
       }
     }
     return selectedOptions.join(';');
+  }
+
+  String cleanComentario(String? comentario) {
+    if (comentario == null || comentario.isEmpty) {
+      return '';
+    }
+    final RegExp regExp = RegExp(r'<span[^>]*>([^<]+)<\/span>');
+    Iterable<Match> matches = regExp.allMatches(comentario);
+
+    String cleanedComentario = matches.map((match) => match.group(1)).join(';');
+    return cleanedComentario;
+  }
+
+  String? convertToSpan(String? comentario) {
+    // print('convertToSpan : ${listaNota}');
+    if (comentario == null || comentario.isEmpty) {
+      return null;
+    }
+
+    List<String> partes = comentario.split(';');
+
+    List<String> spans = [];
+
+    for (int i = 0; i < partes.length; i++) {
+      spans.add(
+          '<span class="style_nota" id="texto-comentario-${listaNota.firstWhere((element) => element.descripcion_nota == partes[i]).id_nota}">${partes[i]}</span>');
+    }
+    print(spans);
+
+    return spans.join();
   }
 
   List<String> convertStringToList(String selectedOptionsString) {
     return selectedOptionsString.split(';');
   }
 
-  Future<String?> _nota(List<Nota> comidas, int indexProducto, int? id_pedido_detalle) async {
+  Future<String?> _nota(
+      List<Nota> comidas, int indexProducto, int? id_pedido_detalle) async {
     print('Index entrada : ${indexProducto}');
-    String? notabd = widget.productosSeleccionados?[indexProducto].comentario ?? '';
+    print(
+        'comentario entrada : ${widget.productosSeleccionados?[indexProducto].comentario}');
+
+    String? notabd = cleanComentario(
+            widget.productosSeleccionados?[indexProducto].comentario) ??
+        '';
+
+    print('notaBd:  ${notabd}');
+
     List<String> seleccionadosBd = convertStringToList(notabd);
 
     print('seleccionadosBd:  ${seleccionadosBd}');
@@ -546,7 +764,7 @@ class _DetailsPageState extends State<DetailsPage> {
                       mainAxisSize: MainAxisSize.min,
                       children: List.generate(comidas.length, (index) {
                         return CheckboxListTile(
-                          activeColor: Color( 0xFFFF562F),
+                          activeColor: Color(0xFFFF562F),
                           title: Text(comidas[index].descripcion_nota!),
                           value: _checkedItems[index],
                           onChanged: (value) {
@@ -565,7 +783,8 @@ class _DetailsPageState extends State<DetailsPage> {
           actions: [
             TextButton(
               style: ButtonStyle(
-                backgroundColor: MaterialStateProperty.all( Color.fromRGBO(217, 217, 217, 0.8) ),
+                backgroundColor: MaterialStateProperty.all(
+                    Color.fromRGBO(217, 217, 217, 0.8)),
               ),
               onPressed: () {
                 setState(() {
@@ -573,29 +792,90 @@ class _DetailsPageState extends State<DetailsPage> {
                 });
                 Navigator.pop(context, 'Cancel');
               },
-              child: Text('Cancelar',style: TextStyle(color: Colors.black)),
+              child: Text('Cancelar', style: TextStyle(color: Colors.black)),
             ),
             ElevatedButton(
               style: ButtonStyle(
                 backgroundColor: MaterialStateProperty.all(Color(0xFF634FD2)),
               ),
               onPressed: () async {
-                print('Comidas : ${comidas}');
-                String selectedOptionsString = generateSelectedOptionsString(comidas);
+                String selectedOptionsString =
+                    generateSelectedOptionsString(comidas);
+                String? comentarioSpan = convertToSpan(selectedOptionsString);
+
                 if (widget.items_independientes) {
                   if (id_pedido_detalle != null) {
-                    //await detallePedidoServicio.notaProductoPorItem(selectedOptionsString, id_pedido_detalle, context);
-                    agregarMsj('Se agregó una nota al producto');
-                    imprimir([widget.productosSeleccionados![indexProducto]], 2);
-                  }
-                  // Aquí nos aseguramos de actualizar solo el producto seleccionado
-                  widget.productosSeleccionados?[indexProducto].comentario = selectedOptionsString;
-                  print('Índice seleccionado (independiente): $indexProducto');
+                    var productoSeleccionado =
+                        widget.productosSeleccionados![indexProducto];
+                    productoSeleccionado.comentario = comentarioSpan;
 
+                    Map<String, dynamic> pedidoDetalle = {
+                      "monto_total": pedidoTotal,
+                      "detalle": [
+                        {
+                          "id_pedido_detalle":
+                              productoSeleccionado.id_pedido_detalle,
+                          "id_pedido": productoSeleccionado.idPedido,
+                          "id_producto": productoSeleccionado.id,
+                          "cantidad_producto": productoSeleccionado.stock,
+                          "cantidad_real": productoSeleccionado.stock,
+                          "precio_unitario":
+                              productoSeleccionado.precioproducto,
+                          "precio_producto":
+                              productoSeleccionado.precioproducto! *
+                                  productoSeleccionado.stock!.toInt(),
+                          "comentario": productoSeleccionado.comentario,
+                          "estado_detalle": 1
+                        }
+                      ]
+                    };
+                    await detallePedidoServicio.actualizarPedidoApi(
+                        usuario?.accessToken, pedidoDetalle, widget.mesa?.id);
+
+                    agregarMsj('Se agregó una nota al producto');
+                  } else {
+                    widget.productosSeleccionados?[indexProducto].comentario =
+                        comentarioSpan;
+                  }
+                  print('Índice seleccionado (independiente): $indexProducto');
                 } else {
-                  widget.productosSeleccionados?[indexProducto].comentario = selectedOptionsString;
-                  print('Opciones seleccionadas: $selectedOptionsString');
-                  print('Índice seleccionado: $indexProducto');
+                  if (id_pedido_detalle != null) {
+                    var productoSeleccionado =
+                        widget.productosSeleccionados![indexProducto];
+                    productoSeleccionado.comentario = comentarioSpan;
+
+                    Map<String, dynamic> pedidoDetalle = {
+                      "monto_total": pedidoTotal,
+                      "detalle": [
+                        {
+                          "id_pedido_detalle":
+                              productoSeleccionado.id_pedido_detalle,
+                          "id_pedido": productoSeleccionado.idPedido,
+                          "id_producto": productoSeleccionado.id,
+                          "cantidad_producto": productoSeleccionado.stock,
+                          "cantidad_real": productoSeleccionado.stock,
+                          "precio_unitario":
+                              productoSeleccionado.precioproducto,
+                          "precio_producto":
+                              productoSeleccionado.precioproducto! *
+                                  productoSeleccionado.stock!.toInt(),
+                          "comentario": productoSeleccionado.comentario,
+                          "estado_detalle": 1
+                        }
+                      ]
+                    };
+                    await detallePedidoServicio.actualizarPedidoApi(
+                        usuario?.accessToken, pedidoDetalle, widget.mesa?.id);
+
+                    agregarMsj('Se agregó una nota al producto');
+                  } else {
+                    widget.productosSeleccionados?[indexProducto].comentario =
+                        comentarioSpan;
+                  }
+
+                  // widget.productosSeleccionados?[indexProducto].comentario = comentarioSpan;
+                  // print('Opciones seleccionadas: $selectedOptionsString');
+                  // print('Índice seleccionado: $indexProducto');
                 }
                 Navigator.pop(context, 'OK');
               },
@@ -607,7 +887,7 @@ class _DetailsPageState extends State<DetailsPage> {
     );
   }
 
-  Future<String?> _eliminar(int index, int? id_pedido_detalle){
+  Future<String?> _eliminar(int index, int? id_pedido_detalle) {
     return showDialog<String>(
       context: context,
       builder: (BuildContext context) => AlertDialog(
@@ -620,28 +900,46 @@ class _DetailsPageState extends State<DetailsPage> {
           ),
           TextButton(
             onPressed: () async {
-              if(widget.items_independientes){
-                if(id_pedido_detalle != null){
-                  int productIndex = widget.productosSeleccionados!.indexWhere((producto) => producto.id_pedido_detalle == id_pedido_detalle);
+              if (widget.items_independientes) {
+                if (id_pedido_detalle != null) {
+                  int productIndex = widget.productosSeleccionados!.indexWhere(
+                      (producto) =>
+                          producto.id_pedido_detalle == id_pedido_detalle);
                   if (productIndex != -1) {
-                    // Eliminar el producto de la lista
+                    await detallePedidoServicio.eliminarDetallePedido(
+                        id_pedido_detalle, usuario?.accessToken);
                     setState(() {
                       widget.productosSeleccionados!.removeAt(productIndex);
                       widget.detallePedidoLista.remove(id_pedido_detalle);
-
                     });
-                    // Actualizar los productos seleccionados en el widget padre si es necesario
-                    await  detallePedidoServicio.eliminarDetallePedido(id_pedido_detalle, usuario?.accessToken);
-                    Pedido pedido = new Pedido(
-                      montoTotal: pedidoTotal,
-                      detalle: widget.detallePedidoLista
-                    );
-                    await detallePedidoServicio.actualizarPedidoApi(usuario?.accessToken,pedido ,widget.mesa?.id);
+                    Map<String, dynamic> pedidoDetalle = {
+                      "monto_total": pedidoTotal,
+                      "detalle": widget.productosSeleccionados!
+                          .map((producto) => {
+                                "id_pedido_detalle": producto.id_pedido_detalle,
+                                "id_pedido": producto.idPedido,
+                                "id_producto": producto.id,
+                                "cantidad_producto": producto.stock,
+                                "cantidad_real": producto.stock,
+                                "precio_unitario": producto.precioproducto,
+                                "precio_producto": producto.precioproducto! *
+                                    producto.stock!.toInt(),
+                                "comentario": producto.comentario,
+                                "estado_detalle": 1
+                              })
+                          .toList()
+                    };
+                    print('<---Eliminar--->');
+                    print('Envio data : ${pedidoDetalle}');
+                    await detallePedidoServicio.actualizarPedidoApi(
+                        usuario?.accessToken, pedidoDetalle, widget.mesa?.id);
                     _actualizarProductosSeleccionados();
                   }
                   agregarMsj('El producto se ha eliminado');
-                }else{
-                  index = widget.productosSeleccionados!.indexWhere((producto) => producto == widget.productosSeleccionados![index]);
+                } else {
+                  index = widget.productosSeleccionados!.indexWhere(
+                      (producto) =>
+                          producto == widget.productosSeleccionados![index]);
                   if (index != -1) {
                     // Eliminar el producto de la lista
                     setState(() {
@@ -651,15 +949,19 @@ class _DetailsPageState extends State<DetailsPage> {
                     _actualizarProductosSeleccionados();
                   }
                 }
-              }else {
-                index = widget.productosSeleccionados!.indexWhere((producto) => producto == widget.productosSeleccionados![index]);
-                if (index != -1) {
-                  // Eliminar el producto de la lista
-                  setState(() {
-                    widget.productosSeleccionados!.removeAt(index);
-                  });
-                  // Actualizar los productos seleccionados en el widget padre si es necesario
-                  _actualizarProductosSeleccionados();
+              } else {
+                if (id_pedido_detalle != null) {
+                  index = widget.productosSeleccionados!.indexWhere(
+                      (producto) =>
+                          producto == widget.productosSeleccionados![index]);
+                  if (index != -1) {
+                    // Eliminar el producto de la lista
+                    setState(() {
+                      widget.productosSeleccionados!.removeAt(index);
+                    });
+                    // Actualizar los productos seleccionados en el widget padre si es necesario
+                    _actualizarProductosSeleccionados();
+                  }
                 }
               }
               Navigator.pop(context, 'OK');
@@ -671,14 +973,15 @@ class _DetailsPageState extends State<DetailsPage> {
     );
   }
 
-  Future<String?>  mostrarMesa(List<Mesa> mesas) async {
+  Future<String?> mostrarMesa(List<Mesa> mesas) async {
     if (mesas.isEmpty) {
       showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
             title: Text('Mesas no disponibles'),
-            content: Text('Lo sentimos, no hay mesas disponibles en este momento.'),
+            content:
+                Text('Lo sentimos, no hay mesas disponibles en este momento.'),
             actions: <Widget>[
               TextButton(
                 onPressed: () {
@@ -708,24 +1011,24 @@ class _DetailsPageState extends State<DetailsPage> {
                   "Seleccione una mesa disponible",
                   style: TextStyle(fontSize: 14),
                 ),
-                focusColor: Color( 0xFFFF562F),
+                focusColor: Color(0xFFFF562F),
                 onChanged: (Mesa? newValue) {
                   setState(() {
                     nuevaMesaId = newValue?.id;
                     nomMesa = newValue?.nombreMesa;
                   });
                 },
-                items: mesas.map<DropdownMenuItem<Mesa>>(
+                items: mesas
+                    .map<DropdownMenuItem<Mesa>>(
                       (Mesa mesa) => DropdownMenuItem<Mesa>(
                         value: mesa,
                         child: Text(
-                            '${mesa.nombreMesa} -> ${listaPisos.firstWhere((element) => element.id == mesa.pisoId).nombrePiso}'
-                        ),
-                  ),
-                ).toList(),
+                            '${mesa.nombreMesa} -> ${listaPisos.firstWhere((element) => element.id == mesa.pisoId).nombrePiso}'),
+                      ),
+                    )
+                    .toList(),
                 borderRadius: BorderRadius.all(Radius.circular(20)),
                 menuMaxHeight: 500,
-
                 icon: Icon(Icons.table_bar),
               );
             },
@@ -733,40 +1036,45 @@ class _DetailsPageState extends State<DetailsPage> {
           actions: <Widget>[
             TextButton(
               style: ButtonStyle(
-                backgroundColor: MaterialStateProperty.all( Color.fromRGBO(217, 217, 217, 0.8) ),
+                backgroundColor: MaterialStateProperty.all(
+                    Color.fromRGBO(217, 217, 217, 0.8)),
               ),
               onPressed: () {
                 Navigator.pop(context);
               },
-              child: const Text('Cancelar',style: TextStyle(color: Colors.black)),
+              child:
+                  const Text('Cancelar', style: TextStyle(color: Colors.black)),
             ),
             TextButton(
               style: ButtonStyle(
-                backgroundColor: MaterialStateProperty.all( Color(0xFF4C95DD)),
+                backgroundColor: MaterialStateProperty.all(Color(0xFF4C95DD)),
               ),
-              onPressed: () async{
-                if(nomMesa == null){
+              onPressed: () async {
+                if (nomMesa == null) {
                   mostrarMensaje('Debes seleccionar una mesa');
-                }else {
-                  bool disponible = false; //bool disponible = await bdMesas.consultarMesa(nuevaMesaId!, context); -- SOMBREADO
-                  if(disponible == true){
-                    int? idPedido = IDPEDIDOPRUEBA == 0 ? widget.idPedido : IDPEDIDOPRUEBA;
-                    bdPedido.actualizarPedido(idPedido, nuevaMesaId!, context).then((_) async {
+                } else {
+                  bool disponible =
+                      false; //bool disponible = await bdMesas.consultarMesa(nuevaMesaId!, context); -- SOMBREADO
+                  if (disponible == true) {
+                    int? idPedido =
+                        IDPEDIDOPRUEBA == 0 ? widget.idPedido : IDPEDIDOPRUEBA;
+                    bdPedido
+                        .actualizarPedido(idPedido, nuevaMesaId!, context)
+                        .then((_) async {
                       //bdMesas.actualizarMesa(nuevaMesaId!, 3, context);
                       //bdMesas.actualizarMesa(widget.mesa!.id, 1, context);
-                      widget.mesa?.id = nuevaMesaId ;
+                      widget.mesa?.id = nuevaMesaId;
                       widget.mesa?.nombreMesa = nomMesa;
                       Navigator.pop(context);
                       Navigator.pop(context, idPedido);
                     });
-                  }else {
+                  } else {
                     mostrarMensaje('La mesa esta ocupada');
                   }
-
                 }
-
               },
-              child: const Text('Confirmar',style: TextStyle(color: Colors.white)),
+              child: const Text('Confirmar',
+                  style: TextStyle(color: Colors.white)),
             ),
           ],
         );
@@ -776,29 +1084,35 @@ class _DetailsPageState extends State<DetailsPage> {
     return nomMesa;
   }
 
-  Widget _pedido(){
+  Widget _pedido() {
     return ElevatedButton(
-        style:  ButtonStyle(
-            elevation: MaterialStateProperty.all(2), backgroundColor: MaterialStateProperty.all(Colors.blue)),
+        style: ButtonStyle(
+            elevation: MaterialStateProperty.all(2),
+            backgroundColor: MaterialStateProperty.all(Colors.blue)),
         onPressed: () async {
           print('---> Boton pedido');
           String? printerIP = await _pref.read('ipCocina');
-          bool _stateConexionTicket = await _pref.read('stateConexionTicket') ?? false;
-          bool conexionBluetooth = await _pref.read('conexionBluetooth') ?? false;
-          if(_stateConexionTicket){
-            if(conexionBluetooth){
+          bool _stateConexionTicket =
+              await _pref.read('stateConexionTicket') ?? false;
+          bool conexionBluetooth =
+              await _pref.read('conexionBluetooth') ?? false;
+
+          if (_stateConexionTicket) {
+            if (conexionBluetooth) {
               crearPedido();
-            }else {
-              String messague = 'No se ha encontrado conectado a un dispositivo Bluetooth.';
+            } else {
+              String messague =
+                  'No se ha encontrado conectado a un dispositivo Bluetooth.';
               showMessangueDialog(messague);
               return;
             }
-          }else {
+          } else {
             if (printerIP == null) {
-              String messague = 'No se ha encontrado la dirección IP de la impresora.';
+              String messague =
+                  'No se ha encontrado la dirección IP de la impresora.';
               showMessangueDialog(messague);
               return; // Salir del método printLabel
-            }else {
+            } else {
               crearPedido();
             }
           }
@@ -837,7 +1151,8 @@ class _DetailsPageState extends State<DetailsPage> {
       }
 
       for (Producto producto in prodSeleccionados) {
-        if (categorias.any((categoria) => categoria.id == producto.categoria_id)) {
+        if (categorias
+            .any((categoria) => categoria.id == producto.categoria_id)) {
           ParaBar.add(producto);
         } else {
           ParaCocina.add(producto);
@@ -845,27 +1160,27 @@ class _DetailsPageState extends State<DetailsPage> {
       }
 
       if (ipBar == null) {
-        if (prodSeleccionados.isNotEmpty){
+        if (prodSeleccionados.isNotEmpty) {
           print('Lista de productos seleccionados:');
           //impresora.printLabel(ipCocina!,prodSeleccionados,estado, pedidoTotal, selectObjmesa.nombreMesa ?? widget.mesa!.nombreMesa, mozo!, piso,''); -- SOMBREADO
-        }else{
+        } else {
           print('nada que imprimir');
         }
       } else {
         print('Productos para el bar:');
-        if(ParaBar.isNotEmpty){
-         // impresora.printLabel(ipBar,ParaBar,estado, pedidoTotal, selectObjmesa.nombreMesa ?? widget.mesa!.nombreMesa, mozo!, piso,''); --- SOMBREADO
-          if (ParaCocina.isNotEmpty){
+        if (ParaBar.isNotEmpty) {
+          // impresora.printLabel(ipBar,ParaBar,estado, pedidoTotal, selectObjmesa.nombreMesa ?? widget.mesa!.nombreMesa, mozo!, piso,''); --- SOMBREADO
+          if (ParaCocina.isNotEmpty) {
             print('Lista de productos seleccionados:');
-          //  impresora.printLabel(ipCocina!,ParaCocina,estado, pedidoTotal, selectObjmesa.nombreMesa ?? widget.mesa!.nombreMesa, mozo!, piso,''); -- SOMBREADO
-          }else{
+            //  impresora.printLabel(ipCocina!,ParaCocina,estado, pedidoTotal, selectObjmesa.nombreMesa ?? widget.mesa!.nombreMesa, mozo!, piso,''); -- SOMBREADO
+          } else {
             print('nada que imprimir');
           }
-        }else{
-          if (ParaCocina.isNotEmpty){
+        } else {
+          if (ParaCocina.isNotEmpty) {
             print('Lista de productos seleccionados:');
-          //  impresora.printLabel(ipCocina!,ParaCocina,estado, pedidoTotal, selectObjmesa.nombreMesa ?? widget.mesa!.nombreMesa, mozo!, piso,''); -- SOMBREADO
-          }else{
+            //  impresora.printLabel(ipCocina!,ParaCocina,estado, pedidoTotal, selectObjmesa.nombreMesa ?? widget.mesa!.nombreMesa, mozo!, piso,''); -- SOMBREADO
+          } else {
             print('nada que imprimir');
           }
         }
@@ -879,26 +1194,26 @@ class _DetailsPageState extends State<DetailsPage> {
     }
   }
 
-  Widget _preCuenta(){
+  Widget _preCuenta() {
     return ElevatedButton(
-        style:  ButtonStyle(
-            elevation: MaterialStateProperty.all(2), backgroundColor: MaterialStateProperty.all(const Color(0xFFFFB500))),
+        style: ButtonStyle(
+            elevation: MaterialStateProperty.all(2),
+            backgroundColor:
+                MaterialStateProperty.all(const Color(0xFFFFB500))),
         onPressed: () async {
           String? printerIP = await _pref.read('ipCocina');
 
-          if (selectObjmesa.estadoMesa != 2 || widget.mesa!.estadoMesa !=2){
+          if (selectObjmesa.estadoMesa != 2 || widget.mesa!.estadoMesa != 2) {
             gif();
             // PedidoResponse? retornoMesa = await mesaServicio.actualizarMesa( selectObjmesa.id  ?? widget.mesa!.id, usuario?.accessToken ,2 );
             // setState(() {
             //   selectObjmesa.estadoMesa = retornoMesa?.estadoMesa;
             //   widget.mesa?.estadoMesa = retornoMesa?.estadoMesa;
             // });
-
           }
-          Navigator.pop(context,2);
+          Navigator.pop(context, 2);
           //impresora.printLabel(printerIP!,widget.productosSeleccionados,3,pedidoTotal, selectObjmesa.nombreMesa ?? widget.mesa!.nombreMesa, usuario.user!, piso,''); ---- SOMBREADO
         },
-
         child: const Text(
           'Pre Cuenta',
           style: TextStyle(color: Colors.white, fontSize: 16),
@@ -925,16 +1240,20 @@ class _DetailsPageState extends State<DetailsPage> {
         height: MediaQuery.of(context).size.height * 0.08,
         decoration: const BoxDecoration(
             border: Border.fromBorderSide(BorderSide(width: 2)),
-            borderRadius: BorderRadius.all(Radius.circular(20)), color: Color(0xFF99CFB5)
+            borderRadius: BorderRadius.all(Radius.circular(20)),
+            color: Color(0xFF99CFB5)
 
-          // borderRadius: BorderRadius.all(Radius.circular(20)), color: Color(0xFF99CFB5)
-        ),
+            // borderRadius: BorderRadius.all(Radius.circular(20)), color: Color(0xFF99CFB5)
+            ),
         child: Row(
           children: [
             // const SizedBox(width: 5),
             Container(
               margin: EdgeInsets.only(left: 15),
-              child: selectObjmesa.estadoMesa == 1 || widget.mesa!.estadoMesa == 1 ? _pedido() : _preCuenta(),
+              child:
+                  selectObjmesa.estadoMesa == 1 || widget.mesa!.estadoMesa == 1
+                      ? _pedido()
+                      : _preCuenta(),
             ),
             // const SizedBox(width: 10),
             Spacer(),
@@ -942,8 +1261,8 @@ class _DetailsPageState extends State<DetailsPage> {
               margin: EdgeInsets.only(right: 20),
               child: Row(
                 children: [
-                  const Text('TOTAL : ', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                  Text('S/ ${total.toStringAsFixed(2)}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold))
+                  Text('TOTAL : ', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  Text('S/ ${total.toStringAsFixed(2)}', style: const TextStyle( fontSize: 16, fontWeight: FontWeight.bold))
                 ],
               ),
             ),
@@ -963,40 +1282,48 @@ class _DetailsPageState extends State<DetailsPage> {
   Widget _addOrRemoveItem(int index) {
     return Row(
       children: [
-        GestureDetector(
-          onTap: () {
-            final productoSeleccionado = widget.productosSeleccionados?[index];
-            //final productoSeleccionadoDetalle = widget.detallePedidoLista[index];
-            if (productoSeleccionado != null && productoSeleccionado.stock != null && productoSeleccionado.stock! > 1) {
-
-              setState(() {
-                productoSeleccionado.stock = productoSeleccionado.stock! - 1; // Restar al stock
-
-                // double precioTotalProductoDetalle = productoSeleccionadoDetalle.precio_producto! - productoSeleccionado.precioproducto!;
-                // productoSeleccionadoDetalle.precio_producto = precioTotalProductoDetalle;
-              });
-
-            } else if (productoSeleccionado != null && productoSeleccionado.stock != null && productoSeleccionado.stock! == 1) {
-              // Aquí puedes mostrar un mensaje o tomar alguna acción adicional si el stock ya es 1
-            }
-            _actualizarProductosSeleccionados(); // Llama a la función para actualizar los productos seleccionados
-          },
-
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-            decoration: BoxDecoration(
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(8),
-                bottomLeft: Radius.circular(8),
-              ),
-              color: Colors.grey[200],
-            ),
-            child: const Text('-'),
-          ),
-        ),
+        // GestureDetector(
+        //   onTap: () {
+        //     final productoSeleccionado = widget.productosSeleccionados?[index];
+        //     //final productoSeleccionadoDetalle = widget.detallePedidoLista[index];
+        //     if (productoSeleccionado != null &&
+        //         productoSeleccionado.stock != null &&
+        //         productoSeleccionado.stock! > 1) {
+        //       setState(() {
+        //         productoSeleccionado.stock =
+        //             productoSeleccionado.stock! - 1; // Restar al stock
+        //
+        //         // double precioTotalProductoDetalle = productoSeleccionadoDetalle.precio_producto! - productoSeleccionado.precioproducto!;
+        //         // productoSeleccionadoDetalle.precio_producto = precioTotalProductoDetalle;
+        //       });
+        //     } else if (productoSeleccionado != null &&
+        //         productoSeleccionado.stock != null &&
+        //         productoSeleccionado.stock! == 1) {
+        //       // Aquí puedes mostrar un mensaje o tomar alguna acción adicional si el stock ya es 1
+        //     }
+        //     _actualizarProductosSeleccionados(); // Llama a la función para actualizar los productos seleccionados
+        //   },
+        //   child: Container(
+        //     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        //     decoration: BoxDecoration(
+        //       borderRadius: const BorderRadius.only(
+        //         topLeft: Radius.circular(8),
+        //         bottomLeft: Radius.circular(8),
+        //       ),
+        //       color: Colors.grey[200],
+        //     ),
+        //     child: const Text('-'),
+        //   ),
+        // ),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-          color: Colors.grey[200],
+          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+          decoration: BoxDecoration(
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(8),
+              bottomLeft: Radius.circular(8),
+            ),
+            color: Colors.grey[200],
+          ),
           child: Text(
             '${widget.productosSeleccionados?[index].stock ?? ""}',
           ),
@@ -1006,17 +1333,16 @@ class _DetailsPageState extends State<DetailsPage> {
             final productoSeleccionado = widget.productosSeleccionados?[index];
             //final productoSeleccionadoDetalle = widget.detallePedidoLista[index];
 
-            if (productoSeleccionado != null && productoSeleccionado.stock != null) {
-
+            if (productoSeleccionado != null &&
+                productoSeleccionado.stock != null) {
               setState(() {
-                productoSeleccionado.stock = productoSeleccionado.stock! + 1; // Aumentar el stock
+                productoSeleccionado.stock =
+                    productoSeleccionado.stock! + 1; // Aumentar el stock
 
                 // double precioTotalProductoDetalle = productoSeleccionadoDetalle.precio_producto! + productoSeleccionado.precioproducto!;
                 //
                 // productoSeleccionadoDetalle.precio_producto = precioTotalProductoDetalle;
-
               });
-
             }
             print(productoSeleccionado?.toJson());
             _actualizarProductosSeleccionados(); // Llama a la función para actualizar los productos seleccionados
@@ -1028,7 +1354,7 @@ class _DetailsPageState extends State<DetailsPage> {
                 topRight: Radius.circular(8),
                 bottomRight: Radius.circular(8),
               ),
-              color: Colors.grey[200],
+              color: Colors.grey[100],
             ),
             child: const Text('+'),
           ),
@@ -1049,7 +1375,7 @@ class _DetailsPageState extends State<DetailsPage> {
     );
   }
 
-  void mostrarMensajeActualizado(String mensaje, bool esRojo ) {
+  void mostrarMensajeActualizado(String mensaje, bool esRojo) {
     Color backgroundColor = esRojo ? Colors.red : Colors.green;
 
     Fluttertoast.showToast(
@@ -1063,12 +1389,11 @@ class _DetailsPageState extends State<DetailsPage> {
     );
   }
 
-  void refresh(){
-    setState(() {
-    });
+  void refresh() {
+    setState(() {});
   }
 
-  void agregarMsj(String mensaje){
+  void agregarMsj(String mensaje) {
     Fluttertoast.showToast(
         msg: mensaje,
         toastLength: Toast.LENGTH_SHORT,
@@ -1076,49 +1401,65 @@ class _DetailsPageState extends State<DetailsPage> {
         timeInSecForIosWeb: 1,
         backgroundColor: Colors.green,
         textColor: Colors.white,
-        fontSize: 16.0
-    );
+        fontSize: 16.0);
   }
 
   Future<void> crearPedido() async {
     gif();
-    bool disponible = await bdMesas.consultarMesa(usuario?.accessToken ,selectObjmesa.id ?? widget.mesa!.id!);
-    if(disponible == true){
+    bool disponible = await bdMesas.consultarMesa(
+        usuario?.accessToken, selectObjmesa.id ?? widget.mesa!.id!);
+    if (disponible == true) {
       if (widget.productosSeleccionados!.length > 0) {
         // crear el pedido
         Map<String, dynamic> pedidoData = {
           "id_cliente": 1,
-          "id_mesa": selectObjmesa.id ?? widget.mesa!.id, // Reemplaza con el ID de la mesa correcto
+          "id_mesa": selectObjmesa.id ??
+              widget.mesa!.id, // Reemplaza con el ID de la mesa correcto
           "id_tipo_ped": 1,
-          "nombremozo": "${usuario?.user?.nombreUsuario}", // Reemplaza con el nombre correcto del mozo
-          "id_usuario": usuario?.user?.id, // Reemplaza con el ID del usuario autenticado
+          "nombremozo":
+              "${usuario?.user?.nombreUsuario}", // Reemplaza con el nombre correcto del mozo
+          "id_usuario":
+              usuario?.user?.id, // Reemplaza con el ID del usuario autenticado
           "monto_total": pedidoTotal,
-          "detalle": widget.productosSeleccionados!.map((producto) => {
-            "id_producto": producto.id,
-            "cantidad_producto": producto.stock,
-            "precio_unitario": producto.precioproducto,
-            "precio_producto": producto.precioproducto! * (producto.stock ?? 0),
-            "comentario": cleanComentario(producto.comentario),
-            "estado_detalle": 1
-            // "comentario": limpiarPuntoComa(listaNota, producto, '')
-          }).toList()
+          "detalle": widget.productosSeleccionados!
+              .map((producto) => {
+                    "id_producto": producto.id,
+                    "cantidad_producto": producto.stock,
+                    "precio_unitario": producto.precioproducto,
+                    "precio_producto":
+                        producto.precioproducto! * (producto.stock ?? 0),
+                    "comentario": producto.comentario,
+                    "estado_detalle": 1
+                    // "comentario": limpiarPuntoComa(listaNota, producto, '')
+                  })
+              .toList()
         };
         // Ya crea el pedido
-        PedidoResponse? response = await pedidoServicio.registrarPedido(pedidoData, usuario?.accessToken);
+        PedidoResponse? response = await pedidoServicio.registrarPedido(
+            pedidoData, usuario?.accessToken);
 
         print('RESPUEST DE LA CREACION DE PEDIDO ${response?.ultimoIdPedido}');
 
-        PedidoResponse? updateMesa = await mesaServicio.actualizarMesa( selectObjmesa.id ?? widget.mesa!.id , usuario!.accessToken, 3);
+        PedidoResponse? updateMesa = await mesaServicio.actualizarMesa(
+            selectObjmesa.id ?? widget.mesa!.id, usuario!.accessToken, 3);
 
         Navigator.pop(context);
-        ticketBluetooth.printLabelBluetooth(widget.productosSeleccionados, 1, pedidoTotal, selectObjmesa.nombreMesa, usuario!, selectObjmesa.nombrePiso, '');
+        ticketBluetooth.printLabelBluetooth(
+            widget.productosSeleccionados,
+            1,
+            pedidoTotal,
+            selectObjmesa.nombreMesa,
+            usuario!,
+            selectObjmesa.nombrePiso,
+            '');
         //ticketBluetooth.testReceipt(widget.productosSeleccionados, "1", pedidoTotal,  selectObjmesa.nombreMesa, usuario! ,selectObjmesa.nombrePiso , '');
-        Navigator.pushNamedAndRemoveUntil(context, 'home', (route) => false, arguments: 1);
-      }else{
+        Navigator.pushNamedAndRemoveUntil(context, 'home', (route) => false,
+            arguments: 1);
+      } else {
         mostrarMensaje('No hay productos seleccionados');
         Navigator.pop(context);
       }
-    }else{
+    } else {
       showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -1162,31 +1503,22 @@ class _DetailsPageState extends State<DetailsPage> {
       );
     }
   }
-  String cleanComentario(String? comentario) {
-    if (comentario == null || comentario.isEmpty) {
-      return '';
-    }
-    final RegExp regExp = RegExp(r'<span[^>]*>([^<]+)<\/span>');
-    Iterable<Match> matches = regExp.allMatches(comentario);
 
-    String cleanedComentario = matches.map((match) => match.group(1)).join(';');
-    return cleanedComentario;
-  }
-
-
-  Future showMessangueDialog(String messague){
+  //tp10
+  Future showMessangueDialog(String messague) {
     return showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Error de Impresión'),
-          content:  Text(messague),
+          content: Text(messague),
           actions: <Widget>[
             TextButton(
               child: const Text('OK'),
               onPressed: () {
                 Navigator.of(context).pop(); // Cerrar el AlertDialog
-                Navigator.pushNamed(context, 'home/ajustes'); // Dirigir a otra pantalla
+                Navigator.pushNamed(
+                    context, 'home/ajustes'); // Dirigir a otra pantalla
               },
             ),
           ],

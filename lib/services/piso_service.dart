@@ -13,8 +13,6 @@ class PisoServicio {
   final String _url = 'chifalingling.restaupe.com';
   final String _api = '/api/auth';
 
-
-
   Future<List<Piso>?> getAll(String? accessToken) async {
     try {
       Uri url = Uri.https(_url, '$_api/pisosActivos');
