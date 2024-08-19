@@ -44,7 +44,7 @@ class ProductoController {
     final Map<String, dynamic> userDataMap = json.decode(userData);
     final Usuario usuario = Usuario.fromJson(userDataMap);
 
-    items_independientes = await Modulos.consultarItemsIndependientes(usuario.accessToken);
+    items_independientes = true;//await Modulos.consultarItemsIndependientes(usuario.accessToken);
     print('Activo itemsindependientes : ${items_independientes}');
 
     final args = ModalRoute.of(context)?.settings.arguments;
@@ -67,7 +67,6 @@ class ProductoController {
             stock: detalle.cantidad_producto,
             comentario: detalle.comentario,
             idPedido: detalle.id_pedido);
-
         if (producto != null) {
           productosSeleccionados?.add(setproducto);
         }

@@ -64,11 +64,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
 
   //----------------------------------------------------
   late TabController _tabController;
-  int _selectedIndex = 0;
   late int _listSize;
   late SubOptTypes _subOptType;
   final SharedPref _pref = SharedPref();
-  late  Mozo? mozo = Mozo();
   late Piso piso = Piso();
   bool isLoading = true;
   late List<Pedido> listaPedido = [];
@@ -114,7 +112,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
     if (userData != null) {
       final Map<String, dynamic> userDataMap = json.decode(userData);
       usuario = Usuario.fromJson(userDataMap);
-      idEstablecimiento = mozo!.id_establecimiento ?? 0;
     }
     print('->Datos del usuario cargados');
   }
@@ -139,7 +136,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
   late PageController _pageControllerPisosPage;
 
   var impresora = Impresora();
-  // late int initialTabIndex = 0;
 
 
 
@@ -147,7 +143,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
   void initState() {
     super.initState();
     _tabController = TabController(length: 1, vsync: this);
-    // _tabController.addListener(_handleTabSelection);
     _listSize = 10;
     _subOptType = SubOptTypes.local;
     getConnectivity();
@@ -169,12 +164,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
     refresh();
   }
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Obtener el índice inicial del argumento
-    // Resto de tu lógica de inicialización...
-  }
-  @override
   void dispose() {
     _tabController.dispose();
     _tabControllerPisos.dispose();
@@ -183,11 +172,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
     super.dispose();
   }
 
-  // void _handleTabSelection() {
-  //   setState(() {
-  //     initialTabIndex = _tabController.index;
-  //   });
-  // }
+
 
   void _updateListSize(int? newValue) {
     if (newValue != null) {
@@ -212,8 +197,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
   Future<void> consultarPisos() async {
     print('-----');
     final dynamic userData = await _pref.read('user_data');
-    final Map<String, dynamic> userDataMap = json.decode(userData);
-    usuario = Usuario.fromJson(userDataMap);
+      final Map<String, dynamic> userDataMap = json.decode(userData);
+      usuario = Usuario.fromJson(userDataMap);
 
     List<Piso>? listaPisos = await dbPisos.getAll(usuario?.accessToken);
     print('LISTADO DE PISOS ------- ${listaPisos}');
@@ -1036,7 +1021,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
                                                 listProduct.forEach((element) {
                                                   print(' - ${element.toJson()}');
                                                 });
-                                                //impresora.printLabel(printerIP,listProduct,3, listPedido.montoTotal!, AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa).nombreMesa , mozo!, ListadoPisos.firstWhere((element) => element.id == AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa).pisoId),'');
+                                               // impresora.printLabel(printerIP,listProduct,3, listPedido.montoTotal!, AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa).nombreMesa , mozo!, ListadoPisos.firstWhere((element) => element.id == AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa).pisoId),'');
                                                 print('Imprimir');
                                               }else{
                                                 showDialog(
@@ -1257,7 +1242,12 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
         }else {
           print('ENTRAR MESA STATUS  ${mesa.toJson()}');
           Map<String, dynamic> pedidoRespuesta =  await dbDetallePedido.fetchPedidoDetalle(usuario!.accessToken, mesa.id  );
+          pedidoRespuesta.forEach((key, value) {
+
+          });
+          print('PEDIDO OBTENIDO POR MESA $pedidoRespuesta');
           Pedido pedido = pedidoRespuesta['pedido_detalle'];
+          print('COMENTARIO OBTENIDO POR MESA ${pedido.detalle![0].comentario.runtimeType}');
           if(pedido.idUsuario != usuario?.user?.id){
             showDialog(
               context: context,
@@ -1271,7 +1261,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
                           elevation: MaterialStateProperty.all(2),
                           backgroundColor: MaterialStateProperty.all(Color(0xFFFF562F))),
                       onPressed: () {
-
                         Navigator.of(context).pop();
                       },
                       child: Text('OK', style: TextStyle(color: Colors.white, fontSize: 16)),
@@ -1436,164 +1425,167 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
     );
   }
 
-  Future<void> mostrarDialogoAnulacion(String printerIP, List<Producto> listProduct ,Pedido pedido, BuildContext context) async {
-    String motivo = '';
-    bool motivoVacio = false;
-    bool usarMotivoPorDefecto = false;
-
-    return showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (BuildContext context, StateSetter setState) {
-            return AlertDialog(
-              // backgroundColor: Color.fromRGBO(217, 217, 217, 1.0),
-              title: Text('Anular pedido : ${pedido.correlativoPedido}'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    children: [
-                      Checkbox(
-                        activeColor: Color( 0xFFFF562F),
-                        value: usarMotivoPorDefecto,
-                        onChanged: (newValue) {
-                          setState(() {
-                            usarMotivoPorDefecto = newValue!;
-                            // Si se marca el checkbox, vaciamos el motivo del TextField
-                            if (usarMotivoPorDefecto) {
-                              motivo = '';
-                              motivoVacio = false;
-                            }
-                          });
-                        },
-                      ),
-                      Text('Usar motivo por defecto'),
-                    ],
-                  ),
-                  TextField(
-                    onChanged: (value) {
-                      motivo = value;
-                      setState(() {
-                        // motivoVacio = motivo.isEmpty;
-                        motivoVacio = motivo.isEmpty && !usarMotivoPorDefecto;
-                      });
-                    },
-                    enabled: !usarMotivoPorDefecto,
-                    // decoration: InputDecoration(
-                    //   labelText: 'Motivo de anulación',
-                    //   errorText: motivoVacio ? 'Este campo no puede estar vacío' : null,
-                    //   focusedBorder: UnderlineInputBorder(
-                    //     borderSide: BorderSide(color: motivoVacio ? Colors.red : Theme.of(context).primaryColor),
-                    //   ),
-                    // ),
-                    decoration: InputDecoration(
-                        labelText: 'Motivo de anulación',
-                        hintText: 'Ej. Abandono de mesa',
-                        errorText: motivoVacio ? 'Este campo no puede estar vacío' : null,
-                        border:OutlineInputBorder(
-                            borderSide: BorderSide(
-                                color: Colors.black
-                            )
-                        ),
-                        floatingLabelStyle: TextStyle(fontSize: 15, color: Color(0xFF000000)),
-                        hintStyle: TextStyle(
-                            fontSize: 15,
-                            color: Color(0xFF000000)
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(20),
-                          borderSide: BorderSide(
-                              color: Color(0xFF000000),
-                              width: 2
-                          ),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(20),
-                          borderSide: BorderSide(
-                              color: motivoVacio ? Colors.red : Color(0xFF000000),
-                              width: 2
-                          ),
-                        ),
-                        contentPadding: EdgeInsets.all(10),
-                        // prefixIcon: Icon(Icons.print, color: Colors.black),
-                        // error
-                        errorBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(20),
-                          borderSide: BorderSide(
-                              color: motivoVacio ? Colors.red : Color(0xFF000000),
-                              width: 2
-                          ),
-                        ),
-                        focusedErrorBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(20),
-                          borderSide: BorderSide(
-                              color: motivoVacio ? Colors.red : Color(0xFF000000),
-                              width: 2
-                          ),
-                        ),
-                      disabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(20),
-                        borderSide: BorderSide(
-                            color: Colors.grey,
-                            width: 2
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              actions: <Widget>[
-                TextButton(
-                  style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all( Color.fromRGBO(217, 217, 217, 0.8) ),
-                  ),
-                  child: Text('Cancelar',style: TextStyle(color: Colors.black),),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-                TextButton(
-                  style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all( Colors.redAccent ),
-                  ),
-                  child: Text('Anular',style: TextStyle(color: Colors.white),),
-                  onPressed: () {
-                    // if (motivo.isEmpty) {
-                    //   setState(() {
-                    //     motivoVacio = true;
-                    //   });
-                    // } else {
-                    //   impresora.printLabel( printerIP, listProduct ,4, pedido.montoTotal!, AllListadoMesas.firstWhere((element) => element.id == pedido.idMesa).nombreMesa, mozo!, ListadoPisos.firstWhere((element) => element.id == AllListadoMesas.firstWhere((element) => element.id == pedido.idMesa).pisoId),motivo);
-                    //   dbMesas.actualizarMesa(pedido.idMesa, 1, context);
-                    //   dbPedido.anularPedido(motivo, mozo!, pedido.idPedido!, context);
-                    //   Navigator.of(context).pop();
-                    //   refresh();
-                    // }
-                    String motivoFinal = usarMotivoPorDefecto ? 'Motivo por defecto' : motivo;
-
-                    if (motivoFinal.isEmpty && !usarMotivoPorDefecto) {
-                      setState(() {
-                        motivoVacio = true;
-                      });
-                    } else {
-                      // impresora.printLabel( printerIP, listProduct, 4, pedido.montoTotal!, AllListadoMesas.firstWhere((element) => element.id == pedido.idMesa).nombreMesa, mozo!, ListadoPisos.firstWhere((element) => element.id == AllListadoMesas.firstWhere((element) => element.id == pedido.idMesa).pisoId), motivoFinal);
-                      //dbMesas.actualizarMesa(pedido.idMesa, 1, context); API ACTIALZIAR MESA
-                      dbPedido.anularPedido(motivoFinal, mozo!, pedido.idPedido!, context);
-                      // refresh();
-                      Navigator.of(context).pop();
-                      Navigator.pop(context);
-                    }
-                    refresh();
-                  },
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
+  // Future<void> mostrarDialogoAnulacion(String printerIP, List<Producto> listProduct ,Pedido pedido, BuildContext context) async {
+  //   String motivo = '';
+  //   bool motivoVacio = false;
+  //   bool usarMotivoPorDefecto = false;
+  //
+  //   return showDialog(
+  //     context: context,
+  //     builder: (BuildContext context) {
+  //       return StatefulBuilder(
+  //         builder: (BuildContext context, StateSetter setState) {
+  //           return AlertDialog(
+  //             // backgroundColor: Color.fromRGBO(217, 217, 217, 1.0),
+  //             title: Text('Anular pedido : ${pedido.correlativoPedido}'),
+  //             content: Column(
+  //               mainAxisSize: MainAxisSize.min,
+  //               children: [
+  //                 Row(
+  //                   children: [
+  //                     Checkbox(
+  //                       activeColor: Color( 0xFFFF562F),
+  //                       value: usarMotivoPorDefecto,
+  //                       onChanged: (newValue) {
+  //                         setState(() {
+  //                           usarMotivoPorDefecto = newValue!;
+  //                           // Si se marca el checkbox, vaciamos el motivo del TextField
+  //                           if (usarMotivoPorDefecto) {
+  //                             motivo = '';
+  //                             motivoVacio = false;
+  //                           }
+  //                         });
+  //                       },
+  //                     ),
+  //                     Text('Usar motivo por defecto'),
+  //                   ],
+  //                 ),
+  //                 TextField(
+  //                   onChanged: (value) {
+  //                     motivo = value;
+  //                     setState(() {
+  //                       // motivoVacio = motivo.isEmpty;
+  //                       motivoVacio = motivo.isEmpty && !usarMotivoPorDefecto;
+  //                     });
+  //                   },
+  //                   enabled: !usarMotivoPorDefecto,
+  //                   // decoration: InputDecoration(
+  //                   //   labelText: 'Motivo de anulación',
+  //                   //   errorText: motivoVacio ? 'Este campo no puede estar vacío' : null,
+  //                   //   focusedBorder: UnderlineInputBorder(
+  //                   //     borderSide: BorderSide(color: motivoVacio ? Colors.red : Theme.of(context).primaryColor),
+  //                   //   ),
+  //                   // ),
+  //                   decoration: InputDecoration(
+  //                       labelText: 'Motivo de anulación',
+  //                       hintText: 'Ej. Abandono de mesa',
+  //                       errorText: motivoVacio ? 'Este campo no puede estar vacío' : null,
+  //                       border:OutlineInputBorder(
+  //                           borderSide: BorderSide(
+  //                               color: Colors.black
+  //                           )
+  //                       ),
+  //                       floatingLabelStyle: TextStyle(fontSize: 15, color: Color(0xFF000000)),
+  //                       hintStyle: TextStyle(
+  //                           fontSize: 15,
+  //                           color: Color(0xFF000000)
+  //                       ),
+  //                       enabledBorder: OutlineInputBorder(
+  //                         borderRadius: BorderRadius.circular(20),
+  //                         borderSide: BorderSide(
+  //                             color: Color(0xFF000000),
+  //                             width: 2
+  //                         ),
+  //                       ),
+  //                       focusedBorder: OutlineInputBorder(
+  //                         borderRadius: BorderRadius.circular(20),
+  //                         borderSide: BorderSide(
+  //                             color: motivoVacio ? Colors.red : Color(0xFF000000),
+  //                             width: 2
+  //                         ),
+  //                       ),
+  //                       contentPadding: EdgeInsets.all(10),
+  //                       // prefixIcon: Icon(Icons.print, color: Colors.black),
+  //                       // error
+  //                       errorBorder: OutlineInputBorder(
+  //                         borderRadius: BorderRadius.circular(20),
+  //                         borderSide: BorderSide(
+  //                             color: motivoVacio ? Colors.red : Color(0xFF000000),
+  //                             width: 2
+  //                         ),
+  //                       ),
+  //                       focusedErrorBorder: OutlineInputBorder(
+  //                         borderRadius: BorderRadius.circular(20),
+  //                         borderSide: BorderSide(
+  //                             color: motivoVacio ? Colors.red : Color(0xFF000000),
+  //                             width: 2
+  //                         ),
+  //                       ),
+  //                     disabledBorder: OutlineInputBorder(
+  //                       borderRadius: BorderRadius.circular(20),
+  //                       borderSide: BorderSide(
+  //                           color: Colors.grey,
+  //                           width: 2
+  //                       ),
+  //                     ),
+  //                   ),
+  //                 ),
+  //               ],
+  //             ),
+  //             actions: <Widget>[
+  //               TextButton(
+  //                 style: ButtonStyle(
+  //                   backgroundColor: MaterialStateProperty.all( Color.fromRGBO(217, 217, 217, 0.8) ),
+  //                 ),
+  //                 child: Text('Cancelar',style: TextStyle(color: Colors.black),),
+  //                 onPressed: () {
+  //                   Navigator.of(context).pop();
+  //                 },
+  //               ),
+  //               TextButton(
+  //                 style: ButtonStyle(
+  //                   backgroundColor: MaterialStateProperty.all( Colors.redAccent ),
+  //                 ),
+  //                 child: Text('Anular',style: TextStyle(color: Colors.white),),
+  //                 onPressed: () {
+  //                   // if (motivo.isEmpty) {
+  //                   //   setState(() {
+  //                   //     motivoVacio = true;
+  //                   //   });
+  //                   // } else {
+  //                   //   impresora.printLabel( printerIP, listProduct ,4, pedido.montoTotal!, AllListadoMesas.firstWhere((element) => element.id == pedido.idMesa).nombreMesa, mozo!, ListadoPisos.firstWhere((element) => element.id == AllListadoMesas.firstWhere((element) => element.id == pedido.idMesa).pisoId),motivo);
+  //                   //   dbMesas.actualizarMesa(pedido.idMesa, 1, context);
+  //                   //   dbPedido.anularPedido(motivo, mozo!, pedido.idPedido!, context);
+  //                   //   Navigator.of(context).pop();
+  //                   //   refresh();
+  //                   // }
+  //                   String motivoFinal = usarMotivoPorDefecto ? 'Motivo por defecto' : motivo;
+  //
+  //                   if (motivoFinal.isEmpty && !usarMotivoPorDefecto) {
+  //                     setState(() {
+  //                       motivoVacio = true;
+  //                     });
+  //                   } else {
+  //                     impresora.printLabel(
+  //                         printerIP, listProduct, 4, pedido.montoTotal!, AllListadoMesas.firstWhere((element) => element.id == pedido.idMesa).nombreMesa, mozo!,
+  //                         ListadoPisos.firstWhere((element) => element.id == AllListadoMesas.firstWhere((element) => element.id == pedido.idMesa).pisoId),
+  //                         motivoFinal);
+  //                     //dbMesas.actualizarMesa(pedido.idMesa, 1, context); API ACTIALZIAR MESA
+  //                     dbPedido.anularPedido(motivoFinal, mozo!, pedido.idPedido!, context);
+  //                     // refresh();
+  //                     Navigator.of(context).pop();
+  //                     Navigator.pop(context);
+  //                   }
+  //                   refresh();
+  //                 },
+  //               ),
+  //             ],
+  //           );
+  //         },
+  //       );
+  //     },
+  //   );
+  // }
 
   Widget _buildAnimatedContent({required Key key, required Widget child}) {
     return AnimatedSwitcher(
@@ -1607,7 +1599,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
 
   void refreshTabController(){
     setState(() {
-      _tabController = TabController( length: 0, vsync: this);
+      _tabController = TabController( length: 1, vsync: this);
     });
   }
   void refresh(){

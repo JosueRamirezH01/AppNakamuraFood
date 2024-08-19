@@ -331,7 +331,7 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
     double total = 0;
     if (_con.productosSeleccionados != null) {
       for (Producto producto in _con.productosSeleccionados!) {
-        print('PRECIO ---- --- ${producto.precioproducto}');
+        print('PRECIO ---- --- ${producto.precioproducto.runtimeType}');
         total += (producto.precioproducto ?? 0) * (producto.stock ?? 0);
       }
     }
