@@ -23,8 +23,7 @@ class PedidoServicio {
 
     final url = Uri.parse('https://chifalingling.restaupe.com/api/auth/registrarPedido');
     try {
-      final response = await http.post(
-        url,
+      final response = await http.post(url,
         headers: {'Content-Type': 'application/json',
       'Authorization': 'Bearer $accessToken'
         },

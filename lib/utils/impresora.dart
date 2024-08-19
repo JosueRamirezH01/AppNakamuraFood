@@ -8,12 +8,13 @@ import 'package:restauflutter/utils/shared_pref.dart';
 
 import '../model/mozo.dart';
 import '../model/piso.dart';
+import '../model/usuario.dart';
 
 class Impresora {
 
 
 
-  Future<void> printLabel(String printerIP,List<Producto>? producto, int? estado, double total, String? nombreMesa, Mozo mozo, Piso piso, String motivo) async {
+  Future<void> printLabel(String printerIP,List<Producto>? producto, int? estado, double total, String? nombreMesa, Usuario usuario, String? piso, String motivo) async {
 
     String tipoBoucher = '';
 
@@ -35,14 +36,14 @@ class Impresora {
     final PosPrintResult res = await printer.connect(printerIP, port: 9100);
 
     if (res == PosPrintResult.success) {
-      testReceipt(producto ,printer, tipoBoucher, total, nombreMesa!, mozo, piso, motivo);
+      testReceipt(producto ,printer, tipoBoucher, total, nombreMesa!, usuario, piso!, motivo);
       printer.disconnect();
     }
 
   }
 
 
-  void testReceipt(List<Producto>? producto, NetworkPrinter printer, String tipoBoucher, double total,String nombreMesa, Mozo mozo, Piso piso, String motivo ) {
+  void testReceipt(List<Producto>? producto, NetworkPrinter printer, String tipoBoucher, double total,String nombreMesa, Usuario mozo, String piso, String motivo ) {
 
     // Título de la mesa
     if( tipoBoucher =='Anulado'){
@@ -91,10 +92,10 @@ class Impresora {
 
 
 
-  void _buildDetailsPreCuenta(NetworkPrinter printer, Mozo mozo, Piso piso) {
+  void _buildDetailsPreCuenta(NetworkPrinter printer, Usuario mozo, String piso) {
 
-    String? email = '${mozo.nombre_usuario}';
-    String? nomPiso = '${piso.nombrePiso}';
+    String? email = '${mozo.user?.nombreUsuario}';
+    String? nomPiso = '${piso}';
     //String nombreUsuario = email != null ? email.substring(0, email.indexOf('@')) : '';
     DateTime now = DateTime.now();
     String horaActual = '${now.hour}:${now.minute}:${now.second}';

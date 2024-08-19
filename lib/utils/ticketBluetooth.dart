@@ -15,7 +15,7 @@ class TicketBluetooth {
   Future<void> printLabelBluetooth(List<Producto>? producto, int estado, double total, String? nombreMesa, Usuario usuario, String? piso, String motivo) async {
 
     print('cantidad de llegada ${producto!.length}');
-    producto!.forEach((element) {
+    producto.forEach((element) {
       print('LLEgada de prodcutos ${element.nombreproducto}');
     });
 
@@ -40,7 +40,7 @@ class TicketBluetooth {
       element.comentario = cleanComentario(element.comentario);
     });
 
-    conexion = await _pref.read('conexionBluetooth');
+    conexion = await _pref.read('conexionBluetooth') ?? false;
     if (conexion) {
       Map<String, dynamic> config = Map();
       print('BC> ${config}');
@@ -156,8 +156,8 @@ class TicketBluetooth {
       // Contenido de la tabla
       // Contenido de la tabla
       if (tipoBoucher != 'Pedido' && tipoBoucher != 'Pedidos Actualizados') {
-        for (int i = 0; i < (producto?.length ?? 0); i++) {
-          var prod = producto![i];
+        for (int i = 0; i < (producto.length ?? 0); i++) {
+          var prod = producto[i];
           list.add(LineText(type: LineText.TYPE_TEXT,
               content: '${prod.stock}',
               align: LineText.ALIGN_LEFT,
@@ -192,24 +192,24 @@ class TicketBluetooth {
           }
         }
       } else {
-        for (int i = 0; i < (producto?.length ?? 0); i++) {
-          var prod = producto![i];
+        for (int i = 0; i < (producto.length ?? 0); i++) {
+          var prod = producto[i];
           if (prod.stock == 0) {
+            // list.add(LineText(type: LineText.TYPE_TEXT,
+            //     content: '',
+            //     weight: 1,
+            //     align: LineText.ALIGN_LEFT,
+            //     x: 0,
+            //     relativeX: 0,
+            //     linefeed: 0));
             list.add(LineText(type: LineText.TYPE_TEXT,
-                content: 'Rechazado',
-                weight: 1,
+                content: '${prod.nombreproducto}',
                 align: LineText.ALIGN_LEFT,
                 x: 0,
                 relativeX: 0,
                 linefeed: 0));
             list.add(LineText(type: LineText.TYPE_TEXT,
-                content: '${prod.nombreproducto}',
-                align: LineText.ALIGN_LEFT,
-                x: 50,
-                relativeX: 0,
-                linefeed: 0));
-            list.add(LineText(type: LineText.TYPE_TEXT,
-                content: prod.comentario ?? '',
+                content: 'Rechazado',
                 align: LineText.ALIGN_LEFT,
                 x: 400,
                 relativeX: 0,

@@ -33,7 +33,7 @@ class DetallePedidoServicio {
       // Procesa el JSON y devuelve el Map
       bool status = jsonResponse['status'];
       Pedido pedido = Pedido.fromJson(jsonResponse['pedido_detalle']);
-      print('OBTENER PEDIDO ${pedido.toJson()}');
+      print('Pedido Detalle: ${pedido.detalle!.first.comentario.runtimeType}');
       return {
         'status': status,
         'pedido_detalle': pedido,
@@ -71,13 +71,13 @@ class DetallePedidoServicio {
 
   Future<Map<String, dynamic>> actualizarPedidoConRespuestaApi(String? accessToken, Map<String, dynamic> pedidoDetalle, int? idMesa) async {
     Uri uri = Uri.https(_url, '$_api/actualizarPedido/$idMesa');
-    // pedidoDetalle['detalle'];
+    print('Datos del pedido enviados ->: ${json.encode(pedidoDetalle)}');
     String body = json.encode(pedidoDetalle);
     Map<String, String> headers = {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer $accessToken',
     };
-    print('-Body- ${body} :end');
+    //print('-Body- ${body} :end');
 
     // Realizar la solicitud PUT
     final response = await http.put(
@@ -92,7 +92,7 @@ class DetallePedidoServicio {
     if (response.statusCode == 200) {
       Map<String, dynamic> jsonResponse = json.decode(response.body);
       // if
-      // print('jsonResponse :a ${jsonResponse}');
+      print('jsonResponse :a ${jsonResponse}');
       // List<dynamic> detalleActualizadoJson = jsonResponse['detalle_actualizado'];
       // print('detalleActualizadoJson : ${detalleActualizadoJson}');
       // List<Detalle_Pedido> detalleActualizado = detalleActualizadoJson.map((json) => Detalle_Pedido.fromJson(json)).toList();

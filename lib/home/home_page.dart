@@ -112,7 +112,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
     if (userData != null) {
       final Map<String, dynamic> userDataMap = json.decode(userData);
       usuario = Usuario.fromJson(userDataMap);
-      idEstablecimiento = mozo!.id_establecimiento ?? 0;
     }
     print('--L---L--');
   }
@@ -137,7 +136,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
   late PageController _pageControllerPisosPage;
 
   var impresora = Impresora();
-  late int initialTabIndex;
 
 
 
@@ -145,7 +143,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
   void initState() {
     super.initState();
     _tabController = TabController(length: 1, vsync: this);
-    _tabController.addListener(_handleTabSelection);
     _listSize = 10;
     _subOptType = SubOptTypes.local;
     getConnectivity();
@@ -168,14 +165,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
     refresh();
   }
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Obtener el índice inicial del argumento
-    initialTabIndex = ModalRoute.of(context)!.settings.arguments as int? ?? 0;
-    _tabController.index = initialTabIndex;
-    // Resto de tu lógica de inicialización...
-  }
-  @override
   void dispose() {
     _tabController.dispose();
     _tabControllerPisos.dispose();
@@ -184,11 +173,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
     super.dispose();
   }
 
-  void _handleTabSelection() {
-    setState(() {
-      initialTabIndex = _tabController.index;
-    });
-  }
+
 
   void _updateListSize(int? newValue) {
     if (newValue != null) {
@@ -277,8 +262,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
     } else {
       crossAxisCount = 2;
     }
-    //initialTabIndex = ModalRoute.of(context)!.settings.arguments as int? ?? 0;
-    print('ARGUMENTO DE LLEGADA DE PEDIDO --------${initialTabIndex}');
     return Scaffold(
         appBar: AppBar(
           bottom: PreferredSize(
@@ -1261,7 +1244,12 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
         }else {
           print('ENTRAR MESA STATUS  ${mesa.toJson()}');
           Map<String, dynamic> pedidoRespuesta =  await dbDetallePedido.fetchPedidoDetalle(usuario!.accessToken, mesa.id  );
+          pedidoRespuesta.forEach((key, value) {
+
+          });
+          print('PEDIDO OBTENIDO POR MESA $pedidoRespuesta');
           Pedido pedido = pedidoRespuesta['pedido_detalle'];
+          print('COMENTARIO OBTENIDO POR MESA ${pedido.detalle![0].comentario.runtimeType}');
           if(pedido.idUsuario != usuario?.user?.id){
             showDialog(
               context: context,
@@ -1275,9 +1263,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
                           elevation: MaterialStateProperty.all(2),
                           backgroundColor: MaterialStateProperty.all(Color(0xFFFF562F))),
                       onPressed: () {
-                        setState(() {
-                          initialTabIndex = 1;
-                        });
                         Navigator.of(context).pop();
                       },
                       child: Text('OK', style: TextStyle(color: Colors.white, fontSize: 16)),
