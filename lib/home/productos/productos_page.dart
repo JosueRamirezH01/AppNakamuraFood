@@ -104,47 +104,47 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
                     children: [
                       Container(margin: EdgeInsets.only( top: 20 ,bottom: 20) ,child: _textFieldSearch()),
                       Padding(
-                            padding: const EdgeInsets.only(right: 15,left: 15),
-                            child: TabBar(
-                              tabAlignment: TabAlignment.start,
-                              isScrollable: true,
-                              controller: _tabController,
-                              indicator: BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(10)),border: Border.all(width: 2), color: Color(0xFF99cfb5)),
-                              indicatorSize: TabBarIndicatorSize.tab,
-                              padding: EdgeInsets.only(bottom: 6),
-                              labelStyle: TextStyle(fontWeight: FontWeight.bold),
-                              tabs: List<Widget>.generate(_con.categorias.length, (index) {
-                                return Tab(
-                                  child: Text(_con.categorias[index].nombre ?? ''),
-                                );
-                              }),
-                              onTap: (index) async {
-                                _productoFocus.unfocus();
-                                _pageController.animateToPage(
-                                  index,
-                                  duration: Duration(milliseconds: 300),
-                                  curve: Curves.easeInOut,
-                                );
-                                List<Producto> productosCategoria = await _con.getProductosPorCategoria(_con.categorias[index]);
-                                setState(() {
-                                  _con.productos = productosCategoria;
-                                });
-                              },
-                            ),
-                          ),
+                        padding: const EdgeInsets.only(right: 15,left: 15),
+                        child: TabBar(
+                          tabAlignment: TabAlignment.start,
+                          isScrollable: true,
+                          controller: _tabController,
+                          indicator: BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(10)),border: Border.all(width: 2), color: Color(0xFF99cfb5)),
+                          indicatorSize: TabBarIndicatorSize.tab,
+                          padding: EdgeInsets.only(bottom: 6),
+                          labelStyle: TextStyle(fontWeight: FontWeight.bold),
+                          tabs: List<Widget>.generate(_con.categorias.length, (index) {
+                            return Tab(
+                              child: Text(_con.categorias[index].nombre ?? ''),
+                            );
+                          }),
+                          onTap: (index) async {
+                            _productoFocus.unfocus();
+                            _pageController.animateToPage(
+                              index,
+                              duration: Duration(milliseconds: 300),
+                              curve: Curves.easeInOut,
+                            );
+                            List<Producto> productosCategoria = await _con.getProductosPorCategoria(_con.categorias[index]);
+                            setState(() {
+                              _con.productos = productosCategoria;
+                            });
+                          },
+                        ),
+                      ),
                       Expanded(
-                  child: PageView.builder(
-                    controller: _pageController,
-                    onPageChanged: (index) async {
-                      _tabController.animateTo(index);
-                      List<Producto> productosCategoria = await _con.getProductosPorCategoria(_con.categorias[index]);
-                      setState(() {
-                        _con.productos = productosCategoria;
-                      });
-                    },
-                    itemCount: _con.categorias.length,
-                    itemBuilder: (context, index) {
-                      double screenWidth = MediaQuery.of(context).size.width;
+                        child: PageView.builder(
+                        controller: _pageController,
+                        onPageChanged: (index) async {
+                          _tabController.animateTo(index);
+                          List<Producto> productosCategoria = await _con.getProductosPorCategoria(_con.categorias[index]);
+                          setState(() {
+                            _con.productos = productosCategoria;
+                          });
+                        },
+                        itemCount: _con.categorias.length,
+                        itemBuilder: (context, index) {
+                          double screenWidth = MediaQuery.of(context).size.width;
 
                                   int crossAxisCount = 2;
                                   if (screenWidth > 1200) {

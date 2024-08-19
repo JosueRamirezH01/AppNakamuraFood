@@ -8,7 +8,6 @@ import 'package:restauflutter/services/entorno_service.dart';
 import 'package:restauflutter/services/modulos_service.dart';
 import 'package:restauflutter/utils/shared_pref.dart';
 
-import '../../model/mozo.dart';
 import '../../model/usuario.dart';
 import '../../services/producto_service.dart';
 import '../../utils/impresoraBluetooth.dart';

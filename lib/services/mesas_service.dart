@@ -113,7 +113,20 @@ class MesaServicio {
   }
 
 
-
+   void cambiar_mesa (String? accessToken, int id_mesaocupada) async {
+    try{
+      Uri url = Uri.https(_url, '$_api/MesasporPisos/$id_mesaocupada');
+      Map<String, String> headers = {
+        'Content-type': 'application/json',
+        'Authorization': 'Bearer $accessToken'
+      };
+      final res = await http.get(url, headers: headers);
+      final data = json.decode(res.body);
+      print('Cambiar mesa : ${data}');
+    }catch(e){
+      print('error ${e}');
+    }
+   }
 
 
 
@@ -205,7 +218,5 @@ class MesaServicio {
       }
     }
   }
-
-
 
 }

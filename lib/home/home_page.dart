@@ -139,7 +139,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
   late PageController _pageControllerPisosPage;
 
   var impresora = Impresora();
-  late int initialTabIndex;
   // late int initialTabIndex = 0;
 
 
@@ -147,8 +146,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
-    _tabController.addListener(_handleTabSelection);
+    _tabController = TabController(length: 1, vsync: this);
+    // _tabController.addListener(_handleTabSelection);
     _listSize = 10;
     _subOptType = SubOptTypes.local;
     getConnectivity();
@@ -173,8 +172,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
   void didChangeDependencies() {
     super.didChangeDependencies();
     // Obtener el índice inicial del argumento
-    initialTabIndex = ModalRoute.of(context)!.settings.arguments as int? ?? 0;
-    _tabController.index = initialTabIndex;
     // Resto de tu lógica de inicialización...
   }
   @override
@@ -186,11 +183,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
     super.dispose();
   }
 
-  void _handleTabSelection() {
-    setState(() {
-      initialTabIndex = _tabController.index;
-    });
-  }
+  // void _handleTabSelection() {
+  //   setState(() {
+  //     initialTabIndex = _tabController.index;
+  //   });
+  // }
 
   void _updateListSize(int? newValue) {
     if (newValue != null) {
@@ -278,7 +275,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
       crossAxisCount = 2;
     }
 
-    print('Tab HOME : ${initialTabIndex}');
     return Scaffold(
         appBar: AppBar(
           bottom: PreferredSize(
@@ -1040,7 +1036,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
                                                 listProduct.forEach((element) {
                                                   print(' - ${element.toJson()}');
                                                 });
-                                                impresora.printLabel(printerIP,listProduct,3, listPedido.montoTotal!, AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa).nombreMesa , mozo!, ListadoPisos.firstWhere((element) => element.id == AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa).pisoId),'');
+                                                //impresora.printLabel(printerIP,listProduct,3, listPedido.montoTotal!, AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa).nombreMesa , mozo!, ListadoPisos.firstWhere((element) => element.id == AllListadoMesas.firstWhere((element) => element.id == listPedido.idMesa).pisoId),'');
                                                 print('Imprimir');
                                               }else{
                                                 showDialog(
@@ -1275,9 +1271,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
                           elevation: MaterialStateProperty.all(2),
                           backgroundColor: MaterialStateProperty.all(Color(0xFFFF562F))),
                       onPressed: () {
-                        setState(() {
-                          initialTabIndex = 1;
-                        });
+
                         Navigator.of(context).pop();
                       },
                       child: Text('OK', style: TextStyle(color: Colors.white, fontSize: 16)),
@@ -1583,10 +1577,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
                         motivoVacio = true;
                       });
                     } else {
-                      impresora.printLabel(
-                          printerIP, listProduct, 4, pedido.montoTotal!, AllListadoMesas.firstWhere((element) => element.id == pedido.idMesa).nombreMesa, mozo!,
-                          ListadoPisos.firstWhere((element) => element.id == AllListadoMesas.firstWhere((element) => element.id == pedido.idMesa).pisoId),
-                          motivoFinal);
+                      // impresora.printLabel( printerIP, listProduct, 4, pedido.montoTotal!, AllListadoMesas.firstWhere((element) => element.id == pedido.idMesa).nombreMesa, mozo!, ListadoPisos.firstWhere((element) => element.id == AllListadoMesas.firstWhere((element) => element.id == pedido.idMesa).pisoId), motivoFinal);
                       //dbMesas.actualizarMesa(pedido.idMesa, 1, context); API ACTIALZIAR MESA
                       dbPedido.anularPedido(motivoFinal, mozo!, pedido.idPedido!, context);
                       // refresh();
@@ -1616,7 +1607,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
 
   void refreshTabController(){
     setState(() {
-      _tabController = TabController( length: 2, vsync: this);
+      _tabController = TabController( length: 0, vsync: this);
     });
   }
   void refresh(){
