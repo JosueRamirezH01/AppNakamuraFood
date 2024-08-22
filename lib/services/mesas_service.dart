@@ -1,21 +1,12 @@
 import 'dart:convert';
-import 'package:flutter/material.dart';
-import 'package:mysql1/mysql1.dart';
-import 'package:restauflutter/bd/conexion.dart';
 import 'package:restauflutter/model/PedidoResponse.dart';
 import 'package:restauflutter/model/mesa.dart';
-import 'package:restauflutter/model/pedido.dart';
-import 'package:restauflutter/model/piso.dart';
-import 'package:restauflutter/utils/shared_pref.dart';
 import 'package:http/http.dart' as http;
 
 
 
-//SELECT * FROM `mesas` WHERE piso_id = 14
 
 class MesaServicio {
-  final Connection _connectionSQL = Connection();
-  final SharedPref _sharedPref = SharedPref();
 
   final String _url = 'chifalingling.restaupe.com';
   final String _api = '/api/auth';
@@ -110,102 +101,57 @@ class MesaServicio {
       print('Error al realizar la consulta: $e');
       return null;
     }
+    return null;
   }
 
-
-
-
-
-
-
-
-
-
-
-  Future<List<Mesa>> consultarTodasMesas(List<Piso> pisos, BuildContext context) async {
-    MySqlConnection? conn;
-    List<Mesa> allMesas = [];
-
+  Future<List<Mesa>> getAllxEstado(String? accessToken, int? idEstado) async {
     try {
-      conn = await _connectionSQL.getConnection();
-
-      for (Piso piso in pisos) {
-        const query = 'SELECT * FROM mesas WHERE piso_id = ?';
-        final results = await conn.query(query, [piso.id]);
-        List<Mesa> mesas = results.map((row) => Mesa.fromJson(row.fields)).toList();
-        if (mesas.isNotEmpty) {
-          allMesas.addAll(mesas);
-        } else {
-          print('No hay mesas en el piso ${piso.id}, pasando al siguiente piso.');
-        }
-      }
-
-      return allMesas;
+      Uri url = Uri.https(_url, '$_api/lista_mesas/$idEstado');
+      Map<String, String> headers = {
+        'Content-type': 'application/json',
+        'Authorization': 'Bearer $accessToken'
+      };
+      final res = await http.get(url, headers: headers);
+      final data = json.decode(res.body);
+      // print('Datos recibidos: $data');
+      Mesa mesa = Mesa.fromJsonList(data);
+      // print('MESA LIST ${mesa.listMesa[0].toJson()}');
+      return mesa.listMesa;
     } catch (e) {
-      print('Error al realizar la consulta: $e');
+      print('Error Mesa: $e');
       return [];
-    } finally {
-      if (conn != null) {
-        await conn.close();
-      }
     }
   }
 
+  Future<PedidoResponse?> cambiarMesa(int? mesaOcupada,String? accessToken, int? id_mesalibre ) async {
 
-
-  Future<List<Mesa>> consultarMesas( int idPiso, BuildContext context) async {
-    MySqlConnection? conn;
     try {
-      conn = await _connectionSQL.getConnection();
 
-      const query = 'SELECT * FROM mesas WHERE piso_id = ? AND estado_mesa != 0';
-      final results = await conn.query(query, [idPiso]);
-      if (results.isEmpty) {
-        print('No se encontraron datos en las tablas.');
-        return [];
-      } else {
-        List<Mesa> mesas = results.map((row) => Mesa.fromJson(row.fields)).toList();
-        final jsonMesasData = json.encode(mesas);
-        // print('Lista de pisos guardada en SharedPreferences: $jsonMesasData');
-        return mesas;
+      Uri url = Uri.https(_url, '$_api/cambiar_mesa/$mesaOcupada');
+      print('${url}: ${url}');
+      String bodiParams = json.encode({
+        "id_mesa":id_mesalibre
+      });
+      Map<String, String> headers = {
+        'Content-type': 'application/json',
+        'Authorization': 'Bearer $accessToken'
+      };
+      // Realiza la solicitud GET a la API
+      final res = await http.post(url, headers: headers,body: bodiParams);
+      final data = json.decode(res.body);
+      if(res.statusCode == 200){
+        PedidoResponse updateMesa = PedidoResponse.fromJson(data);
+        print('MENSAJE DE ACTUALZIACION DE DATOS ${updateMesa.mensajeMinuscula} Y ${updateMesa.status}');
+        return updateMesa;
+      }else{
+        print('ERROR ${res.statusCode}');
       }
+
     } catch (e) {
       print('Error al realizar la consulta: $e');
-      return [];
-    } finally {
-      if (conn != null) {
-        await conn.close();
-      }
+      return null;
     }
+    return null;
   }
-
-  Future<List<Mesa>> consultarMesasDisponibles( int? idPiso,  BuildContext context) async {
-    MySqlConnection? conn;
-    try {
-      conn = await _connectionSQL.getConnection();
-
-      const query = 'SELECT * FROM mesas WHERE piso_id = ? AND estado_mesa = 1';
-      final results = await conn.query(query, [idPiso]);
-      if (results.isEmpty) {
-        print('No se encontraron datos en las tablas.');
-        return [];
-      } else {
-        List<Mesa> mesas = results.map((row) => Mesa.fromJson(row.fields)).toList();
-        final jsonMesasData = json.encode(mesas);
-        //_sharedPref.save('pisos', jsonPisosData);
-        print('Lista de mesas Disponibles en SharedPreferences: $jsonMesasData');
-        return mesas;
-      }
-    } catch (e) {
-      print('Error al realizar la consulta: $e');
-      return [];
-    } finally {
-      if (conn != null) {
-        await conn.close();
-      }
-    }
-  }
-
-
 
 }

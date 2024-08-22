@@ -5,6 +5,7 @@
 list(APPEND FLUTTER_PLUGIN_LIST
   charset_converter
   connectivity_plus
+  rive_common
   url_launcher_windows
 )
 

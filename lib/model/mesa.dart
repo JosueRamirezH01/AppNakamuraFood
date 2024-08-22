@@ -36,7 +36,7 @@ class Mesa {
       estadoMesa: json['estado_mesa'],
       nombrePiso: json['nombre_piso'],
       tiempoMesa:  json['tiempo_mesa'],
-      pisoId: json['tipo_pedido'],
+      pisoId: json['piso_id'],
     );
   }
 

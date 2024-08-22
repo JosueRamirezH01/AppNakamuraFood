@@ -1,6 +1,8 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'package:awesome_dialog/awesome_dialog.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -9,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
+import 'package:restauflutter/model/PedidoResponse.dart';
 import 'package:restauflutter/model/detalle_pedido.dart';
 import 'package:restauflutter/model/mesa.dart';
 import 'package:restauflutter/model/mesaDetallePedido.dart';
@@ -26,8 +29,8 @@ import 'package:restauflutter/utils/shared_pref.dart';
 import '../model/usuario.dart';
 
 List<Color> colores = [
-  const Color(0xFF8EFF72), // verde
-  const Color(0xFFF2D32A), // amarrillo
+  const Color(0xFFCCF390), // verde
+  const Color(0xFFFC930A), // amarrillo
   const Color(0xFFF35B5B), // rojo
 
 ];
@@ -37,13 +40,6 @@ const List<Widget> options = <Widget>[
   Text('POS'),
 ];
 
-class Product {
-  final String name;
-  final int quantity;
-  final double price;
-
-  Product(this.name, this.quantity, this.price);
-}
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -283,6 +279,15 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
                         color: Colors.white,
                       ),
                     ),
+                    SizedBox(width: 10),
+                    ///CAMBIAR MESA
+                    ElevatedButton(
+                        child: Text('CAMBIAR MESA', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),
+                      style: ButtonStyle(backgroundColor: MaterialStatePropertyAll(Color(0xFFeb984e))),
+                      onPressed: (){
+                          _showMyDialog(context);
+                      },
+                    )
                     // Container(
                     //   margin: const EdgeInsets.only(
                     //       left: 2,
@@ -1427,6 +1432,159 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
     );
   }
 
+
+  Future<void> _showMyDialog(BuildContext context) async {
+    List<Mesa> listadoMesaDisponibleOrigen = [];
+    List<Mesa> listadoMesaDisponibleDestino = [];
+    Mesa? selectedMesaOrigen;
+    Mesa? selectedMesaDestino;
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Cambiar Mesa'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text('Mesa Origen :', style: TextStyle(fontWeight: FontWeight.bold)),
+                    SizedBox(height: 8), // Space between text and dropdown
+                    FutureBuilder<List<Mesa>>(
+                      future: dbMesas.getAllxEstado(usuario!.accessToken, 3),
+                      builder: (BuildContext context, AsyncSnapshot<List<Mesa>> snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return CircularProgressIndicator();
+                        } else if (snapshot.hasError) {
+                          return Text('Error: ${snapshot.error}');
+                        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                          return Text('No hay mesas disponibles');
+                        }
+
+                        listadoMesaDisponibleOrigen = snapshot.data!;
+                        return DropdownButtonFormField<Mesa>(
+                          value: selectedMesaOrigen,
+                          items: listadoMesaDisponibleOrigen.map((Mesa mesaOrigen) {
+                            return DropdownMenuItem<Mesa>(
+                              value: mesaOrigen,
+                              child: Text('${mesaOrigen.nombreMesa} - ${mesaOrigen.nombrePiso}'), // Cambia esto según cómo desees mostrar los datos
+                            );
+                          }).toList(),
+                          decoration: InputDecoration(
+                            contentPadding: EdgeInsets.symmetric(horizontal: 16),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(30), // Ovalado
+                            ),
+                            filled: true,
+                            hintText: 'Seleccionar Mesa',
+                            fillColor: Colors.grey[200], // Color de fondo
+                          ),
+                          onChanged: (Mesa? value) {
+                            setState(() {
+                              selectedMesaOrigen = value;
+                            });
+                          },
+                        );
+                      },
+                    ),
+                    SizedBox(height: 20),
+                    Text('Mesa Destino :', style: TextStyle(fontWeight: FontWeight.bold)),
+                    SizedBox(height: 8), // Space between text and dropdown
+                    FutureBuilder<List<Mesa>>(
+                      future: dbMesas.getAllxEstado(usuario!.accessToken, 1),
+                      builder: (BuildContext context, AsyncSnapshot<List<Mesa>> snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return CircularProgressIndicator();
+                        } else if (snapshot.hasError) {
+                          return Text('Error: ${snapshot.error}');
+                        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                          return Text('No hay mesas disponibles');
+                        }
+
+                        listadoMesaDisponibleDestino = snapshot.data!;
+                        return DropdownButtonFormField<Mesa>(
+                          value: selectedMesaDestino,
+                          items: listadoMesaDisponibleDestino.map((Mesa mesaDestino) {
+                            return DropdownMenuItem<Mesa>(
+                              value: mesaDestino,
+                              child: Text('${mesaDestino.nombreMesa!} - ${mesaDestino.nombrePiso}'), // Cambia esto según cómo desees mostrar los datos
+                            );
+                          }).toList(),
+                          decoration: InputDecoration(
+                            contentPadding: EdgeInsets.symmetric(horizontal: 16),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(30), // Ovalado
+                            ),
+                            filled: true,
+                            hintText: 'Seleccionar Mesa',
+                            fillColor: Colors.grey[200], // Color de fondo
+                          ),
+                          onChanged: (Mesa? value) {
+                            setState(() {
+                              selectedMesaDestino = value;
+                            });
+                          },
+                        );
+                      },
+                    ),
+                  ],
+                ),
+                // Aquí puedes agregar el DropdownButton para la "Mesa Destino" de manera similar
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            ElevatedButton(
+              child: Text('OK'),
+              onPressed: () async {
+                if (selectedMesaOrigen != null && selectedMesaDestino != null) {
+                  AwesomeDialog(
+                      context: context,
+                      dialogType: DialogType.info,
+                      animType: AnimType.rightSlide,
+                      title: 'Cambio de ${selectedMesaOrigen!.nombreMesa} a ${selectedMesaDestino!.nombreMesa} ',
+                      desc: '¿Estás seguro de que deseas cambiar la mesa?',
+                      btnCancelOnPress: () {},
+                      btnOkOnPress: () async {
+                        PedidoResponse? response = await  dbMesas.cambiarMesa(selectedMesaOrigen!.id, usuario!.accessToken, selectedMesaDestino!.id);
+                        if (response != null) {
+                          if (response.status == true) {
+                            agregarMsj(response.mensajeMinuscula ?? 'Mensaje sin contenido', true);
+                            Navigator.pushNamed(context, 'home');
+                          } else {
+                            agregarMsj(response.mensajeMinuscula ?? 'Mensaje sin contenido', false);
+                          }
+                        } else {
+                          agregarMsj('Respuesta nula del servidor', false);
+                        }
+                      },
+                  )..show();
+
+                }else{
+                  AwesomeDialog(
+                    context: context,
+                    dialogType: DialogType.info,
+                    animType: AnimType.rightSlide,
+                    title: 'Atención',
+                    desc: 'Seleccione las mesas para hacer el cambio de pedido',
+                    btnOkOnPress: () {},
+                  )..show();
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
   // Future<void> mostrarDialogoAnulacion(String printerIP, List<Producto> listProduct ,Pedido pedido, BuildContext context) async {
   //   String motivo = '';
   //   bool motivoVacio = false;
@@ -1588,6 +1746,17 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
   //     },
   //   );
   // }
+
+  void agregarMsj(String mensaje, bool estado) {
+    Fluttertoast.showToast(
+        msg: mensaje,
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.TOP,
+        timeInSecForIosWeb: 1,
+        backgroundColor: estado == true ? Colors.green : Colors.red,
+        textColor: Colors.white,
+        fontSize: 16.0);
+  }
 
   Widget _buildAnimatedContent({required Key key, required Widget child}) {
     return AnimatedSwitcher(
