@@ -109,7 +109,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
       final Map<String, dynamic> userDataMap = json.decode(userData);
       usuario = Usuario.fromJson(userDataMap);
     }
-    print('--L---L--');
+    print('->Datos del usuario cargados');
   }
   var dbPisos = PisoServicio();
   var dbMesas = MesaServicio();
@@ -143,7 +143,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
     _subOptType = SubOptTypes.local;
     getConnectivity();
     UserShared().then((_) {
-      // Una vez que UserShared() haya terminado de ejecutarse y se haya actualizado idEstablecimiento, entonces llamamos a las funciones de consulta.
       consultarPisos().then((_) {
         consultarMesas(pisoSelect, context).then((value) async {
           _subOptType = SubOptTypes.local;
@@ -217,19 +216,17 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
     final dynamic userData = await _pref.read('user_data');
     final Map<String, dynamic> userDataMap = json.decode(userData);
     usuario = Usuario.fromJson(userDataMap);
-    print(' piso enviado: $idPiso');
+    print(' Mesas del piso: $idPiso');
     ListadoMesas = await dbMesas.getAll(usuario?.accessToken,idPiso);
     refresh();
-    //refresh2();
   }
 
   Stream<List<Mesa>> consultarMesasStream(int idPiso, BuildContext context) async* {
     while (true) {
-      // Consultar las mesas y emitir el resultado a través del stream
       List<Mesa> mesas = await dbMesas.getAll(usuario?.accessToken,idPiso);
       ListadoMesas = mesas ;
       yield mesas;
-      await Future.delayed(const Duration(seconds: 5)); // Esperar 5 segundos antes de la próxima consulta
+      await Future.delayed(const Duration(seconds: 5));
     }
   }
 
@@ -258,6 +255,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
     } else {
       crossAxisCount = 2;
     }
+
     return Scaffold(
         appBar: AppBar(
           bottom: PreferredSize(
@@ -1143,6 +1141,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
 
     for (int i = 0; i < detalleList.length; i++) {
       Detalle_Pedido detalle = detalleList[i];
+      Future<Producto?> producto =  _getProductoPorId(detalle.id_producto);
+
       rows.add(
         Container(
           margin: const EdgeInsets.all(5),
@@ -1178,7 +1178,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
                   child: Container(
                     alignment: Alignment.center,
                     child: Text(
-                      '${ListadoProductos.firstWhere((producto) => producto.id == detalle.id_producto ).nombreproducto}',
+                      '${producto.then((value) => value!.nombreproducto)}',
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                           color: Color(0xFF111111),
@@ -1190,7 +1190,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
                   ),
                 ),
                 SizedBox(width: 10,),
-
                 Container(
                   alignment: Alignment.center,
                   child: Text(
@@ -1246,7 +1245,85 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
         if(mesa.estadoMesa == 1){
           print('ENTRAR MESA STATUS ${mesa.toJson()}');
           Navigator.pushNamed(context, 'home/productos', arguments: mesa);
-        }else {
+        } if(mesa.estadoMesa == 2){
+
+          List<Widget> rows = [];
+
+          Map<String, dynamic> pedidoRespuesta =  await dbDetallePedido.fetchPedidoDetalleRespuesta(usuario!.accessToken, mesa.id  );
+          print('pedidoRespuesta : ${pedidoRespuesta.toString()}');
+          print('pedidoRespuestaDetalle : ${pedidoRespuesta['pedido_detalle']['detalle'].toString()}');
+          print('pedidoRespuestaDetalle : ${pedidoRespuesta['detalle'].toString()}');
+          List<dynamic> detalleAcJson = pedidoRespuesta['pedido_detalle']['detalle'];
+          print('Respuesta ${detalleAcJson}');
+
+          List<Detalle_Pedido> detalleActualizado = detalleAcJson.map((json) => Detalle_Pedido.fromJson({
+            "id_detalle": json["id_pedido_detalle"],
+            "id_pedido": json["id_pedido"],
+            "id_producto": json["id_producto"],
+            "cantidad_producto": json["cantidad_producto"],
+            "cantidad_actualizada": json["cantidad_actualizada"],
+            "cantidad_exacta": json["cantidad_exacta"],
+            "cantidad_real": json["cantidad_real"],
+            "precio_producto": double.tryParse(json["precio_producto"]?.toString() ?? "0.0"),
+            "precio_unitario": double.tryParse(json["precio_unitario"]?.toString() ?? "0.0"),
+            "comentario": json["comentario"],
+            "estado_detalle": json["estado_detalle"],
+            "updated_at": DateTime.parse(json["updated_at"]),
+          })).toList();
+          List<Detalle_Pedido>? detallePedido = [];
+
+          detalleActualizado.forEach((element) {
+            print('wazaaa : ${element.id_producto}');
+          });
+
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: Container(
+                  alignment: Alignment.center,
+                  child:  Padding(
+                    padding: const EdgeInsets.only(
+                        top: 10,
+                        bottom: 10
+                    ),
+                    child: Text(
+                      //'n° pedido: ${listPedido.correlativoPedido}',
+                      'n° pedido:  ${pedidoRespuesta['pedido_detalle']['correlativo_pedido']}',
+                      style: const TextStyle(
+                          color: Color(0xFF111111),
+                          decoration: TextDecoration.none,
+                          fontSize : 30,
+                          fontWeight: FontWeight.w600
+                      ),
+                    ),
+                  ),
+                ),
+                content: Container(
+                  height: MediaQuery.of(context).size.height * 0.50,
+                  child: Column(
+                    children: [
+
+                      // _producList(detallePedido!)
+                      // Text('Wazaaaa'),
+                    ],
+                  ),
+                ),
+                actions: <Widget>[
+                  TextButton(
+                    style: ButtonStyle(
+                        elevation: MaterialStateProperty.all(2),
+                        backgroundColor: MaterialStateProperty.all(Color(0xFFFF562F))),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: Text('OK', style: TextStyle(color: Colors.white, fontSize: 16)),
+                  ),
+                ],
+              );
+            },
+          );
+        } else {
           print('ENTRAR MESA STATUS  ${mesa.toJson()}');
           Map<String, dynamic> pedidoRespuesta =  await dbDetallePedido.fetchPedidoDetalle(usuario!.accessToken, mesa.id  );
           pedidoRespuesta.forEach((key, value) {
@@ -1773,6 +1850,26 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
       _tabController = TabController( length: 1, vsync: this);
     });
   }
+
+  Future<Producto?> _getProductoPorId(int? idProducto) async {
+    try {
+      String productosJson = await _pref.read('productos');
+      if (productosJson.isNotEmpty) {
+        List<dynamic> productosData = json.decode(productosJson);
+        // Busca el producto con el ID dado
+        for (var productoJson in productosData) {
+          Producto producto = Producto.fromJson(productoJson);
+          if (producto.id == idProducto) {
+            return producto;
+          }
+        }
+      }
+    } catch (e) {
+      print('Error al obtener el producto por ID: $e');
+    }
+    return null; // Devuelve null si no se encuentra el producto
+  }
+
   void refresh(){
     setState(() {
 
@@ -1790,7 +1887,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
       _pageControllerPisosPage = PageController();
     });
   }
-
 
   void showDialogBox(String title, String content) => showCupertinoDialog<String>(
     context: context,
