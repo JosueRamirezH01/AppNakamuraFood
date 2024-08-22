@@ -133,18 +133,18 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
                             ),
                           ),
                       Expanded(
-                  child: PageView.builder(
-                    controller: _pageController,
-                    onPageChanged: (index) async {
-                      _tabController.animateTo(index);
-                      List<Producto> productosCategoria = await _con.getProductosPorCategoria(_con.categorias[index]);
-                      setState(() {
-                        _con.productos = productosCategoria;
-                      });
-                    },
-                    itemCount: _con.categorias.length,
-                    itemBuilder: (context, index) {
-                      double screenWidth = MediaQuery.of(context).size.width;
+                        child: PageView.builder(
+                        controller: _pageController,
+                        onPageChanged: (index) async {
+                          _tabController.animateTo(index);
+                          List<Producto> productosCategoria = await _con.getProductosPorCategoria(_con.categorias[index]);
+                          setState(() {
+                            _con.productos = productosCategoria;
+                          });
+                        },
+                        itemCount: _con.categorias.length,
+                        itemBuilder: (context, index) {
+                          double screenWidth = MediaQuery.of(context).size.width;
 
                                   int crossAxisCount = 2;
                                   if (screenWidth > 1200) {

@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:esc_pos_printer/esc_pos_printer.dart';
 import 'package:restauflutter/model/producto.dart';
+import 'package:restauflutter/model/usuario.dart';
 import 'package:restauflutter/utils/shared_pref.dart';
 
 import '../model/mozo.dart';
@@ -94,7 +95,7 @@ class Impresora {
 
   void _buildDetailsPreCuenta(NetworkPrinter printer, Usuario mozo, String piso) {
 
-    String? email = '${mozo.user?.nombreUsuario}';
+    String? email = '${mozo.user!.nombreUsuario}';
     String? nomPiso = '${piso}';
     //String nombreUsuario = email != null ? email.substring(0, email.indexOf('@')) : '';
     DateTime now = DateTime.now();

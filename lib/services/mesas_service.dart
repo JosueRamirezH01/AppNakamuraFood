@@ -1,6 +1,12 @@
 import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'package:mysql1/mysql1.dart';
+import 'package:restauflutter/bd/conexion.dart';
 import 'package:restauflutter/model/PedidoResponse.dart';
 import 'package:restauflutter/model/mesa.dart';
+import 'package:restauflutter/model/pedido.dart';
+import 'package:restauflutter/model/piso.dart';
+import 'package:restauflutter/utils/shared_pref.dart';
 import 'package:http/http.dart' as http;
 
 
@@ -123,6 +129,20 @@ class MesaServicio {
     }
   }
 
+  void cambiar_mesa (String? accessToken, int id_mesaocupada) async {
+    try{
+      Uri url = Uri.https(_url, '$_api/MesasporPisos/$id_mesaocupada');
+      Map<String, String> headers = {
+        'Content-type': 'application/json',
+        'Authorization': 'Bearer $accessToken'
+      };
+      final res = await http.get(url, headers: headers);
+      final data = json.decode(res.body);
+      print('Cambiar mesa : ${data}');
+    }catch(e){
+      print('error ${e}');
+    }
+  }
   Future<PedidoResponse?> cambiarMesa(int? mesaOcupada,String? accessToken, int? id_mesalibre ) async {
 
     try {
@@ -146,12 +166,18 @@ class MesaServicio {
       }else{
         print('ERROR ${res.statusCode}');
       }
-
     } catch (e) {
       print('Error al realizar la consulta: $e');
       return null;
     }
     return null;
   }
+  }
 
-}
+
+
+
+
+
+
+
