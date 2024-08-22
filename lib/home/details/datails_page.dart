@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:core';
-
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:restauflutter/model/mesa.dart';
@@ -493,10 +492,8 @@ class _DetailsPageState extends State<DetailsPage> {
                   "cantidad_actualizada": json["cantidad_actualizada"],
                   "cantidad_exacta": json["cantidad_exacta"],
                   "cantidad_real": json["cantidad_real"],
-                  "precio_producto": double.tryParse(
-                      json["precio_producto"]?.toString() ?? "0.0"),
-                  "precio_unitario": double.tryParse(
-                      json["precio_unitario"]?.toString() ?? "0.0"),
+                  "precio_producto": double.tryParse(json["precio_producto"]?.toString() ?? "0.0"),
+                  "precio_unitario": double.tryParse(json["precio_unitario"]?.toString() ?? "0.0"),
                   "comentario": json["comentario"],
                   "estado_detalle": json["estado_detalle"],
                   "updated_at": DateTime.parse(json["updated_at"]),
@@ -764,12 +761,9 @@ class _DetailsPageState extends State<DetailsPage> {
     print( 'comentario entrada : ${widget.productosSeleccionados?[indexProducto].comentario}');
 
     String? notabd = cleanComentario( widget.productosSeleccionados?[indexProducto].comentario) ?? '';
-
-    print('notaBd:  ${notabd}');
-
     List<String> seleccionadosBd = convertStringToList(notabd);
 
-    print('seleccionadosBd:  ${seleccionadosBd}');
+    var productoSeleccionado = widget.productosSeleccionados![indexProducto];
 
     _checkedItems = List.filled(comidas.length, false);
       
@@ -829,73 +823,71 @@ class _DetailsPageState extends State<DetailsPage> {
                 backgroundColor: MaterialStateProperty.all(Color(0xFF634FD2)),
               ),
               onPressed: () async {
-                String selectedOptionsString = generateSelectedOptionsString(comidas);
-                String? comentarioSpan = convertToSpan(selectedOptionsString);
 
-                if (widget.items_independientes) {
-                  if (id_pedido_detalle != null) {
-                    var productoSeleccionado = widget.productosSeleccionados![indexProducto];
-                    productoSeleccionado.comentario = comentarioSpan;
+                String? printerIP = await _pref.read('ipCocina');
+                bool _stateConexionTicket = await _pref.read('stateConexionTicket') ?? false;
+                bool conexionBluetooth = await _pref.read('conexionBluetooth') ?? false;
 
-                    Map<String, dynamic> pedidoDetalle = {
-                      "monto_total": pedidoTotal,
-                      "detalle": [
-                        {
-                          "id_pedido_detalle": productoSeleccionado.id_pedido_detalle,
-                          "id_pedido": productoSeleccionado.idPedido,
-                          "id_producto": productoSeleccionado.id,
-                          "cantidad_producto": productoSeleccionado.stock,
-                          "cantidad_real": productoSeleccionado.stock,
-                          "precio_unitario": productoSeleccionado.precioproducto,
-                          "precio_producto": productoSeleccionado.precioproducto! * productoSeleccionado.stock!.toInt(),
-                          "comentario": productoSeleccionado.comentario,
-                          "estado_detalle": 1
-                        }
-                      ]
-                    };
-                    await detallePedidoServicio.actualizarPedidoApi(
-                        usuario?.accessToken, pedidoDetalle, widget.mesa?.id);
-
-                    agregarMsj('Se agregó una nota al producto');
+                if (_stateConexionTicket) {
+                  if (conexionBluetooth) {
+                    await acNota(comidas, id_pedido_detalle, indexProducto,1);
+                    refresh();
                   } else {
-                    widget.productosSeleccionados?[indexProducto].comentario =
-                        comentarioSpan;
+                    String messague = 'No se ha encontrado conectado a un dispositivo Bluetooth.';
+                    showMessangueDialog(messague);
+                    return;
                   }
-                  print('Índice seleccionado (independiente): $indexProducto');
                 } else {
-                  if (id_pedido_detalle != null) {
-                    var productoSeleccionado = widget.productosSeleccionados![indexProducto];
-                    productoSeleccionado.comentario = comentarioSpan;
-
-                    Map<String, dynamic> pedidoDetalle = {
-                      "monto_total": pedidoTotal,
-                      "detalle": [
-                        {
-                          "id_pedido_detalle": productoSeleccionado.id_pedido_detalle,
-                          "id_pedido": productoSeleccionado.idPedido,
-                          "id_producto": productoSeleccionado.id,
-                          "cantidad_producto": productoSeleccionado.stock,
-                          "cantidad_real": productoSeleccionado.stock,
-                          "precio_unitario": productoSeleccionado.precioproducto,
-                          "precio_producto": productoSeleccionado.precioproducto! * productoSeleccionado.stock!.toInt(),
-                          "comentario": productoSeleccionado.comentario,
-                          "estado_detalle": 1
-                        }
-                      ]
-                    };
-                    await detallePedidoServicio.actualizarPedidoApi(
-                        usuario?.accessToken, pedidoDetalle, widget.mesa?.id);
-
-                    agregarMsj('Se agregó una nota al producto');
+                  if (printerIP == null) {
+                    String messague = 'No se ha encontrado la dirección IP de la impresora.';
+                    showMessangueDialog(messague);
+                    return; // Salir del método printLabel
                   } else {
-                    widget.productosSeleccionados?[indexProducto].comentario =
-                        comentarioSpan;
+                    await acNota(comidas, id_pedido_detalle, indexProducto,2);
+                    refresh();
                   }
-
-                  // widget.productosSeleccionados?[indexProducto].comentario = comentarioSpan;
-                  // print('Opciones seleccionadas: $selectedOptionsString');
-                  // print('Índice seleccionado: $indexProducto');
                 }
+
+                // if (widget.items_independientes) {
+                //   if (_stateConexionTicket) {
+                //     if (conexionBluetooth) {
+                //       await acNota(comidas, id_pedido_detalle, indexProducto,1);
+                //     } else {
+                //       String messague = 'No se ha encontrado conectado a un dispositivo Bluetooth.';
+                //       showMessangueDialog(messague);
+                //       return;
+                //     }
+                //   } else {
+                //     if (printerIP == null) {
+                //       String messague = 'No se ha encontrado la dirección IP de la impresora.';
+                //       showMessangueDialog(messague);
+                //       return; // Salir del método printLabel
+                //     } else {
+                //       await acNota(comidas, id_pedido_detalle, indexProducto,2);
+                //     }
+                //   }
+                // }
+                // else {
+                //   if (_stateConexionTicket) {
+                //     if (conexionBluetooth) {
+                //       await acNota(comidas, id_pedido_detalle, indexProducto,1);
+                //       refresh();
+                //     } else {
+                //       String messague = 'No se ha encontrado conectado a un dispositivo Bluetooth.';
+                //       showMessangueDialog(messague);
+                //       return;
+                //     }
+                //   } else {
+                //     if (printerIP == null) {
+                //       String messague = 'No se ha encontrado la dirección IP de la impresora.';
+                //       showMessangueDialog(messague);
+                //       return; // Salir del método printLabel
+                //     } else {
+                //       await acNota(comidas, id_pedido_detalle, indexProducto,2);
+                //       refresh();
+                //     }
+                //   }
+                // }
                 Navigator.pop(context, 'OK');
               },
               child: Text('Aceptar', style: TextStyle(color: Colors.white)),
@@ -904,6 +896,155 @@ class _DetailsPageState extends State<DetailsPage> {
         );
       },
     );
+  }
+
+  Future<void> acNota(List<Nota> comidas, int? id_pedido_detalle, int indexProducto, int BlueWifi) async {
+    String selectedOptionsString = generateSelectedOptionsString(comidas);
+    String? comentarioSpan = convertToSpan(selectedOptionsString);
+
+    if (widget.items_independientes) {
+      if (id_pedido_detalle != null) {
+        List<Producto> productosToPrint = [];
+        var productoSeleccionado = widget.productosSeleccionados![indexProducto];
+        productoSeleccionado.comentario = comentarioSpan;
+
+        Map<String, dynamic> pedidoDetalle = {
+          "monto_total": pedidoTotal,
+          "detalle": [
+            {
+              "id_pedido_detalle": productoSeleccionado.id_pedido_detalle,
+              "id_pedido": productoSeleccionado.idPedido,
+              "id_producto": productoSeleccionado.id,
+              "cantidad_producto": productoSeleccionado.stock,
+              "cantidad_real": productoSeleccionado.stock,
+              "precio_unitario": productoSeleccionado.precioproducto,
+              "precio_producto": productoSeleccionado.precioproducto! * productoSeleccionado.stock!.toInt(),
+              "comentario": productoSeleccionado.comentario,
+              "estado_detalle": 1
+            }
+          ]
+        };
+
+        Map<String, dynamic> resultadoNota = await detallePedidoServicio.actualizarPedidoConRespuestaApi( usuario?.accessToken, pedidoDetalle, widget.mesa?.id);
+        bool status = resultadoNota['status'];
+
+        if(status){
+
+          if(BlueWifi == 1){
+            productosToPrint.add(
+                Producto(
+                  nombreproducto: productoSeleccionado.nombreproducto,
+                  stock: productoSeleccionado.stock,
+                  comentario: productoSeleccionado.comentario,
+                )
+            );
+            ticketBluetooth.printLabelBluetooth(productosToPrint, 2, pedidoTotal, selectObjmesa.nombreMesa, usuario!, selectObjmesa.nombrePiso ?? widget.mesa!.nombrePiso, '');
+          }else if(BlueWifi == 2){
+            productosToPrint.add(
+                Producto(
+                  nombreproducto: productoSeleccionado.nombreproducto,
+                  stock: productoSeleccionado.stock,
+                  comentario: cleanComentario(productoSeleccionado.comentario),
+                )
+            );
+            imprimir(productosToPrint, 2);
+          }
+          print('resultadoNota true : ${resultadoNota.toString()}');
+          agregarMsj('Se agregó una nota al producto');
+        }
+        else{
+          print('resultadoNota false: ${resultadoNota.toString()}');
+          agregarMsj('No se actualizaron las notas');
+        }
+
+        // var productoSeleccionado = widget.productosSeleccionados![indexProducto];
+        // productoSeleccionado.comentario = comentarioSpan;
+        //
+        // Map<String, dynamic> pedidoDetalle = {
+        //   "monto_total": pedidoTotal,
+        //   "detalle": [
+        //     {
+        //       "id_pedido_detalle": productoSeleccionado.id_pedido_detalle,
+        //       "id_pedido": productoSeleccionado.idPedido,
+        //       "id_producto": productoSeleccionado.id,
+        //       "cantidad_producto": productoSeleccionado.stock,
+        //       "cantidad_real": productoSeleccionado.stock,
+        //       "precio_unitario": productoSeleccionado.precioproducto,
+        //       "precio_producto": productoSeleccionado.precioproducto! * productoSeleccionado.stock!.toInt(),
+        //       "comentario": productoSeleccionado.comentario,
+        //       "estado_detalle": 1
+        //     }
+        //   ]
+        // };
+        // await detallePedidoServicio.actualizarPedidoApi( usuario?.accessToken, pedidoDetalle, widget.mesa?.id);
+        //
+        // agregarMsj('Se agregó una nota al producto');
+      }
+      else {
+        widget.productosSeleccionados?[indexProducto].comentario = comentarioSpan;
+      }
+      print('Índice seleccionado (independiente): $indexProducto');
+    }
+    else {
+      if (id_pedido_detalle != null) {
+        List<Producto> productosToPrint = [];
+        var productoSeleccionado = widget.productosSeleccionados![indexProducto];
+        productoSeleccionado.comentario = comentarioSpan;
+
+        Map<String, dynamic> pedidoDetalle = {
+          "monto_total": pedidoTotal,
+          "detalle": [
+            {
+              "id_pedido_detalle": productoSeleccionado.id_pedido_detalle,
+              "id_pedido": productoSeleccionado.idPedido,
+              "id_producto": productoSeleccionado.id,
+              "cantidad_producto": productoSeleccionado.stock,
+              "cantidad_real": productoSeleccionado.stock,
+              "precio_unitario": productoSeleccionado.precioproducto,
+              "precio_producto": productoSeleccionado.precioproducto! * productoSeleccionado.stock!.toInt(),
+              "comentario": productoSeleccionado.comentario,
+              "estado_detalle": 1
+            }
+          ]
+        };
+
+        Map<String, dynamic> resultadoNota = await detallePedidoServicio.actualizarPedidoConRespuestaApi( usuario?.accessToken, pedidoDetalle, widget.mesa?.id);
+        bool status = resultadoNota['status'];
+
+        if(status){
+
+          if(BlueWifi == 1){
+            productosToPrint.add(
+                Producto(
+                  nombreproducto: productoSeleccionado.nombreproducto,
+                  stock: productoSeleccionado.stock,
+                  comentario: productoSeleccionado.comentario,
+                )
+            );
+            ticketBluetooth.printLabelBluetooth(productosToPrint, 2, pedidoTotal, selectObjmesa.nombreMesa, usuario!, selectObjmesa.nombrePiso ?? widget.mesa!.nombrePiso, '');
+          }else if(BlueWifi == 2){
+            productosToPrint.add(
+                Producto(
+                  nombreproducto: productoSeleccionado.nombreproducto,
+                  stock: productoSeleccionado.stock,
+                  comentario: cleanComentario(productoSeleccionado.comentario),
+                )
+            );
+            imprimir(productosToPrint, 2);
+          }
+          print('resultadoNota true : ${resultadoNota.toString()}');
+          agregarMsj('Se agregó una nota al producto');
+        }
+        else{
+          print('resultadoNota false: ${resultadoNota.toString()}');
+          agregarMsj('No se actualizaron las notas');
+        }
+
+      }
+      else {
+        widget.productosSeleccionados?[indexProducto].comentario = comentarioSpan;
+      }
+    }
   }
 
   Future<void> _eliminarItemsIndependiente(int? id_pedido_detalle, int index, int BlueWifi) async {
@@ -969,7 +1110,6 @@ class _DetailsPageState extends State<DetailsPage> {
           await detallePedidoServicio.eliminarDetallePedido(id_pedido_detalle, usuario?.accessToken);
 
           List<Producto> productosToPrint = [];
-          int WifiOBlue = 2 ;
           var productoSeleccionado = widget.productosSeleccionados![productoindex];
           productosToPrint.add(
               Producto(
@@ -979,9 +1119,9 @@ class _DetailsPageState extends State<DetailsPage> {
           );
 
           if (productosToPrint.isNotEmpty){
-            if (WifiOBlue == 1) {
+            if (BlueWifi == 1) {
               ticketBluetooth.printLabelBluetooth(productosToPrint, 2, pedidoTotal, selectObjmesa.nombreMesa, usuario!, selectObjmesa.nombrePiso ?? widget.mesa!.nombrePiso, '');
-            } else if (WifiOBlue == 2) {
+            } else if (BlueWifi == 2) {
               imprimir(productosToPrint, 2);
             }
             print('Hay productos que Actualizar');

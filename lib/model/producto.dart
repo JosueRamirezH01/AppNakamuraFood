@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:ffi';
 
 
 Producto responseApiFromJson(String str) => Producto.fromJson(json.decode(str));
