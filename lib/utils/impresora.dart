@@ -1,5 +1,6 @@
 
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:esc_pos_printer/esc_pos_printer.dart';
@@ -15,7 +16,7 @@ class Impresora {
 
 
 
-  Future<void> printLabel(String printerIP,List<Producto>? producto, int? estado, double total, String? nombreMesa, Usuario usuario, String? piso, String motivo) async {
+  Future<void> printLabel(String printerIP,List<Producto>? producto, int? estado, double total, String? nombreMesa, Usuario usuario, String? piso, String motivo, int? codigo) async {
 
     String tipoBoucher = '';
 
@@ -31,20 +32,25 @@ class Impresora {
 
     //192.168.10.182
     // Crea la instancia de la impresora
+
     const PaperSize paper = PaperSize.mm80;
     final profile = await CapabilityProfile.load();
     final printer = NetworkPrinter(paper, profile);
     final PosPrintResult res = await printer.connect(printerIP, port: 9100);
 
     if (res == PosPrintResult.success) {
-      testReceipt(producto ,printer, tipoBoucher, total, nombreMesa!, usuario, piso!, motivo);
+
+      printer.beep(duration: PosBeepDuration.beep450ms);
+
+      testReceipt(producto ,printer, tipoBoucher, total, nombreMesa!, usuario, piso!, motivo, codigo);
+
       printer.disconnect();
     }
 
   }
 
 
-  void testReceipt(List<Producto>? producto, NetworkPrinter printer, String tipoBoucher, double total,String nombreMesa, Usuario mozo, String piso, String motivo ) {
+  void testReceipt(List<Producto>? producto, NetworkPrinter printer, String tipoBoucher, double total,String nombreMesa, Usuario mozo, String piso, String motivo, int? codigo) {
 
     // Título de la mesa
     if( tipoBoucher =='Anulado'){
@@ -61,7 +67,7 @@ class Impresora {
     printer.hr();
 
     // Detalles del mesero, hora y fecha
-    _buildDetailsPreCuenta(printer, mozo, piso);
+    _buildDetailsPreCuenta(printer, mozo, piso, codigo);
 
     // Encabezado de la tabla
     _buildTableHeaderPreCuenta( tipoBoucher,printer );
@@ -93,8 +99,8 @@ class Impresora {
 
 
 
-  void _buildDetailsPreCuenta(NetworkPrinter printer, Usuario mozo, String piso) {
-
+  void _buildDetailsPreCuenta(NetworkPrinter printer, Usuario mozo, String piso, int? codigo) {
+    int? cod = codigo;
     String? email = '${mozo.user!.nombreUsuario}';
     String? nomPiso = '${piso}';
     //String nombreUsuario = email != null ? email.substring(0, email.indexOf('@')) : '';
@@ -105,7 +111,7 @@ class Impresora {
       return '0$n';
     }
     String fechaActual = '${now.year}-${_twoDigits(now.month)}-${_twoDigits(now.day)}';
-
+    printer.text('Codigo: #${cod}');
     printer.text('Piso: $nomPiso');
     printer.text('Mesero(a): $email');
     printer.text('Hora: $horaActual');

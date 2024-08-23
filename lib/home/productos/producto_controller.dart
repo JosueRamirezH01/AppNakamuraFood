@@ -37,6 +37,24 @@ class ProductoController {
   Future init(BuildContext context, Function refresh) async {
     this.context = context;
     this.refresh = refresh;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          content: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(width: 20),
+              Text("Cargando..."),
+            ],
+          ),
+        );
+      },
+    );
+    try {
     _getCategorias();
     _getProductos();
 
@@ -44,7 +62,7 @@ class ProductoController {
     final Map<String, dynamic> userDataMap = json.decode(userData);
     final Usuario usuario = Usuario.fromJson(userDataMap);
 
-    items_independientes = await Modulos.consultarItemsIndependientes(usuario.accessToken);//await Modulos.consultarItemsIndependientes(usuario.accessToken);
+    items_independientes = true;//await Modulos.consultarItemsIndependientes(usuario.accessToken);
     print('Activo itemsindependientes : ${items_independientes}');
 
     final args = ModalRoute.of(context)?.settings.arguments;
@@ -73,6 +91,12 @@ class ProductoController {
       });
     }
     refresh();
+    } catch (e) {
+      print('Error loading data: $e');
+    } finally {
+      // Cerrar el diálogo de carga
+      Navigator.of(context).pop();
+    }
   }
 
   // Future<int> obtenerIdPedidoLast() async {

@@ -1242,10 +1242,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
     return GestureDetector(
       onTap: () async {
 
+
+
         if(mesa.estadoMesa == 1){
           print('ENTRAR MESA STATUS ${mesa.toJson()}');
           Navigator.pushNamed(context, 'home/productos', arguments: mesa);
-        } if(mesa.estadoMesa == 2){
+        }
+        /*if(mesa.estadoMesa == 2){
 
           List<Widget> rows = [];
 
@@ -1323,7 +1326,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
               );
             },
           );
-        } else {
+        } */else {
           print('ENTRAR MESA STATUS  ${mesa.toJson()}');
           Map<String, dynamic> pedidoRespuesta =  await dbDetallePedido.fetchPedidoDetalle(usuario!.accessToken, mesa.id  );
           pedidoRespuesta.forEach((key, value) {
@@ -1634,10 +1637,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
                         PedidoResponse? response = await  dbMesas.cambiarMesa(selectedMesaOrigen!.id, usuario!.accessToken, selectedMesaDestino!.id);
                         if (response != null) {
                           if (response.status == true) {
-                            agregarMsj(response.mensajeMinuscula ?? 'Mensaje sin contenido', true);
+                            agregarMsj(response.mensaje ?? 'Mensaje sin contenido', true);
                             Navigator.pushNamed(context, 'home');
                           } else {
-                            agregarMsj(response.mensajeMinuscula ?? 'Mensaje sin contenido', false);
+                            agregarMsj(response.mensaje ?? 'Mensaje sin contenido', false);
                           }
                         } else {
                           agregarMsj('Respuesta nula del servidor', false);
