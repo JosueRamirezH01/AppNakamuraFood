@@ -246,7 +246,7 @@ class _DetailsPageState extends State<DetailsPage> {
             bottomRight: Radius.circular(8),
             topRight: Radius.circular(8)
           ),
-          color: Colors.grey[200],
+          color: widget.items_independientes == false ? Colors.grey[200] : null,
         ) : null ,
       child: Padding(
         padding: widget.items_independientes == true ?  EdgeInsets.all(8.0) : EdgeInsets.all(0),
@@ -360,7 +360,8 @@ class _DetailsPageState extends State<DetailsPage> {
                             }
                           }
 
-                        } else {
+                        }
+                        else {
                           String? printerIP = await _pref.read('ipCocina');
                           bool _stateConexionTicket = await _pref.read('stateConexionTicket') ?? false;
                           bool conexionBluetooth = await _pref.read('conexionBluetooth') ?? false;
@@ -1536,7 +1537,7 @@ class _DetailsPageState extends State<DetailsPage> {
               showMessangueDialog(messague);
               return; // Salir del método printLabel
             } else {
-             impresora.printLabel(printerIP,widget.productosSeleccionados,3,pedidoTotal, selectObjmesa.nombreMesa ?? widget.mesa!.nombreMesa, usuario!, selectObjmesa.nombrePiso ?? widget.mesa!.nombrePiso,'', widget.productosSeleccionados![0].idPedido);
+             impresora.printLabel(printerIP,widget.productosSeleccionados,3,pedidoTotal, selectObjmesa.nombreMesa ?? widget.mesa!.nombreMesa, usuario!, selectObjmesa.nombrePiso ?? widget.mesa!.nombrePiso,'',widget.productosSeleccionados![0].idPedido);
             }
           }
         },
