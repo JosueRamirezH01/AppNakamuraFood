@@ -398,41 +398,41 @@ class _DetailsPageState extends State<DetailsPage> {
     );
   }
 
-  void _operacionACitemsIndependiente(int WifiOBlue) {
-    if (widget.productosSeleccionados!.length > 0) {
-      gif();
-      List<Producto> productosToPrint = [];
-
-      for (final producto in widget.productosSeleccionados!) {
-        int index = widget.productosSeleccionados!.indexOf(producto);
-        print('Índice del producto: $index');
-
-        print('Antes de actualizar: Producto ID: ${producto.id}, ID Pedido Detalle: ${producto.id_pedido_detalle}');
-      }
-
-      if (productosToPrint.isNotEmpty) {
-        // await detallePedidoServicio.actualizarAgregarProductoDetallePedidoItem(widget.idPedido, pedidoTotal,context);
-
-        if (WifiOBlue == 1) {
-          ticketBluetooth.printLabelBluetooth(productosToPrint, 2, pedidoTotal, selectObjmesa.nombreMesa, usuario!, selectObjmesa.nombrePiso ?? widget.mesa!.nombrePiso, '');
-        } else if (WifiOBlue == 2) {
-          imprimir(productosToPrint, 2);
-        }
-
-        imprimir(productosToPrint, 2);
-        print('Hay productos que Actualizar');
-        Navigator.pop(context);
-      } else {
-        mostrarMensajeActualizado(
-            'No hay productos que Actualizar', true);
-        print('No hay productos que Actualizar');
-        Navigator.pop(context);
-      }
-    } else {
-      mostrarMensajeActualizado(
-          'No puedes dejar la lista vacia', true);
-    }
-  }
+  // void _operacionACitemsIndependiente(int WifiOBlue) {
+  //   if (widget.productosSeleccionados!.length > 0) {
+  //     gif();
+  //     List<Producto> productosToPrint = [];
+  //
+  //     for (final producto in widget.productosSeleccionados!) {
+  //       int index = widget.productosSeleccionados!.indexOf(producto);
+  //       print('Índice del producto: $index');
+  //
+  //       print('Antes de actualizar: Producto ID: ${producto.id}, ID Pedido Detalle: ${producto.id_pedido_detalle}');
+  //     }
+  //
+  //     if (productosToPrint.isNotEmpty) {
+  //       // await detallePedidoServicio.actualizarAgregarProductoDetallePedidoItem(widget.idPedido, pedidoTotal,context);
+  //
+  //       if (WifiOBlue == 1) {
+  //         ticketBluetooth.printLabelBluetooth(productosToPrint, 2, pedidoTotal, selectObjmesa.nombreMesa, usuario!, selectObjmesa.nombrePiso ?? widget.mesa!.nombrePiso, '');
+  //       } else if (WifiOBlue == 2) {
+  //         imprimir(productosToPrint, 2);
+  //       }
+  //
+  //       imprimir(productosToPrint, 2);
+  //       print('Hay productos que Actualizar');
+  //       Navigator.pop(context);
+  //     } else {
+  //       mostrarMensajeActualizado(
+  //           'No hay productos que Actualizar', true);
+  //       print('No hay productos que Actualizar');
+  //       Navigator.pop(context);
+  //     }
+  //   } else {
+  //     mostrarMensajeActualizado(
+  //         'No puedes dejar la lista vacia', true);
+  //   }
+  // }
 
   void _operacionAC(int WifiOBlue) async {
     if (widget.productosSeleccionados!.length > 0) {

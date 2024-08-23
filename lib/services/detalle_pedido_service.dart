@@ -140,25 +140,12 @@ class DetallePedidoServicio {
     } else {
       throw Exception('Error al eliminar el detalle del pedido: ${response.statusCode}');
     }
+
+
   }
 
 
-  Future<Map<String, dynamic>> fetchPedidoDetalleRespuesta(String? accessToken,int? idMesa) async {
 
-    Uri url = Uri.https(_url, '$_api/obtener_pedidos_pormesa/$idMesa');
-    Map<String, String> headers = {
-      'Content-type': 'application/json',
-      'Authorization': 'Bearer $accessToken'
-    };
-    final res = await http.get(url, headers: headers);
-    if (res.statusCode == 200) {
-      Map<String, dynamic> jsonResponse = json.decode(res.body);
-
-      return jsonResponse;
-    } else {
-      throw Exception('Failed to load pedido detalle');
-    }
-  }
 
 
 
