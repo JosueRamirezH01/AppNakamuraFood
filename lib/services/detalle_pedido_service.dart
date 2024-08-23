@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:mysql1/mysql1.dart';
 import 'package:restauflutter/bd/conexion.dart';
+import 'package:restauflutter/model/PedidoResponse.dart';
 import 'package:restauflutter/model/detalle_pedido.dart';
 import 'package:restauflutter/model/mozo.dart';
 import 'package:restauflutter/model/nota.dart';
@@ -27,6 +28,7 @@ class DetallePedidoServicio {
       'Authorization': 'Bearer $accessToken'
     };
     final res = await http.get(url, headers: headers);
+    
     if (res.statusCode == 200) {
       Map<String, dynamic> jsonResponse = json.decode(res.body);
 
@@ -119,7 +121,7 @@ class DetallePedidoServicio {
     }
   }
 
-  Future<void> eliminarDetallePedido(int id, String? accessToken) async {
+  Future<PedidoResponse> eliminarDetallePedido(int id, String? accessToken) async {
 
     Uri uri = Uri.https(_url, '$_api/eliminar_detallepedido/$id');
 
@@ -130,22 +132,33 @@ class DetallePedidoServicio {
 
     // Realizar la solicitud DELETE
     final response = await http.delete(uri, headers: headers);
-
+    final data = json.decode(response.body);
     // Verificar el estado de la respuesta
     if (response.statusCode == 200) {
-      final Map<String, dynamic> responseData = json.decode(response.body);
-      if (responseData['status']) {
-        print('Detalle del pedido eliminado: ${responseData['message']}');
-      } else {
-        print('Error en la respuesta: ${responseData['message']}');
-      }
+      PedidoResponse responseData = PedidoResponse.fromJson(data);
+      return responseData;
     } else {
       throw Exception('Error al eliminar el detalle del pedido: ${response.statusCode}');
     }
   }
 
 
+  Future<Map<String, dynamic>> fetchPedidoDetalleRespuesta(String? accessToken,int? idMesa) async {
 
+    Uri url = Uri.https(_url, '$_api/obtener_pedidos_pormesa/$idMesa');
+    Map<String, String> headers = {
+      'Content-type': 'application/json',
+      'Authorization': 'Bearer $accessToken'
+    };
+    final res = await http.get(url, headers: headers);
+    if (res.statusCode == 200) {
+      Map<String, dynamic> jsonResponse = json.decode(res.body);
+
+      return jsonResponse;
+    } else {
+      throw Exception('Failed to load pedido detalle');
+    }
+  }
 
 
 

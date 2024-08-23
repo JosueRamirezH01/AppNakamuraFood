@@ -161,7 +161,7 @@ class MesaServicio {
       final data = json.decode(res.body);
       if(res.statusCode == 200){
         PedidoResponse updateMesa = PedidoResponse.fromJson(data);
-        print('MENSAJE DE ACTUALZIACION DE DATOS ${updateMesa.mensajeMinuscula} Y ${updateMesa.status}');
+        print('MENSAJE DE ACTUALZIACION DE DATOS ${updateMesa.mensaje} Y ${updateMesa.status}');
         return updateMesa;
       }else{
         print('ERROR ${res.statusCode}');

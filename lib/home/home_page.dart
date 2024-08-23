@@ -1647,10 +1647,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
                         PedidoResponse? response = await  dbMesas.cambiarMesa(selectedMesaOrigen!.id, usuario!.accessToken, selectedMesaDestino!.id);
                         if (response != null) {
                           if (response.status == true) {
-                            agregarMsj(response.mensajeMinuscula ?? 'Mensaje sin contenido', true);
+                            agregarMsj(response.mensaje ?? 'Mensaje sin contenido', true);
                             Navigator.pushNamed(context, 'home');
                           } else {
-                            agregarMsj(response.mensajeMinuscula ?? 'Mensaje sin contenido', false);
+                            agregarMsj(response.mensaje ?? 'Mensaje sin contenido', false);
                           }
                         } else {
                           agregarMsj('Respuesta nula del servidor', false);

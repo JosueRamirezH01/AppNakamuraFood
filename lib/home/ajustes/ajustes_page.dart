@@ -1,14 +1,13 @@
 import 'dart:convert';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:restauflutter/model/PedidoResponse.dart';
 import 'package:restauflutter/services/entorno_service.dart';
+import 'package:restauflutter/services/login_service.dart';
 import 'package:restauflutter/services/modulos_service.dart';
 import 'package:restauflutter/utils/shared_pref.dart';
 
-import '../../model/mozo.dart';
 import '../../model/usuario.dart';
 import '../../services/producto_service.dart';
 import '../../utils/impresoraBluetooth.dart';
@@ -36,7 +35,7 @@ class _AjustesPageState extends State<AjustesPage> {
   var moduloService = ModuloServicio();
   Usuario mozo = Usuario();
   SharedPref _pref = SharedPref();
-
+  var moduloLogin = LoginService();
   Future<void> UserShared() async {
     final dynamic userData = await _pref.read('user_data');
     _stateConexionTicket = await _pref.read('stateConexionTicket') ?? false;
@@ -498,17 +497,16 @@ class _AjustesPageState extends State<AjustesPage> {
 
   Widget iconCerrar() {
     return GestureDetector(
-      onTap: () {
+      onTap: () async {
         _sharedPref.remove('user_data');
         _sharedPref.remove('categorias');
         _sharedPref.remove('productos');
         _sharedPref.remove('ipBar');
         _sharedPref.remove('stateConexionTicket');
         _sharedPref.remove('conexionBluetooth');
-
+        PedidoResponse? respuestaData = await moduloLogin.logout(mozo.accessToken!);
+        Fluttertoast.showToast(msg: '${respuestaData?.mensaje}',backgroundColor: Colors.green, gravity: ToastGravity.TOP, toastLength: Toast.LENGTH_SHORT,fontSize: 16);
         Navigator.pushNamedAndRemoveUntil(context, 'login', (route) => false);
-
-        print('todos');
       },
       child: Row(
         children: [

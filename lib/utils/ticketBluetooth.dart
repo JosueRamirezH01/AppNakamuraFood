@@ -12,7 +12,7 @@ class TicketBluetooth {
   SharedPref _pref = SharedPref();
   bool conexion = false;
 
-  Future<void> printLabelBluetooth(List<Producto>? producto, int estado, double total, String? nombreMesa, Usuario usuario, String? piso, String motivo) async {
+  Future<void> printLabelBluetooth(List<Producto>? producto, int estado, double total, String? nombreMesa, Usuario usuario, String? piso, String motivo, int? codigo) async {
 
     print('cantidad de llegada ${producto!.length}');
     producto.forEach((element) {
@@ -30,11 +30,11 @@ class TicketBluetooth {
      tipoBoucher = 'Anulado';
     }
 
-    testReceipt(producto, tipoBoucher, total, nombreMesa, usuario, piso, motivo);
+    testReceipt(producto, tipoBoucher, total, nombreMesa, usuario, piso, motivo, codigo);
   }
 
 
-  Future<void> testReceipt(List<Producto>? producto, String tipoBoucher, double total, String? nombreMesa, Usuario mozo, String? piso, String motivo) async {
+  Future<void> testReceipt(List<Producto>? producto, String tipoBoucher, double total, String? nombreMesa, Usuario mozo, String? piso, String motivo, int? codigo) async {
 
     producto!.forEach((element) {
       element.comentario = cleanComentario(element.comentario);
