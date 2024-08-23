@@ -17,7 +17,6 @@ import '../model/usuario.dart';
 
 class LoginService {
   final SharedPref _sharedPreferences = SharedPref();
-  final Connection _connectionSQL = Connection();
   var prod = ProductoServicio();
   var pisos = PisoServicio();
   Usuario usuarioShared = Usuario();
@@ -47,7 +46,7 @@ class LoginService {
         DateTime receivedAt = DateTime.now();
         DateTime expiryTime = receivedAt.add(Duration(seconds: expiresIn));
         String formattedExpiryTime = DateFormat('yyyy-MM-dd HH:mm:ss').format(expiryTime);
-
+        _sharedPreferences.save('expires', formattedExpiryTime);
         print('El token expira en: $formattedExpiryTime');
         final userData = json.encode(data);
         _sharedPreferences.save('user_data', userData);

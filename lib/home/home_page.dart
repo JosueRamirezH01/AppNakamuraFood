@@ -68,12 +68,35 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
   late List<Pedido> listaPedido = [];
   late int idEstablecimiento = 0 ;
   late List<Producto> ListadoProductos = [];
-
+  Timer? _timer;
   StreamSubscription<List<ConnectivityResult>>? subscription;
   bool isDeviceConnected = false;
   bool isAlertSet = false;
   bool wifi = false;
   bool datos = false;
+
+  void _startTimer() {
+    _timer = Timer.periodic(Duration(minutes: 1), (timer) async {
+      await _checkExpiration();
+    });
+  }
+  Future<void> _checkExpiration() async {
+    final expiracion_in = await _pref.read('expires');
+
+    if (expiracion_in != null) {
+      final DateTime expiracionDateTime = DateTime.parse(expiracion_in);
+      final DateTime now = DateTime.now();
+
+      if (now.isAfter(expiracionDateTime)) {
+        // Expiración alcanzada, mostrar mensaje y redirigir al login
+        Fluttertoast.showToast(msg: 'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.',backgroundColor: Colors.red,gravity: ToastGravity.TOP,toastLength: Toast.LENGTH_LONG);
+        Navigator.pushNamedAndRemoveUntil(context, 'login', (route) => false);
+
+      }
+    }
+  }
+
+
   void getConnectivity() {
     subscription = Connectivity().onConnectivityChanged.listen(
           (List<ConnectivityResult> result) async {
@@ -142,6 +165,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
     _listSize = 10;
     _subOptType = SubOptTypes.local;
     getConnectivity();
+    _startTimer();
     UserShared().then((_) {
       consultarPisos().then((_) {
         consultarMesas(pisoSelect, context).then((value) async {
@@ -161,6 +185,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
   }
   @override
   void dispose() {
+    _timer?.cancel();
     _tabController.dispose();
     _tabControllerPisos.dispose();
     _pageControllerPisosPage.dispose();
