@@ -17,6 +17,7 @@ class Impresora {
 
   Future<void> printLabel(String printerIP,List<Producto>? producto, int? estado, double total, String? nombreMesa, Usuario usuario, String? piso, String motivo) async {
 
+
     String tipoBoucher = '';
 
     if(estado == 1){

@@ -75,8 +75,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
   bool wifi = false;
   bool datos = false;
   void getConnectivity() {
-    subscription = Connectivity().onConnectivityChanged.listen(
-          (List<ConnectivityResult> result) async {
+    subscription = Connectivity().onConnectivityChanged.listen( (List<ConnectivityResult> result) async {
         isDeviceConnected = await InternetConnectionChecker().hasConnection;
         wifi = result.contains(ConnectivityResult.wifi);
         datos = result.contains(ConnectivityResult.mobile);
@@ -281,7 +280,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
                     ///CAMBIAR MESA
                     ElevatedButton(
                         child: Text('CAMBIAR MESA', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),
-                      style: ButtonStyle(backgroundColor: MaterialStatePropertyAll(Color(0xFFeb984e))),
+                      style: ButtonStyle(foregroundColor: MaterialStatePropertyAll(Colors.white),backgroundColor: MaterialStatePropertyAll(Color(0xFFeb984e))),
                       onPressed: (){
                           _showMyDialog(context);
                       },
@@ -1245,85 +1244,87 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
         if(mesa.estadoMesa == 1){
           print('ENTRAR MESA STATUS ${mesa.toJson()}');
           Navigator.pushNamed(context, 'home/productos', arguments: mesa);
-        } if(mesa.estadoMesa == 2){
-
-          List<Widget> rows = [];
-
-          Map<String, dynamic> pedidoRespuesta =  await dbDetallePedido.fetchPedidoDetalleRespuesta(usuario!.accessToken, mesa.id  );
-          print('pedidoRespuesta : ${pedidoRespuesta.toString()}');
-          print('pedidoRespuestaDetalle : ${pedidoRespuesta['pedido_detalle']['detalle'].toString()}');
-          print('pedidoRespuestaDetalle : ${pedidoRespuesta['detalle'].toString()}');
-          List<dynamic> detalleAcJson = pedidoRespuesta['pedido_detalle']['detalle'];
-          print('Respuesta ${detalleAcJson}');
-
-          List<Detalle_Pedido> detalleActualizado = detalleAcJson.map((json) => Detalle_Pedido.fromJson({
-            "id_detalle": json["id_pedido_detalle"],
-            "id_pedido": json["id_pedido"],
-            "id_producto": json["id_producto"],
-            "cantidad_producto": json["cantidad_producto"],
-            "cantidad_actualizada": json["cantidad_actualizada"],
-            "cantidad_exacta": json["cantidad_exacta"],
-            "cantidad_real": json["cantidad_real"],
-            "precio_producto": double.tryParse(json["precio_producto"]?.toString() ?? "0.0"),
-            "precio_unitario": double.tryParse(json["precio_unitario"]?.toString() ?? "0.0"),
-            "comentario": json["comentario"],
-            "estado_detalle": json["estado_detalle"],
-            "updated_at": DateTime.parse(json["updated_at"]),
-          })).toList();
-          List<Detalle_Pedido>? detallePedido = [];
-
-          detalleActualizado.forEach((element) {
-            print('wazaaa : ${element.id_producto}');
-          });
-
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                title: Container(
-                  alignment: Alignment.center,
-                  child:  Padding(
-                    padding: const EdgeInsets.only(
-                        top: 10,
-                        bottom: 10
-                    ),
-                    child: Text(
-                      //'n° pedido: ${listPedido.correlativoPedido}',
-                      'n° pedido:  ${pedidoRespuesta['pedido_detalle']['correlativo_pedido']}',
-                      style: const TextStyle(
-                          color: Color(0xFF111111),
-                          decoration: TextDecoration.none,
-                          fontSize : 30,
-                          fontWeight: FontWeight.w600
-                      ),
-                    ),
-                  ),
-                ),
-                content: Container(
-                  height: MediaQuery.of(context).size.height * 0.50,
-                  child: Column(
-                    children: [
-
-                      // _producList(detallePedido!)
-                      // Text('Wazaaaa'),
-                    ],
-                  ),
-                ),
-                actions: <Widget>[
-                  TextButton(
-                    style: ButtonStyle(
-                        elevation: MaterialStateProperty.all(2),
-                        backgroundColor: MaterialStateProperty.all(Color(0xFFFF562F))),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                    child: Text('OK', style: TextStyle(color: Colors.white, fontSize: 16)),
-                  ),
-                ],
-              );
-            },
-          );
-        } else {
+        }
+        // if(mesa.estadoMesa == 2){
+        //
+        //   List<Widget> rows = [];
+        //
+        //   Map<String, dynamic> pedidoRespuesta =  await dbDetallePedido.fetchPedidoDetalleRespuesta(usuario!.accessToken, mesa.id  );
+        //   print('pedidoRespuesta : ${pedidoRespuesta.toString()}');
+        //   print('pedidoRespuestaDetalle : ${pedidoRespuesta['pedido_detalle']['detalle'].toString()}');
+        //   print('pedidoRespuestaDetalle : ${pedidoRespuesta['detalle'].toString()}');
+        //   List<dynamic> detalleAcJson = pedidoRespuesta['pedido_detalle']['detalle'];
+        //   print('Respuesta ${detalleAcJson}');
+        //
+        //   List<Detalle_Pedido> detalleActualizado = detalleAcJson.map((json) => Detalle_Pedido.fromJson({
+        //     "id_detalle": json["id_pedido_detalle"],
+        //     "id_pedido": json["id_pedido"],
+        //     "id_producto": json["id_producto"],
+        //     "cantidad_producto": json["cantidad_producto"],
+        //     "cantidad_actualizada": json["cantidad_actualizada"],
+        //     "cantidad_exacta": json["cantidad_exacta"],
+        //     "cantidad_real": json["cantidad_real"],
+        //     "precio_producto": double.tryParse(json["precio_producto"]?.toString() ?? "0.0"),
+        //     "precio_unitario": double.tryParse(json["precio_unitario"]?.toString() ?? "0.0"),
+        //     "comentario": json["comentario"],
+        //     "estado_detalle": json["estado_detalle"],
+        //     "updated_at": DateTime.parse(json["updated_at"]),
+        //   })).toList();
+        //   List<Detalle_Pedido>? detallePedido = [];
+        //
+        //   detalleActualizado.forEach((element) {
+        //     print('wazaaa : ${element.id_producto}');
+        //   });
+        //
+        //   showDialog(
+        //     context: context,
+        //     builder: (BuildContext context) {
+        //       return AlertDialog(
+        //         title: Container(
+        //           alignment: Alignment.center,
+        //           child:  Padding(
+        //             padding: const EdgeInsets.only(
+        //                 top: 10,
+        //                 bottom: 10
+        //             ),
+        //             child: Text(
+        //               //'n° pedido: ${listPedido.correlativoPedido}',
+        //               'n° pedido:  ${pedidoRespuesta['pedido_detalle']['correlativo_pedido']}',
+        //               style: const TextStyle(
+        //                   color: Color(0xFF111111),
+        //                   decoration: TextDecoration.none,
+        //                   fontSize : 30,
+        //                   fontWeight: FontWeight.w600
+        //               ),
+        //             ),
+        //           ),
+        //         ),
+        //         content: Container(
+        //           height: MediaQuery.of(context).size.height * 0.50,
+        //           child: Column(
+        //             children: [
+        //
+        //               // _producList(detallePedido!)
+        //               // Text('Wazaaaa'),
+        //             ],
+        //           ),
+        //         ),
+        //         actions: <Widget>[
+        //           TextButton(
+        //             style: ButtonStyle(
+        //                 elevation: MaterialStateProperty.all(2),
+        //                 backgroundColor: MaterialStateProperty.all(Color(0xFFFF562F))),
+        //             onPressed: () {
+        //               Navigator.of(context).pop();
+        //             },
+        //             child: Text('OK', style: TextStyle(color: Colors.white, fontSize: 16)),
+        //           ),
+        //         ],
+        //       );
+        //     },
+        //   );
+        // }
+        else {
           print('ENTRAR MESA STATUS  ${mesa.toJson()}');
           Map<String, dynamic> pedidoRespuesta =  await dbDetallePedido.fetchPedidoDetalle(usuario!.accessToken, mesa.id  );
           pedidoRespuesta.forEach((key, value) {
@@ -1533,7 +1534,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
                       future: dbMesas.getAllxEstado(usuario!.accessToken, 3),
                       builder: (BuildContext context, AsyncSnapshot<List<Mesa>> snapshot) {
                         if (snapshot.connectionState == ConnectionState.waiting) {
-                          return CircularProgressIndicator();
+                          return Center(
+                            child: CircularProgressIndicator(
+                              color: Color( 0xFFFF562F),
+                            ),
+                          );
                         } else if (snapshot.hasError) {
                           return Text('Error: ${snapshot.error}');
                         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
@@ -1573,7 +1578,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
                       future: dbMesas.getAllxEstado(usuario!.accessToken, 1),
                       builder: (BuildContext context, AsyncSnapshot<List<Mesa>> snapshot) {
                         if (snapshot.connectionState == ConnectionState.waiting) {
-                          return CircularProgressIndicator();
+                          return Center(
+                            child: CircularProgressIndicator(
+                              color: Color( 0xFFFF562F),
+                            ),
+                          );
                         } else if (snapshot.hasError) {
                           return Text('Error: ${snapshot.error}');
                         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
@@ -1614,13 +1623,17 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
           ),
           actions: <Widget>[
             TextButton(
-              child: Text('Cancel'),
+              style: ButtonStyle(
+                backgroundColor: MaterialStateProperty.all( Color.fromRGBO(217, 217, 217, 0.8) ),
+              ),
+              child: const Text('Cancel',style: TextStyle(color: Colors.black)),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
             ElevatedButton(
-              child: Text('OK'),
+              style: ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.redAccent)),
+              child: const Text('OK',style: TextStyle(color: Colors.white)),
               onPressed: () async {
                 if (selectedMesaOrigen != null && selectedMesaDestino != null) {
                   AwesomeDialog(

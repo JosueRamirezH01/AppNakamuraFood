@@ -480,7 +480,7 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
           }
         }else{
           setState(() {
-            if(_con.mesa.estadoMesa != 2){
+            // if(_con.mesa.estadoMesa != 2){
               if (_con.productosSeleccionados?.any((p) => p.nombreproducto == producto.nombreproducto) ?? false) {
                 final Producto? productoExistente = _con.productosSeleccionados?.firstWhere((p) => p.nombreproducto == producto.nombreproducto);
                 if (productoExistente != null) {
@@ -502,9 +502,9 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
                   print(prod.toJson());
                 });
               }
-            }else{
-              _con.mostrarMensaje('No se pueden agregar productos porque el pedido está cerrado.');
-            }
+            // }else{
+            //   _con.mostrarMensaje('No se pueden agregar productos porque el pedido está cerrado.');
+            // }
           });
         }
       },
