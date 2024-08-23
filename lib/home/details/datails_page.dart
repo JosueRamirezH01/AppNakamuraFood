@@ -1523,7 +1523,7 @@ class _DetailsPageState extends State<DetailsPage> {
 
             print('IMPRESION BLUETOOTH');
             if (conexionBluetooth) {
-              ticketBluetooth.printLabelBluetooth(widget.productosSeleccionados, 3, pedidoTotal, selectObjmesa.nombreMesa, usuario!, selectObjmesa.nombrePiso, '', upda );
+              ticketBluetooth.printLabelBluetooth(widget.productosSeleccionados, 3, pedidoTotal, selectObjmesa.nombreMesa, usuario!, selectObjmesa.nombrePiso, '', widget.productosSeleccionados![0].idPedido );
             } else {
               String messague = 'No se ha encontrado conectado a un dispositivo Bluetooth.';
               showMessangueDialog(messague);
@@ -1536,7 +1536,7 @@ class _DetailsPageState extends State<DetailsPage> {
               showMessangueDialog(messague);
               return; // Salir del método printLabel
             } else {
-             impresora.printLabel(printerIP,widget.productosSeleccionados,3,pedidoTotal, selectObjmesa.nombreMesa ?? widget.mesa!.nombreMesa, usuario!, selectObjmesa.nombrePiso ?? widget.mesa!.nombrePiso,'');
+             impresora.printLabel(printerIP,widget.productosSeleccionados,3,pedidoTotal, selectObjmesa.nombreMesa ?? widget.mesa!.nombreMesa, usuario!, selectObjmesa.nombrePiso ?? widget.mesa!.nombrePiso,'', widget.productosSeleccionados![0].idPedido);
             }
           }
         },
