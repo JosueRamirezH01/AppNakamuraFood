@@ -82,6 +82,20 @@ class TicketBluetooth {
       String horaActual = '${now.hour}:${now.minute}:${now.second}';
       String fechaActual = '${now.year}-${_twoDigits(now.month)}-${_twoDigits(now.day)}';
 
+      if(tipoBoucher != 'Pre-Cuenta'){
+        list.add(LineText(type: LineText.TYPE_TEXT,
+            content: 'Codigo: #${producto[0].idPedido}',
+            align: LineText.ALIGN_LEFT,
+            linefeed: 1)
+        );
+      }else{
+        list.add(LineText(type: LineText.TYPE_TEXT,
+            content: 'N. Pedido: #${producto[0].idPedido}',
+            align: LineText.ALIGN_LEFT,
+            linefeed: 1)
+        );
+      }
+
       list.add(LineText(type: LineText.TYPE_TEXT,
           content: 'Piso: $nomPiso',
           align: LineText.ALIGN_LEFT,

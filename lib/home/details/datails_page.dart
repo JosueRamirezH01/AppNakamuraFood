@@ -246,7 +246,7 @@ class _DetailsPageState extends State<DetailsPage> {
             bottomRight: Radius.circular(8),
             topRight: Radius.circular(8)
           ),
-          color: Colors.grey[200],
+          color: widget.items_independientes == false ? Colors.grey[200] : null,
         ) : null ,
       child: Padding(
         padding: widget.items_independientes == true ?  EdgeInsets.all(8.0) : EdgeInsets.all(0),
@@ -360,7 +360,8 @@ class _DetailsPageState extends State<DetailsPage> {
                             }
                           }
 
-                        } else {
+                        }
+                        else {
                           String? printerIP = await _pref.read('ipCocina');
                           bool _stateConexionTicket = await _pref.read('stateConexionTicket') ?? false;
                           bool conexionBluetooth = await _pref.read('conexionBluetooth') ?? false;
@@ -398,41 +399,41 @@ class _DetailsPageState extends State<DetailsPage> {
     );
   }
 
-  void _operacionACitemsIndependiente(int WifiOBlue) {
-    if (widget.productosSeleccionados!.length > 0) {
-      gif();
-      List<Producto> productosToPrint = [];
-
-      for (final producto in widget.productosSeleccionados!) {
-        int index = widget.productosSeleccionados!.indexOf(producto);
-        print('Índice del producto: $index');
-
-        print('Antes de actualizar: Producto ID: ${producto.id}, ID Pedido Detalle: ${producto.id_pedido_detalle}');
-      }
-
-      if (productosToPrint.isNotEmpty) {
-        // await detallePedidoServicio.actualizarAgregarProductoDetallePedidoItem(widget.idPedido, pedidoTotal,context);
-
-        if (WifiOBlue == 1) {
-          ticketBluetooth.printLabelBluetooth(productosToPrint, 2, pedidoTotal, selectObjmesa.nombreMesa, usuario!, selectObjmesa.nombrePiso ?? widget.mesa!.nombrePiso, '');
-        } else if (WifiOBlue == 2) {
-          imprimir(productosToPrint, 2);
-        }
-
-        imprimir(productosToPrint, 2);
-        print('Hay productos que Actualizar');
-        Navigator.pop(context);
-      } else {
-        mostrarMensajeActualizado(
-            'No hay productos que Actualizar', true);
-        print('No hay productos que Actualizar');
-        Navigator.pop(context);
-      }
-    } else {
-      mostrarMensajeActualizado(
-          'No puedes dejar la lista vacia', true);
-    }
-  }
+  // void _operacionACitemsIndependiente(int WifiOBlue) {
+  //   if (widget.productosSeleccionados!.length > 0) {
+  //     gif();
+  //     List<Producto> productosToPrint = [];
+  //
+  //     for (final producto in widget.productosSeleccionados!) {
+  //       int index = widget.productosSeleccionados!.indexOf(producto);
+  //       print('Índice del producto: $index');
+  //
+  //       print('Antes de actualizar: Producto ID: ${producto.id}, ID Pedido Detalle: ${producto.id_pedido_detalle}');
+  //     }
+  //
+  //     if (productosToPrint.isNotEmpty) {
+  //       // await detallePedidoServicio.actualizarAgregarProductoDetallePedidoItem(widget.idPedido, pedidoTotal,context);
+  //
+  //       if (WifiOBlue == 1) {
+  //         ticketBluetooth.printLabelBluetooth(productosToPrint, 2, pedidoTotal, selectObjmesa.nombreMesa, usuario!, selectObjmesa.nombrePiso ?? widget.mesa!.nombrePiso, '');
+  //       } else if (WifiOBlue == 2) {
+  //         imprimir(productosToPrint, 2);
+  //       }
+  //
+  //       imprimir(productosToPrint, 2);
+  //       print('Hay productos que Actualizar');
+  //       Navigator.pop(context);
+  //     } else {
+  //       mostrarMensajeActualizado(
+  //           'No hay productos que Actualizar', true);
+  //       print('No hay productos que Actualizar');
+  //       Navigator.pop(context);
+  //     }
+  //   } else {
+  //     mostrarMensajeActualizado(
+  //         'No puedes dejar la lista vacia', true);
+  //   }
+  // }
 
   void _operacionAC(int WifiOBlue) async {
     if (widget.productosSeleccionados!.length > 0) {
@@ -1536,7 +1537,7 @@ class _DetailsPageState extends State<DetailsPage> {
               showMessangueDialog(messague);
               return; // Salir del método printLabel
             } else {
-             impresora.printLabel(printerIP,widget.productosSeleccionados,3,pedidoTotal, selectObjmesa.nombreMesa ?? widget.mesa!.nombreMesa, usuario!, selectObjmesa.nombrePiso ?? widget.mesa!.nombrePiso,'', widget.productosSeleccionados![0].idPedido);
+             impresora.printLabel(printerIP,widget.productosSeleccionados,3,pedidoTotal, selectObjmesa.nombreMesa ?? widget.mesa!.nombreMesa, usuario!, selectObjmesa.nombrePiso ?? widget.mesa!.nombrePiso,'',widget.productosSeleccionados![0].idPedido);
             }
           }
         },
