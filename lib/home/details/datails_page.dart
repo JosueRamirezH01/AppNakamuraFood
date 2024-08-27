@@ -680,24 +680,6 @@ class _DetailsPageState extends State<DetailsPage> {
     }
   }
 
-  Future<List<Producto>> leerProductosDesdeSharedPreferences() async {
-    String? jsonProductoData = await _pref.read('productos');
-    if (jsonProductoData != null) {
-      Iterable decoded = json.decode(jsonProductoData);
-      return decoded.map((producto) => Producto.fromJson(producto)).toList();
-    }
-    return [];
-  }
-
-  Future<Producto?> buscarNombreProductoPorId(int? idProducto) async {
-    List<Producto> productos = await leerProductosDesdeSharedPreferences();
-    for (Producto producto in productos) {
-      if (producto.id == idProducto) {
-        return producto;
-      }
-    }
-    return null;
-  }
 
   Future gif() {
     return showDialog(

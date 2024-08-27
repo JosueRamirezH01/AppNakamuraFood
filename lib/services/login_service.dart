@@ -1,11 +1,8 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_bcrypt/flutter_bcrypt.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
-import 'package:mysql1/mysql1.dart';
-import 'package:restauflutter/bd/conexion.dart';
 import 'package:http/http.dart' as http;
 import 'package:restauflutter/model/PedidoResponse.dart';
 import 'package:restauflutter/services/piso_service.dart';

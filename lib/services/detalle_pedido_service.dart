@@ -1,21 +1,13 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
-import 'package:flutter/material.dart';
-import 'package:mysql1/mysql1.dart';
-import 'package:restauflutter/bd/conexion.dart';
 import 'package:restauflutter/model/PedidoResponse.dart';
-import 'package:restauflutter/model/detalle_pedido.dart';
-import 'package:restauflutter/model/mozo.dart';
 import 'package:restauflutter/model/nota.dart';
 import 'package:restauflutter/model/pedido.dart';
 import 'package:restauflutter/model/producto.dart';
-import 'package:restauflutter/services/pedido_service.dart';
-import 'package:restauflutter/utils/shared_pref.dart';
 
 class DetallePedidoServicio {
-  // final Connection _connectionSQL = Connection();
-  final SharedPref _sharedPref = SharedPref();
+
 
   final String _url = 'chifalingling.restaupe.com';
   final String _api = '/api/auth';

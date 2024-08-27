@@ -19,8 +19,6 @@ class PedidoServicio {
   final String _api = '/api/auth';
 
   Future<PedidoResponse?> registrarPedido(Map<String, dynamic> pedidoData, String? accessToken) async {
-    print('Datos del pedido enviados ->: ${json.encode(pedidoData)}');
-
     final url = Uri.parse('https://chifalingling.restaupe.com/api/auth/registrarPedido');
     try {
       final response = await http.post(url,
@@ -29,10 +27,6 @@ class PedidoServicio {
         },
         body: json.encode(pedidoData),
       );
-
-      print('Código de respuesta: ${response.statusCode}');
-      print('Respuesta del servidor: ${response.body}');
-
       if (response.statusCode == 200 || response.statusCode == 201) {
         agregarMsj('Pedido registrado exitosamente');
         final responseData = json.decode(response.body);
