@@ -740,6 +740,7 @@ class _DetailsPageState extends State<DetailsPage> {
     print( 'comentario entrada : ${widget.productosSeleccionados?[indexProducto].comentario}');
 
     String? notabd = cleanComentario( widget.productosSeleccionados?[indexProducto].comentario) ?? '';
+
     List<String> seleccionadosBd = convertStringToList(notabd);
 
     var productoSeleccionado = widget.productosSeleccionados![indexProducto];
@@ -991,6 +992,7 @@ class _DetailsPageState extends State<DetailsPage> {
         bool status = resultadoNota['status'];
         List<dynamic> detalleActualizado = resultadoNota['detalle_actualizado'];
         Map<String, dynamic> detalle = detalleActualizado[0];
+        print(detalle.toString());
         int cantidadActualizada = detalle['cantidad_actualizada'];
         print('DATOS ACTUALZIADOS $cantidadActualizada');
         if(status){
@@ -1001,6 +1003,7 @@ class _DetailsPageState extends State<DetailsPage> {
                   nombreproducto: productoSeleccionado.nombreproducto,
                   stock: cantidadActualizada,
                   comentario: productoSeleccionado.comentario,
+                  sinACStock : cantidadActualizada > 0 ? false : true
                 )
             );
             ticketBluetooth.printLabelBluetooth(productosToPrint, 2, pedidoTotal, selectObjmesa.nombreMesa, usuario!, selectObjmesa.nombrePiso ?? widget.mesa!.nombrePiso, '', productoSeleccionado.idPedido);
@@ -1009,7 +1012,7 @@ class _DetailsPageState extends State<DetailsPage> {
                 Producto(
                   nombreproducto: productoSeleccionado.nombreproducto,
                   stock: cantidadActualizada,
-                  comentario: productoSeleccionado.comentario,
+                  comentario: cleanComentario(productoSeleccionado.comentario) ,
                 )
             );
             imprimir(productosToPrint, 2, productoSeleccionado.idPedido);
@@ -1114,9 +1117,7 @@ class _DetailsPageState extends State<DetailsPage> {
              }else{
                mostrarMensajeActualizado('Revisal la lista productosToPrint : ${productosToPrint.length}', true);
                print('No hay productos que Actualizar');
-               // Navigator.pop(context);
              }
-
              setState(() {
                widget.productosSeleccionados!.removeAt(productoindex);
              });
@@ -1188,8 +1189,14 @@ class _DetailsPageState extends State<DetailsPage> {
       print('Posicion sin id detalle : ${productoindex}');
       if (productoindex != -1) {
         setState(() {
-          widget.productosSeleccionados!.removeAt(productoindex);
+          widget.productosSeleccionados![productoindex].stock = widget.productosSeleccionados![productoindex].stock! - 1;
         });
+
+        if (widget.productosSeleccionados![productoindex].stock! <= 0) {
+          setState(() {
+            widget.productosSeleccionados!.removeAt(productoindex);
+          });
+        }
         _actualizarProductosSeleccionados();
       }
     }

@@ -449,7 +449,7 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
       onTap: () {
         _productoFocus.unfocus();
         if(_con.items_independientes){
-          // if (_con.mesa.estadoMesa != 2) {
+          if (_con.mesa.estadoMesa != 2) {
             setState(() {
               // Agrega siempre una nueva instancia del producto a la lista de productos seleccionados
               Producto newProducto = Producto(
@@ -476,12 +476,12 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
               //   print(prod.toJson());
               // });
             });
-          // } else {
-          //   _con.mostrarMensaje('No se pueden agregar productos porque el pedido está cerrado.');
-          // }
+          } else {
+            _con.mostrarMensaje('No se pueden agregar productos porque el pedido está cerrado.');
+          }
         }else{
           setState(() {
-            // if(_con.mesa.estadoMesa != 2){
+            if(_con.mesa.estadoMesa != 2){
               if (_con.productosSeleccionados?.any((p) => p.nombreproducto == producto.nombreproducto) ?? false) {
                 final Producto? productoExistente = _con.productosSeleccionados?.firstWhere((p) => p.nombreproducto == producto.nombreproducto);
                 if (productoExistente != null) {
@@ -503,9 +503,9 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
                   print(prod.toJson());
                 });
               }
-            // }else{
-            //   _con.mostrarMensaje('No se pueden agregar productos porque el pedido está cerrado.');
-            // }
+            }else{
+              _con.mostrarMensaje('No se pueden agregar productos porque el pedido está cerrado.');
+            }
           });
         }
       },

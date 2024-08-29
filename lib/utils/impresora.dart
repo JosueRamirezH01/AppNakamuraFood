@@ -143,6 +143,7 @@ class Impresora {
 
 
   void _buildTableContentPreCuenta(List<Producto>? producto , String tipoBoucher, NetworkPrinter printer) {
+
     if(tipoBoucher != 'Pedido' && tipoBoucher !='Pedidos Actualizados'){
       producto?.forEach((producto) {
         printer.row([
@@ -156,7 +157,7 @@ class Impresora {
       producto?.forEach((producto) {
         if(producto.stock == 0){
           printer.row([
-            PosColumn(text: 'Rechazado', width: 3),
+            PosColumn(text: producto.sinACStock == true ?'sin actualizar':'Rechazado', width: 3),
             PosColumn(text: '${producto.nombreproducto}', width: 6),
             PosColumn(text: producto.comentario ?? '', width: 3),
           ]);
