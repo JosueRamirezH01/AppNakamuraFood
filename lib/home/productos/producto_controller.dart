@@ -13,9 +13,11 @@ import 'package:restauflutter/services/modulos_service.dart';
 import 'package:restauflutter/utils/shared_pref.dart';
 
 import '../../model/mesa.dart';
+import '../../model/nota.dart';
 import '../../model/producto.dart';
 import '../../model/usuario.dart';
 import '../../services/modulos_service.dart';
+import '../../services/pedido_service.dart';
 
 class ProductoController {
   late BuildContext context;
@@ -23,6 +25,7 @@ class ProductoController {
   final SharedPref _sharedPref = SharedPref();
   List<Categoria> categorias = [];
   List<Producto> productos = [];
+  List<Nota> listaNota = [];
 
   late Timer searchOnStoppedTyping = Timer(Duration.zero, () {});
   String productName = '';
@@ -31,6 +34,7 @@ class ProductoController {
   late List<Detalle_Pedido> detalle_pedido = [];
   var dbDetallePedido = DetallePedidoServicio();
   var Modulos = ModuloServicio();
+  var bdPedido = PedidoServicio();
   List<Producto>? productosSeleccionados = [];
   bool items_independientes = true;
 
@@ -61,8 +65,11 @@ class ProductoController {
     final dynamic userData = await _sharedPref.read('user_data');
     final Map<String, dynamic> userDataMap = json.decode(userData);
     final Usuario usuario = Usuario.fromJson(userDataMap);
-
-    items_independientes = true;//await Modulos.consultarItemsIndependientes(usuario.accessToken);
+    listaNota = await bdPedido.obtenerListasNota(usuario.accessToken);
+    List<Map<String, dynamic>> listaNotaJson = listaNota.map((nota) => nota.toJson()).toList();
+    String listaNotaString = jsonEncode(listaNotaJson);
+    _sharedPref.save('listaNota', listaNotaString);
+    items_independientes = await Modulos.consultarItemsIndependientes(usuario.accessToken);
     print('Activo itemsindependientes : ${items_independientes}');
 
     final args = ModalRoute.of(context)?.settings.arguments;

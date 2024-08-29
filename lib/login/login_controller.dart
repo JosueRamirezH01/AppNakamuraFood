@@ -8,13 +8,16 @@ import 'package:flutter/widgets.dart';
 import 'package:restauflutter/model/mozo.dart';
 import 'package:restauflutter/utils/shared_pref.dart';
 
+import '../model/PedidoResponse.dart';
 import '../model/usuario.dart';
+import '../services/login_service.dart';
 
 class LoginController {
   TextEditingController _url = TextEditingController();
   late BuildContext context;
   late Function refresh;
   final SharedPref _pref = SharedPref();
+  var moduloLogin = LoginService();
   Future init(BuildContext context, Function refresh) async {
     this.context = context;
     this.refresh = refresh;
@@ -38,6 +41,7 @@ class LoginController {
         _pref.remove('productos');
         _pref.remove('stateConexionTicket');
         _pref.remove('conexionBluetooth');
+        PedidoResponse? respuestaData = await moduloLogin.logout(usuario.accessToken!);
         Navigator.pushNamedAndRemoveUntil(context, 'login', (route) => false);
       }else {
         print('ANTES DE TIEMPO');

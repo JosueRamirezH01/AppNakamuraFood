@@ -27,6 +27,7 @@ import 'package:restauflutter/utils/impresora.dart';
 import 'package:restauflutter/utils/shared_pref.dart';
 
 import '../model/usuario.dart';
+import '../services/login_service.dart';
 
 List<Color> colores = [
   const Color(0xFFCCF390), // verde
@@ -74,6 +75,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
   bool isAlertSet = false;
   bool wifi = false;
   bool datos = false;
+  var moduloLogin = LoginService();
 
   void _startTimer() {
     _timer = Timer.periodic(Duration(minutes: 1), (timer) async {
@@ -86,9 +88,18 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
     if (expiracion_in != null) {
       final DateTime expiracionDateTime = DateTime.parse(expiracion_in);
       final DateTime now = DateTime.now();
-
+      print('DATETIME $expiracionDateTime');
+      print('DATETIME $now');
       if (now.isAfter(expiracionDateTime)) {
-        // Expiración alcanzada, mostrar mensaje y redirigir al login
+        _pref.remove('user_data');
+        _pref.remove('categorias');
+        _pref.remove('productos');
+        _pref.remove('stateConexionTicket');
+        _pref.remove('conexionBluetooth');
+        print('TOKEN ${usuario!.accessToken!}');
+        PedidoResponse? respuestaData = await moduloLogin.logout(usuario!.accessToken!);
+        print('RESPUESTA DE LOGOUT ${respuestaData.toString()}');
+
         Fluttertoast.showToast(msg: 'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.',backgroundColor: Colors.red,gravity: ToastGravity.TOP,toastLength: Toast.LENGTH_LONG);
         Navigator.pushNamedAndRemoveUntil(context, 'login', (route) => false);
 
@@ -169,6 +180,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
       consultarPisos().then((_) {
         consultarMesas(pisoSelect, context).then((value) async {
           _subOptType = SubOptTypes.local;
+
           //listaPedido = await dbPedido.obtenerListasPedidos(_subOptType, idEstablecimiento,context);
           //AllListadoMesas = await dbMesas.consultarTodasMesas(ListadoPisos, context);
           setState(() {
@@ -179,6 +191,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
         refresh();
       });
     });
+
     refresh2();
     refresh();
   }

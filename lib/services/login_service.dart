@@ -38,7 +38,7 @@ class LoginService {
         final data = json.decode(res.body);
         Usuario usuario = Usuario.fromJson(data); // Accede a la parte 'user' del JSON
         print('${usuario.toJson()}');
-        int expiresIn = data['expires_in'];
+        int expiresIn = data['expires_in'] - 12;
         print('---- DATO A EXPIRAR $expiresIn');
         DateTime receivedAt = DateTime.now();
         DateTime expiryTime = receivedAt.add(Duration(seconds: expiresIn));
@@ -105,6 +105,7 @@ class LoginService {
 
   Future<PedidoResponse?> logout(String accessToken) async {
     String _url =  await _apiRuta.readApi();
+    print('object $accessToken');
     try {
       Uri url = Uri.https(_url,'$_api/cerrar_sesion');
       Map<String, String> headers = {

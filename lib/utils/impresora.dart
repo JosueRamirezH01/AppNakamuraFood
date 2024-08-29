@@ -170,7 +170,19 @@ class Impresora {
           printer.hr();
         }else{
           if (producto.comentario != null){
-            List<String> lines = producto.comentario!.split(';');
+
+            String cleanComentario(String? comentario) {
+              if (comentario == null || comentario.isEmpty) {
+                return '';
+              }
+              final RegExp regExp = RegExp(r'<span[^>]*>([^<]+)<\/span>');
+              Iterable<Match> matches = regExp.allMatches(comentario);
+
+              String cleanedComentario = matches.map((match) => match.group(1)).join(';');
+              return cleanedComentario;
+            }
+
+            List<String> lines = cleanComentario(producto.comentario!).split(';');
             printer.row([
               PosColumn(text: '${producto.stock}', width: 3),
               PosColumn(text: '${producto.nombreproducto}', width: 6),

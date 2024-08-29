@@ -51,7 +51,7 @@ class ModuloServicio {
       if (res.statusCode == 200) {
         final data = json.decode(res.body);
         int estado = data['estado'];
-
+        print('DATO DE INDEPENDIENTE $estado');
         if (estado == 1) {
           return true;
         } else {

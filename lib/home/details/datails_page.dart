@@ -95,7 +95,7 @@ class _DetailsPageState extends State<DetailsPage> {
         child: Column(
           children: [
             if (screenWidth < 600) icono(),
-            // if (widget.mesa!.estadoMesa != 1 && widget.mesa!.estadoMesa != 2)
+            if (widget.mesa!.estadoMesa != 1 && widget.mesa!.estadoMesa != 2)
               cabecera(),
             contenido(),
             debajo()
@@ -176,15 +176,13 @@ class _DetailsPageState extends State<DetailsPage> {
                           ),
                           Column(
                             children: [
-                              // if (widget.mesa!.estadoMesa != 2 &&
-                              //     widget.items_independientes == false)
+                               if (widget.mesa!.estadoMesa != 2 && widget.items_independientes == false)
                                 _addOrRemoveItem(index),
                               _precioProducto(index),
                             ],
                           ),
                           const SizedBox(width: 5),
-                          // if (selectObjmesa.estadoMesa != 2 ||
-                          //     widget.mesa!.estadoMesa != 2)
+                           if (selectObjmesa.estadoMesa != 2 || widget.mesa!.estadoMesa != 2)
                             Container(
                               decoration: BoxDecoration(
                                   color: Colors.grey[200],
@@ -199,8 +197,7 @@ class _DetailsPageState extends State<DetailsPage> {
                               ),
                             ),
                           const SizedBox(width: 5),
-                          // if (selectObjmesa.estadoMesa != 2 ||
-                          //     widget.mesa!.estadoMesa != 2)
+                          if (selectObjmesa.estadoMesa != 2 || widget.mesa!.estadoMesa != 2)
                             Container(
                               decoration: BoxDecoration( color: Colors.grey[200], borderRadius: BorderRadius.all(Radius.circular(20))),
                               margin: widget.items_independientes == false ? EdgeInsets.only(bottom: 25) : null ,
@@ -273,7 +270,9 @@ class _DetailsPageState extends State<DetailsPage> {
     print('Comentario Llegada : ${widget.productosSeleccionados?[index].comentario.runtimeType}');
     return GestureDetector(
       onTap: () async {
-        listaNota = await bdPedido.obtenerListasNota(usuario?.accessToken);
+        String? listaNotaString = await  _pref.read('listaNota');
+        List<dynamic> listaNotaJson = jsonDecode(listaNotaString!);
+        listaNota = Nota.fromJsonList(listaNotaJson);
         print('INDEX ${index}');
         _nota(listaNota, index, id_pedido_detalle);
       },
@@ -924,7 +923,7 @@ class _DetailsPageState extends State<DetailsPage> {
                 Producto(
                   nombreproducto: productoSeleccionado.nombreproducto,
                   stock: productoSeleccionado.stock,
-                  comentario: cleanComentario(productoSeleccionado.comentario),
+                  comentario: productoSeleccionado.comentario,
                 )
             );
             imprimir(productosToPrint, 2, productoSeleccionado.idPedido);
@@ -990,14 +989,17 @@ class _DetailsPageState extends State<DetailsPage> {
 
         Map<String, dynamic> resultadoNota = await detallePedidoServicio.actualizarPedidoConRespuestaApi( usuario?.accessToken, pedidoDetalle, widget.mesa?.id);
         bool status = resultadoNota['status'];
-
+        List<dynamic> detalleActualizado = resultadoNota['detalle_actualizado'];
+        Map<String, dynamic> detalle = detalleActualizado[0];
+        int cantidadActualizada = detalle['cantidad_actualizada'];
+        print('DATOS ACTUALZIADOS $cantidadActualizada');
         if(status){
 
           if(BlueWifi == 1){
             productosToPrint.add(
                 Producto(
                   nombreproducto: productoSeleccionado.nombreproducto,
-                  stock: productoSeleccionado.stock,
+                  stock: cantidadActualizada,
                   comentario: productoSeleccionado.comentario,
                 )
             );
@@ -1006,8 +1008,8 @@ class _DetailsPageState extends State<DetailsPage> {
             productosToPrint.add(
                 Producto(
                   nombreproducto: productoSeleccionado.nombreproducto,
-                  stock: productoSeleccionado.stock,
-                  comentario: cleanComentario(productoSeleccionado.comentario),
+                  stock: cantidadActualizada,
+                  comentario: productoSeleccionado.comentario,
                 )
             );
             imprimir(productosToPrint, 2, productoSeleccionado.idPedido);
@@ -1724,13 +1726,17 @@ class _DetailsPageState extends State<DetailsPage> {
           "id_usuario": usuario?.user?.id, // Reemplaza con el ID del usuario autenticado
           "monto_total": pedidoTotal,
           "detalle": widget.productosSeleccionados!
-              .map((producto) => {
+              .map((producto) {
+            print('Comentario del producto ${producto.id}: ${producto.comentario}');
+            return {
               "id_producto": producto.id,
               "cantidad_producto": producto.stock,
               "precio_unitario": producto.precioproducto,
-              "precio_producto": producto.precioproducto! * (producto.stock ?? 0),
+              "precio_producto": producto.precioproducto! *
+                  (producto.stock ?? 0),
               "comentario": producto.comentario,
-              "estado_detalle":1
+              "estado_detalle": 1
+            };
           }).toList()
         };
         // Ya crea el pedido
