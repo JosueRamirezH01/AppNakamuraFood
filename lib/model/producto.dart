@@ -22,6 +22,7 @@ class     Producto {
   int? estado;
   List<Producto> productos = [];
   bool? sinACStock = false;
+  bool? aCStock = false;
 
 
   Producto({
@@ -39,7 +40,8 @@ class     Producto {
     this.establecimiento_id,
     this.comentario,
     this.estado,
-    this.sinACStock
+    this.sinACStock,
+    this.aCStock
   });
 
   @override

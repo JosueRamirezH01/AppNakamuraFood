@@ -479,7 +479,8 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
           } else {
             _con.mostrarMensaje('No se pueden agregar productos porque el pedido está cerrado.');
           }
-        }else{
+        }
+        else{
           setState(() {
             if(_con.mesa.estadoMesa != 2){
               if (_con.productosSeleccionados?.any((p) => p.nombreproducto == producto.nombreproducto) ?? false) {
@@ -488,21 +489,16 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
                   print('------- ${_con.productosSeleccionados?.first.stock}');
                   setState(() {
                     productoExistente.stock = (productoExistente.stock ?? 0) + 1;
+                    productoExistente.aCStock = true;
                   });
                   _con.agregarMsj('Se ha aumentado el stock de ${productoExistente.nombreproducto} en 1.');
                 }
               } else {
                 // El producto no está seleccionado, agrégalo a la lista de productos seleccionados
-                  Producto producToAdd = producto;
-                  producToAdd.stock = 1;
+                Producto producToAdd = producto;
+                producToAdd.stock = 1;
                 setState(() {
                   _con.productosSeleccionados?.add(producToAdd);
-                });
-                // Muestra un mensaje de confirmación
-                _con.agregarMsj('El producto se ha añadido a la lista.');
-                print('Productos seleccionados:');
-                _con.productosSeleccionados?.forEach((prod) {
-                  print(prod.toJson());
                 });
               }
             }else{

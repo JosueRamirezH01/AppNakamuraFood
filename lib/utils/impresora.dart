@@ -163,7 +163,7 @@ class Impresora {
           // ]);
           List<String> lines = cleanComentario(producto.comentario).split(';');
           printer.row([
-            PosColumn(text: producto.sinACStock == true ? 'No. Ac':'Cancelado', width: 3),
+            PosColumn(text: producto.sinACStock == true ? 'No modicaficada':'Cancelado', width: 3),
             PosColumn(text: '${producto.nombreproducto}', width: 6),
             PosColumn(text: lines[0].trim(), width: 3),
           ]);

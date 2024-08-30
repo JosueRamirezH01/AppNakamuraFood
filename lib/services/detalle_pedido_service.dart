@@ -40,22 +40,22 @@ class DetallePedidoServicio {
     }
   }
 
-  // Future<Map<String, dynamic>> fetchPedidoDetalleRespuesta(String? accessToken,int? idMesa) async {
-  //
-  //   Uri url = Uri.https(_url, '$_api/obtener_pedidos_pormesa/$idMesa');
-  //   Map<String, String> headers = {
-  //     'Content-type': 'application/json',
-  //     'Authorization': 'Bearer $accessToken'
-  //   };
-  //   final res = await http.get(url, headers: headers);
-  //   if (res.statusCode == 200) {
-  //     Map<String, dynamic> jsonResponse = json.decode(res.body);
-  //
-  //     return jsonResponse;
-  //   } else {
-  //     throw Exception('Failed to load pedido detalle');
-  //   }
-  // }
+  Future<Map<String, dynamic>> fetchPedidoDetalleRespuesta(String? accessToken,int? idMesa) async {
+
+    Uri url = Uri.https(_url, '$_api/obtener_pedidos_pormesa/$idMesa');
+    Map<String, String> headers = {
+      'Content-type': 'application/json',
+      'Authorization': 'Bearer $accessToken'
+    };
+    final res = await http.get(url, headers: headers);
+    if (res.statusCode == 200) {
+      Map<String, dynamic> jsonResponse = json.decode(res.body);
+
+      return jsonResponse;
+    } else {
+      throw Exception('Failed to load pedido detalle');
+    }
+  }
 
   Future<void> actualizarPedidoApi(String? accessToken, Map<String, dynamic> pedidoDetalle, int? idMesa) async {
     Uri uri = Uri.https(_url, '$_api/actualizarPedido/$idMesa');

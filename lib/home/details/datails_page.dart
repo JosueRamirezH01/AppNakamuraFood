@@ -146,9 +146,8 @@ class _DetailsPageState extends State<DetailsPage> {
               return Column(
                 children: [
                   Container(
-                    decoration: widget.productosSeleccionados?[index]
-                        .id_pedido_detalle ==
-                        null
+                    decoration: widget.productosSeleccionados?[index].id_pedido_detalle == null ||
+                        widget.productosSeleccionados?[index].aCStock == true
                         ? BoxDecoration(
                             border: Border.all(
                               color: Colors.purpleAccent,
@@ -190,10 +189,7 @@ class _DetailsPageState extends State<DetailsPage> {
                               margin: widget.items_independientes == false ? EdgeInsets.only(bottom: 25) : null ,
                               child: Padding(
                                 padding: const EdgeInsets.all(8.0),
-                                child: _iconDelete(
-                                    index,
-                                    widget.productosSeleccionados?[index]
-                                        .id_pedido_detalle),
+                                child: _iconDelete( index, widget.productosSeleccionados?[index].id_pedido_detalle),
                               ),
                             ),
                           const SizedBox(width: 5),
@@ -537,6 +533,9 @@ class _DetailsPageState extends State<DetailsPage> {
             print('paraAc : ${detalleCorrespondiente.toString()}');
 
             if (detalleCorrespondiente != null) {
+              setState(() {
+                widget.productosSeleccionados!.firstWhere((element) => element.id_pedido_detalle == detalleCorrespondiente.id_pedido_detalle).aCStock = false;
+              });
 
               productosToPrint.add(Producto(
                 codigo: producto.codigo,
@@ -971,69 +970,102 @@ class _DetailsPageState extends State<DetailsPage> {
     }
     else {
       if (id_pedido_detalle != null) {
+
         List<Producto> productosToPrint = [];
         var productoSeleccionado = widget.productosSeleccionados![indexProducto];
         productoSeleccionado.comentario = comentarioSpan;
 
-        Map<String, dynamic> pedidoDetalle = {
-          "monto_total": pedidoTotal,
-          "detalle": [
-            {
-              "id_pedido_detalle": productoSeleccionado.id_pedido_detalle,
-              "id_pedido": productoSeleccionado.idPedido,
-              "id_producto": productoSeleccionado.id,
-              "cantidad_producto": productoSeleccionado.stock,
-              "cantidad_real": productoSeleccionado.stock,
-              "precio_unitario": productoSeleccionado.precioproducto,
-              "precio_producto": productoSeleccionado.precioproducto! * productoSeleccionado.stock!.toInt(),
-              "comentario": productoSeleccionado.comentario,
-              "estado_detalle": 1
+        bool hayProductoSinAc = widget.productosSeleccionados!.any((producto) => producto.aCStock == true);
+
+        if(hayProductoSinAc){
+          mostrarMensaje('Comentarios agregados');
+        }else{
+          if(productoSeleccionado.comentario== null){
+            Map<String, dynamic> pedidoDetalle = {
+              "monto_total": pedidoTotal,
+              "detalle": [
+                {
+                  "id_pedido_detalle": productoSeleccionado.id_pedido_detalle,
+                  "id_pedido": productoSeleccionado.idPedido,
+                  "id_producto": productoSeleccionado.id,
+                  "cantidad_producto": productoSeleccionado.stock,
+                  "cantidad_real": productoSeleccionado.stock,
+                  "precio_unitario": productoSeleccionado.precioproducto,
+                  "precio_producto": productoSeleccionado.precioproducto! * productoSeleccionado.stock!.toInt(),
+                  "comentario": productoSeleccionado.comentario,
+                  "estado_detalle": 1
+                }
+              ]
+            };
+
+            Map<String, dynamic> resultadoNota = await detallePedidoServicio.actualizarPedidoConRespuestaApi( usuario?.accessToken, pedidoDetalle, widget.mesa?.id);
+            bool status = resultadoNota['status'];
+            if(status){
+              mostrarMensaje('Comentarios vacios');
+            }else{
+              mostrarMensaje('Error al actualizar sal de la mesa');
             }
-          ]
-        };
+          }else{
+            Map<String, dynamic> pedidoDetalle = {
+              "monto_total": pedidoTotal,
+              "detalle": [
+                {
+                  "id_pedido_detalle": productoSeleccionado.id_pedido_detalle,
+                  "id_pedido": productoSeleccionado.idPedido,
+                  "id_producto": productoSeleccionado.id,
+                  "cantidad_producto": productoSeleccionado.stock,
+                  "cantidad_real": productoSeleccionado.stock,
+                  "precio_unitario": productoSeleccionado.precioproducto,
+                  "precio_producto": productoSeleccionado.precioproducto! * productoSeleccionado.stock!.toInt(),
+                  "comentario": productoSeleccionado.comentario,
+                  "estado_detalle": 1
+                }
+              ]
+            };
 
-        Map<String, dynamic> resultadoNota = await detallePedidoServicio.actualizarPedidoConRespuestaApi( usuario?.accessToken, pedidoDetalle, widget.mesa?.id);
-        bool status = resultadoNota['status'];
-        List<dynamic> detalleActualizado = resultadoNota['detalle_actualizado'];
-        Map<String, dynamic> detalle = detalleActualizado[0];
-        print(detalle.toString());
-        int cantidadActualizada = detalle['cantidad_actualizada'];
-        print('DATOS ACTUALZIADOS $cantidadActualizada');
-        if(status){
-          if(BlueWifi == 1){
-            productosToPrint.add(
-                Producto(
-                  nombreproducto: productoSeleccionado.nombreproducto,
-                  stock: cantidadActualizada,
-                  comentario: productoSeleccionado.comentario,
-                  sinACStock : cantidadActualizada == 0 ? true : false
-                )
-            );
-            ticketBluetooth.printLabelBluetooth(productosToPrint, 2, pedidoTotal, selectObjmesa.nombreMesa, usuario!, selectObjmesa.nombrePiso ?? widget.mesa!.nombrePiso, '', productoSeleccionado.idPedido);
-          }else if(BlueWifi == 2){
-            productosToPrint.add(
-                Producto(
-                    nombreproducto: productoSeleccionado.nombreproducto,
-                    stock: cantidadActualizada,
-                    comentario: productoSeleccionado.comentario,
-                    sinACStock : cantidadActualizada == 0 ? true : false
-                )
-                // Producto(
-                //   nombreproducto: productoSeleccionado.nombreproducto,
-                //   stock: cantidadActualizada,
-                //   comentario: cleanComentario(productoSeleccionado.comentario) ,
-                // )
-            );
-            imprimir(productosToPrint, 2, productoSeleccionado.idPedido);
+            Map<String, dynamic> resultadoNota = await detallePedidoServicio.actualizarPedidoConRespuestaApi( usuario?.accessToken, pedidoDetalle, widget.mesa?.id);
+            bool status = resultadoNota['status'];
+            List<dynamic> detalleActualizado = resultadoNota['detalle_actualizado'];
+            Map<String, dynamic> detalle = detalleActualizado[0];
+            print(detalle.toString());
+            int cantidadActualizada = detalle['cantidad_actualizada'];
+            print('DATOS ACTUALZIADOS $cantidadActualizada');
+            if(status){
+              if(BlueWifi == 1){
+                productosToPrint.add(
+                    Producto(
+                        nombreproducto: productoSeleccionado.nombreproducto,
+                        stock: cantidadActualizada,
+                        comentario: productoSeleccionado.comentario,
+                        sinACStock : cantidadActualizada == 0 ? true : false
+                    )
+                );
+                ticketBluetooth.printLabelBluetooth(productosToPrint, 2, pedidoTotal, selectObjmesa.nombreMesa, usuario!, selectObjmesa.nombrePiso ?? widget.mesa!.nombrePiso, '', productoSeleccionado.idPedido);
+              }else if(BlueWifi == 2){
+                productosToPrint.add(
+                    Producto(
+                        nombreproducto: productoSeleccionado.nombreproducto,
+                        stock: cantidadActualizada,
+                        comentario: productoSeleccionado.comentario,
+                        sinACStock : cantidadActualizada == 0 ? true : false
+                    )
+                  // Producto(
+                  //   nombreproducto: productoSeleccionado.nombreproducto,
+                  //   stock: cantidadActualizada,
+                  //   comentario: cleanComentario(productoSeleccionado.comentario) ,
+                  // )
+                );
+                imprimir(productosToPrint, 2, productoSeleccionado.idPedido);
+              }
+              print('resultadoNota true : ${resultadoNota.toString()}');
+              agregarMsj('Se agregó una nota al producto');
+            }
+            else{
+              print('resultadoNota false: ${resultadoNota.toString()}');
+              agregarMsj('No se actualizaron las notas');
+            }
           }
-          print('resultadoNota true : ${resultadoNota.toString()}');
-          agregarMsj('Se agregó una nota al producto');
         }
-        else{
-          print('resultadoNota false: ${resultadoNota.toString()}');
-          agregarMsj('No se actualizaron las notas');
-        }
-
       }
       else {
         widget.productosSeleccionados?[indexProducto].comentario = comentarioSpan;
@@ -1132,8 +1164,10 @@ class _DetailsPageState extends State<DetailsPage> {
              });
            }else {
              mostrarMensaje('${respuestaData.mensaje}');
+
              setState(() {
-               widget.productosSeleccionados![productoindex].stock = widget.productosSeleccionados![productoindex].stock! + 1; // Reduce la cantidad en 1
+               widget.productosSeleccionados![productoindex].stock = widget.productosSeleccionados![productoindex].stock! + 1;
+               widget.productosSeleccionados![productoindex].aCStock = false;
              });
            }
         }
@@ -1142,52 +1176,79 @@ class _DetailsPageState extends State<DetailsPage> {
           var productoSeleccionado = widget.productosSeleccionados![productoindex];
 
           print('"monto_total": $pedidoTotal');
-          Map<String, dynamic> pedidoDetalle = {
-            "monto_total": pedidoTotal,
-            "detalle": [
-              {
-                "id_pedido_detalle": productoSeleccionado.id_pedido_detalle,
-                "id_pedido": productoSeleccionado.idPedido,
-                "id_producto": productoSeleccionado.id,
-                "cantidad_producto": productoSeleccionado.stock,
-                "cantidad_real": productoSeleccionado.stock,
-                "precio_unitario": productoSeleccionado.precioproducto,
-                "precio_producto": productoSeleccionado.precioproducto! * productoSeleccionado.stock!.toInt(),
-                "comentario": productoSeleccionado.comentario,
-                "estado_detalle": 1
+
+          // Map<String, dynamic> pedidoRespuesta =  await detallePedidoServicio.fetchPedidoDetalleRespuesta(usuario!.accessToken, selectObjmesa.id ?? widget.mesa!.id );
+
+          Map<String, dynamic> pedidoRespuesta =  await detallePedidoServicio.fetchPedidoDetalle(usuario!.accessToken, selectObjmesa.id ?? widget.mesa!.id  );
+          Pedido pedido = pedidoRespuesta['pedido_detalle'];
+          List<Detalle_Pedido>? detallePedido = [];
+          detallePedido = pedido.detalle;
+
+          Detalle_Pedido compare = detallePedido!.firstWhere((element) => element.id_pedido_detalle == productoSeleccionado.id_pedido_detalle);
+
+          if(productoSeleccionado.stock! > compare.cantidad_producto!){
+            mostrarMensaje('Cantidad restada');
+          }
+          if(productoSeleccionado.stock! == compare.cantidad_producto!){
+            mostrarMensaje('No hay nada que actualizar');
+            setState(() {
+              widget.productosSeleccionados![productoindex].aCStock = false;
+            });
+          }
+          if(productoSeleccionado.stock! < compare.cantidad_producto!){
+            Map<String, dynamic> pedidoDetalle = {
+              "monto_total": pedidoTotal,
+              "detalle": [
+                {
+                  "id_pedido_detalle": productoSeleccionado.id_pedido_detalle,
+                  "id_pedido": productoSeleccionado.idPedido,
+                  "id_producto": productoSeleccionado.id,
+                  "cantidad_producto": productoSeleccionado.stock,
+                  "cantidad_real": productoSeleccionado.stock,
+                  "precio_unitario": productoSeleccionado.precioproducto,
+                  "precio_producto": productoSeleccionado.precioproducto! * productoSeleccionado.stock!.toInt(),
+                  "comentario": productoSeleccionado.comentario,
+                  "estado_detalle": 1
+                }
+              ]
+            };
+            Map<String, dynamic> detalleActualizadoJson = await detallePedidoServicio.actualizarPedidoConRespuestaApi( usuario?.accessToken, pedidoDetalle, widget.mesa?.id);
+
+            print('detalleActualizadoJson : ${detalleActualizadoJson}');
+            bool statusAcJson = detalleActualizadoJson['decremento'] ?? detalleActualizadoJson['status'] ;
+
+            if (statusAcJson) {
+              productosToPrint.add(
+                  Producto(
+                      nombreproducto: productoSeleccionado.nombreproducto,
+                      stock:-1
+                  )
+              );
+              String mensaje =  detalleActualizadoJson['mensaje'];
+              // mostrarMensajeActualizado(mensaje, false);
+              if (productosToPrint.isNotEmpty){
+                if (BlueWifi == 1) {
+                  ticketBluetooth.printLabelBluetooth(productosToPrint, 2, pedidoTotal, selectObjmesa.nombreMesa, usuario!, selectObjmesa.nombrePiso ?? widget.mesa!.nombrePiso, '', productoSeleccionado.idPedido);
+                } else if (BlueWifi == 2) {
+                  imprimir(productosToPrint, 2, productoSeleccionado.idPedido);
+                }
+                print('Hay productos que Actualizar');
+                // Navigator.pop(context);
+              }else{
+                mostrarMensajeActualizado('Revisal la lista productosToPrint : ${productosToPrint.length}', true);
+                print('No hay productos que Actualizar');
+                // Navigator.pop(context);
               }
-            ]
-          };
+            } else {
+              mostrarMensaje('${detalleActualizadoJson['mensaje']}');
+              // mostrarMensaje('wazaaa');
 
-          Map<String, dynamic> detalleActualizadoJson = await detallePedidoServicio.actualizarPedidoConRespuestaApi( usuario?.accessToken, pedidoDetalle, widget.mesa?.id);
+              setState(() {
+                widget.productosSeleccionados![productoindex].aCStock = false;
+              });
 
-          print('detalleActualizadoJson : ${detalleActualizadoJson}');
-          bool statusAcJson = detalleActualizadoJson['decremento'];
-
-          if (statusAcJson) {
-            productosToPrint.add(
-                Producto(
-                    nombreproducto: productoSeleccionado.nombreproducto,
-                    stock:-1
-                )
-            );
-            String mensaje =  detalleActualizadoJson['mensaje'];
-            // mostrarMensajeActualizado(mensaje, false);
-            if (productosToPrint.isNotEmpty){
-              if (BlueWifi == 1) {
-                ticketBluetooth.printLabelBluetooth(productosToPrint, 2, pedidoTotal, selectObjmesa.nombreMesa, usuario!, selectObjmesa.nombrePiso ?? widget.mesa!.nombrePiso, '', productoSeleccionado.idPedido);
-              } else if (BlueWifi == 2) {
-                imprimir(productosToPrint, 2, productoSeleccionado.idPedido);
-              }
-              print('Hay productos que Actualizar');
-              // Navigator.pop(context);
-            }else{
-              mostrarMensajeActualizado('Revisal la lista productosToPrint : ${productosToPrint.length}', true);
-              print('No hay productos que Actualizar');
-              // Navigator.pop(context);
+              print('Wazaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa');
             }
-          } else {
-            print('Wazaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa');
           }
         }
         _actualizarProductosSeleccionados();
@@ -1506,13 +1567,18 @@ class _DetailsPageState extends State<DetailsPage> {
         ),
         onPressed: () async {
           bool hayProductoSinIdDetalle = widget.productosSeleccionados!.any((producto) => producto.id_pedido_detalle == null);
+          bool hayProductoSinAc = widget.productosSeleccionados!.any((producto) => producto.aCStock == true);
 
           if (hayProductoSinIdDetalle) {
             mostrarMensajeActualizado('Falta actualizar productos antes de mandar a precuenta.', true);
             return; // Salir del método si falta actualizar algún producto
           }
+          if(hayProductoSinAc){
+            mostrarMensajeActualizado('Falta actualizar productos antes de mandar a precuenta.', true);
+            return;
+          }
 
-// Continuar solo si no hay productos sin id_pedido_detalle
+          // Continuar solo si no hay productos sin id_pedido_detalle
           if (selectObjmesa.estadoMesa != 2 || widget.mesa!.estadoMesa != 2) {
             gif();
             PedidoResponse? updateMesa = await mesaServicio.actualizarMesa(selectObjmesa.id ?? widget.mesa!.id, usuario!.accessToken, 2);
@@ -1702,11 +1768,10 @@ class _DetailsPageState extends State<DetailsPage> {
             final productoSeleccionado = widget.productosSeleccionados?[index];
             //final productoSeleccionadoDetalle = widget.detallePedidoLista[index];
 
-            if (productoSeleccionado != null &&
-                productoSeleccionado.stock != null) {
+            if (productoSeleccionado != null && productoSeleccionado.stock != null) {
               setState(() {
-                productoSeleccionado.stock =
-                    productoSeleccionado.stock! + 1; // Aumentar el stock
+                productoSeleccionado.stock =productoSeleccionado.stock! + 1; // Aumentar el stock
+                productoSeleccionado.aCStock = true; // Aumentar el stock
 
                 // double precioTotalProductoDetalle = productoSeleccionadoDetalle.precio_producto! + productoSeleccionado.precioproducto!;
                 //
