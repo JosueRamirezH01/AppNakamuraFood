@@ -153,6 +153,24 @@ class MesaServicio {
     }
     return null;
   }
+
+  Future<String?> obtenerMozoxMesa(int? idMesa, String? accessToken) async {
+    try {
+      Uri url = Uri.https(_url, '$_api/usuarios_por_mesa/$idMesa');
+      Map<String, String> headers = {
+        'Content-type': 'application/json',
+        'Authorization': 'Bearer $accessToken'
+      };
+      final res = await http.get(url, headers: headers);
+      final data = json.decode(res.body);
+      String? mozo = data['nombre_usuario'] ?? 'No disponible';
+      return mozo;
+    } catch (e) {
+      print('Error Mesa: $e');
+      return null;
+    }
+  }
+
   }
 
 

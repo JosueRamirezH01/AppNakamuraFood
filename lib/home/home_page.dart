@@ -97,9 +97,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
         _pref.remove('stateConexionTicket');
         _pref.remove('conexionBluetooth');
         print('TOKEN ${usuario!.accessToken!}');
-        PedidoResponse? respuestaData = await moduloLogin.logout(usuario!.accessToken!);
-        print('RESPUESTA DE LOGOUT ${respuestaData.toString()}');
-
         Fluttertoast.showToast(msg: 'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.',backgroundColor: Colors.red,gravity: ToastGravity.TOP,toastLength: Toast.LENGTH_LONG);
         Navigator.pushNamedAndRemoveUntil(context, 'login', (route) => false);
 
@@ -1365,19 +1362,16 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
         else {
           print('ENTRAR MESA STATUS  ${mesa.toJson()}');
           Map<String, dynamic> pedidoRespuesta =  await dbDetallePedido.fetchPedidoDetalle(usuario!.accessToken, mesa.id  );
-
+          String? mozo = await dbMesas.obtenerMozoxMesa(mesa.id, usuario!.accessToken);
           print('PEDIDO OBTENIDO POR MESA ${pedidoRespuesta.toString()}');
           Pedido pedido = pedidoRespuesta['pedido_detalle'];
-          String nombreMozo = pedidoRespuesta['nombre_mozo'] ?? 'waza';
-          print('pedido log1 : ${pedido.toJson()}');
-          print('COMENTARIO OBTENIDO POR MESA ${pedido.detalle![0].comentario.runtimeType}');
           if(pedido.idUsuario != usuario?.user?.id){
             showDialog(
               context: context,
               builder: (BuildContext context) {
                 return AlertDialog(
                   title: Text('Mensaje'),
-                  content: Text('La Mesa ya esta ocupada por el Mozo : $nombreMozo'),
+                  content: Text('La Mesa ya esta ocupada por el Mozo : $mozo'),
                   actions: <Widget>[
                     TextButton(
                       style: ButtonStyle(

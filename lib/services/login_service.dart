@@ -38,33 +38,32 @@ class LoginService {
         final data = json.decode(res.body);
         Usuario usuario = Usuario.fromJson(data); // Accede a la parte 'user' del JSON
         print('${usuario.toJson()}');
-        int expiresIn = data['expires_in'] - 12;
-        print('---- DATO A EXPIRAR $expiresIn');
-        DateTime receivedAt = DateTime.now();
-        DateTime expiryTime = receivedAt.add(Duration(seconds: expiresIn));
-        String formattedExpiryTime = DateFormat('yyyy-MM-dd HH:mm:ss').format(expiryTime);
-        _sharedPreferences.save('expires', formattedExpiryTime);
-        print('El token expira en: $formattedExpiryTime');
-        final userData = json.encode(data);
-        _sharedPreferences.save('user_data', userData);
-        Fluttertoast.showToast(
-          msg: "Inicio de sesión exitoso.",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.CENTER,
-          timeInSecForIosWeb: 1,
-          backgroundColor: Colors.green,
-          textColor: Colors.white,
-          fontSize: 16.0,
-        );
-        final dynamic userDataShared = await _sharedPreferences.read('user_data');
-        if (userDataShared != null) {
-          final Map<String, dynamic> userDataMap = json.decode(userData);
-          usuarioShared = Usuario.fromJson(userDataMap);
-        }
-        await prod.consultarCategorias(usuarioShared.accessToken);
-        await prod.consultarProductos(usuarioShared.accessToken);
-        Navigator.pushNamedAndRemoveUntil(context, 'home', (route) => false);
-        return usuario;
+          int expiresIn = data['expires_in'];
+          DateTime receivedAt = DateTime.now();
+          DateTime expiryTime = receivedAt.add(Duration(seconds: expiresIn));
+          String formattedExpiryTime = DateFormat('yyyy-MM-dd HH:mm:ss').format(expiryTime);
+          _sharedPreferences.save('expires', formattedExpiryTime);
+          print('El token expira en: $formattedExpiryTime');
+          final userData = json.encode(data);
+          _sharedPreferences.save('user_data', userData);
+          Fluttertoast.showToast(
+            msg: "Inicio de sesión exitoso.",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.CENTER,
+            timeInSecForIosWeb: 1,
+            backgroundColor: Colors.green,
+            textColor: Colors.white,
+            fontSize: 16.0,
+          );
+          final dynamic userDataShared = await _sharedPreferences.read('user_data');
+          if (userDataShared != null) {
+            final Map<String, dynamic> userDataMap = json.decode(userData);
+            usuarioShared = Usuario.fromJson(userDataMap);
+          }
+          await prod.consultarCategorias(usuarioShared.accessToken);
+          await prod.consultarProductos(usuarioShared.accessToken);
+          Navigator.pushNamedAndRemoveUntil(context, 'home', (route) => false);
+          return usuario;
       } else if (res.statusCode == 401) {
         Fluttertoast.showToast(
           msg: "Usuario Incorrecto",
