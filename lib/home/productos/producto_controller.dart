@@ -50,7 +50,9 @@ class ProductoController {
           content: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              CircularProgressIndicator(),
+              CircularProgressIndicator(
+                color: Color( 0xFFFF562F),
+              ),
               SizedBox(width: 20),
               Text("Cargando..."),
             ],
@@ -134,7 +136,7 @@ class ProductoController {
   }
 
   void onChangeText(String text) {
-    const duration = Duration(milliseconds: 800);
+    const duration = Duration(milliseconds: 500);
     searchOnStoppedTyping.cancel();
     refresh();
     searchOnStoppedTyping = Timer(duration, () {

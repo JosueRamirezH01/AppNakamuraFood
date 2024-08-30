@@ -79,7 +79,7 @@ class ProductoServicio {
       };
       final res = await http.get(url, headers: headers);
       final data = json.decode(res.body);
-      print('Datos recibidos: $data');
+      print('Datos recibidos: ${data}');
       Producto empresa = Producto.fromJsonList(data);
       return empresa.productos;
     } catch (e) {

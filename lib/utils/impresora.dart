@@ -156,17 +156,30 @@ class Impresora {
     }else{
       producto?.forEach((producto) {
         if(producto.stock == 0){
+          // printer.row([
+          //   PosColumn(text: producto.sinACStock! ? 'sin actualizar':'Rechazado', width: 3),
+          //   PosColumn(text: '${producto.nombreproducto}', width: 6),
+          //   PosColumn(text: producto.comentario ?? '', width: 3),
+          // ]);
+          List<String> lines = cleanComentario(producto.comentario).split(';');
           printer.row([
-            PosColumn(text: producto.sinACStock == true ?'sin actualizar':'Rechazado', width: 3),
+            PosColumn(text: producto.sinACStock == true ? 'No. Ac':'Cancelado', width: 3),
             PosColumn(text: '${producto.nombreproducto}', width: 6),
-            PosColumn(text: producto.comentario ?? '', width: 3),
+            PosColumn(text: lines[0].trim(), width: 3),
           ]);
+          for (int i = 1; i < lines.length; i++) {
+            printer.row([
+              PosColumn(text: '', width: 3),
+              PosColumn(text: '', width: 6),
+              PosColumn(text: lines[i].trim(), width: 3),
+            ]);
+          }
           printer.hr();
         }else if(producto.stock! < 0){
           printer.row([
-            PosColumn(text: '${producto.stock}', width: 3),
-            PosColumn(text: '${producto.nombreproducto}', width: 6),
-            PosColumn(text: 'excluidos', width: 3),
+            PosColumn(text: 'Restados', width: 2),
+            PosColumn(text: '${producto.stock}', width: 1),
+            PosColumn(text: '${producto.nombreproducto}', width: 9),
           ]);
           printer.hr();
         }else{
@@ -209,6 +222,17 @@ class Impresora {
         }
       });
     }
+  }
+
+  cleanComentario(String? comentario) {
+    if (comentario == null || comentario.isEmpty) {
+      return '';
+    }
+    final RegExp regExp = RegExp(r'<span[^>]*>([^<]+)<\/span>');
+    Iterable<Match> matches = regExp.allMatches(comentario);
+
+    String cleanedComentario = matches.map((match) => match.group(1)).join(';');
+    return cleanedComentario;
   }
 }
 
