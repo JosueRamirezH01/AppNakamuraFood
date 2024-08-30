@@ -1362,19 +1362,16 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
         else {
           print('ENTRAR MESA STATUS  ${mesa.toJson()}');
           Map<String, dynamic> pedidoRespuesta =  await dbDetallePedido.fetchPedidoDetalle(usuario!.accessToken, mesa.id  );
-
+          String? mozo = await dbMesas.obtenerMozoxMesa(mesa.id, usuario!.accessToken);
           print('PEDIDO OBTENIDO POR MESA ${pedidoRespuesta.toString()}');
           Pedido pedido = pedidoRespuesta['pedido_detalle'];
-          String nombreMozo = pedidoRespuesta['nombre_mozo'] ?? 'waza';
-          print('pedido log1 : ${pedido.toJson()}');
-          print('COMENTARIO OBTENIDO POR MESA ${pedido.detalle![0].comentario.runtimeType}');
           if(pedido.idUsuario != usuario?.user?.id){
             showDialog(
               context: context,
               builder: (BuildContext context) {
                 return AlertDialog(
                   title: Text('Mensaje'),
-                  content: Text('La Mesa ya esta ocupada por el Mozo : $nombreMozo'),
+                  content: Text('La Mesa ya esta ocupada por el Mozo : $mozo'),
                   actions: <Widget>[
                     TextButton(
                       style: ButtonStyle(
