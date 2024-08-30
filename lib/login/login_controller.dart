@@ -26,14 +26,11 @@ class LoginController {
     if (userData != null) {
       final Map<String, dynamic> userDataMap = json.decode(userData);
       final expiracion_in = await _pref.read('expires');
-
       final DateTime expiracionDateTime = DateTime.parse(expiracion_in);
       final DateTime now = DateTime.now();
-
       final Usuario usuario = Usuario.fromJson(userDataMap);
       print('expiracionDateTime $expiracionDateTime');
       print('now $now');
-
       if (now.isAfter(expiracionDateTime)) {
         print('DESPUES DE TIEMPO');
         _pref.remove('user_data');
@@ -41,7 +38,6 @@ class LoginController {
         _pref.remove('productos');
         _pref.remove('stateConexionTicket');
         _pref.remove('conexionBluetooth');
-        PedidoResponse? respuestaData = await moduloLogin.logout(usuario.accessToken!);
         Navigator.pushNamedAndRemoveUntil(context, 'login', (route) => false);
       }else {
         print('ANTES DE TIEMPO');

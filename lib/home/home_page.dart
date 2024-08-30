@@ -97,9 +97,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
         _pref.remove('stateConexionTicket');
         _pref.remove('conexionBluetooth');
         print('TOKEN ${usuario!.accessToken!}');
-        PedidoResponse? respuestaData = await moduloLogin.logout(usuario!.accessToken!);
-        print('RESPUESTA DE LOGOUT ${respuestaData.toString()}');
-
         Fluttertoast.showToast(msg: 'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.',backgroundColor: Colors.red,gravity: ToastGravity.TOP,toastLength: Toast.LENGTH_LONG);
         Navigator.pushNamedAndRemoveUntil(context, 'login', (route) => false);
 
