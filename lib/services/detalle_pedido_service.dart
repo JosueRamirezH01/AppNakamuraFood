@@ -26,11 +26,14 @@ class DetallePedidoServicio {
 
       // Procesa el JSON y devuelve el Map
       bool status = jsonResponse['status'];
+      // String nombremozo = jsonResponse['pedido_detalle']['mozo'];
+      print('Res56 : ${jsonResponse['pedido_detalle']['mozo'.toString()]}');
       Pedido pedido = Pedido.fromJson(jsonResponse['pedido_detalle']);
       print('Pedido Detalle: ${pedido.detalle!.first.comentario.runtimeType}');
       return {
         'status': status,
         'pedido_detalle': pedido,
+        // 'nombre_mozo':nombremozo
       };
     } else {
       throw Exception('Failed to load pedido detalle');

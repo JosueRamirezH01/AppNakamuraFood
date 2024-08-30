@@ -493,8 +493,10 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
                 }
               } else {
                 // El producto no está seleccionado, agrégalo a la lista de productos seleccionados
+                  Producto producToAdd = producto;
+                  producToAdd.stock = 1;
                 setState(() {
-                  _con.productosSeleccionados?.add(producto);
+                  _con.productosSeleccionados?.add(producToAdd);
                 });
                 // Muestra un mensaje de confirmación
                 _con.agregarMsj('El producto se ha añadido a la lista.');
@@ -504,7 +506,7 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
                 });
               }
             }else{
-              _con.mostrarMensaje('No se pueden agregar productos porque el pedido está cerrado.');
+              _con.mostrarMensaje('No se pueden agregar productos porque el pedido está en PreCuenta.');
             }
           });
         }

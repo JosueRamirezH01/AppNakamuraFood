@@ -3,7 +3,7 @@ import 'package:mysql1/mysql1.dart';
 import 'package:restauflutter/bd/conexion.dart';
 
 class EntornoService {
-  final Connection _connectionSQL = Connection();
+  // final Connection _connectionSQL = Connection();
 
   // Future<int> consultarEntorno( BuildContext context) async {
   //   MySqlConnection? conn;
