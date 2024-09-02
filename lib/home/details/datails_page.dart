@@ -743,11 +743,9 @@ class _DetailsPageState extends State<DetailsPage> {
     print( 'comentario entrada : ${widget.productosSeleccionados?[indexProducto].comentario}');
 
     String? notabd = cleanComentario( widget.productosSeleccionados?[indexProducto].comentario) ?? '';
-
     List<String> seleccionadosBd = convertStringToList(notabd);
 
     var productoSeleccionado = widget.productosSeleccionados![indexProducto];
-
     _checkedItems = List.filled(comidas.length, false);
 
     for (int i = 0; i < comidas.length; i++) {
@@ -755,6 +753,9 @@ class _DetailsPageState extends State<DetailsPage> {
         _checkedItems[i] = true;
       }
     }
+    // Variable para almacenar el texto de búsqueda
+    String searchText = '';
+
     return showDialog<String>(
       context: context,
       builder: (BuildContext context) {
@@ -762,27 +763,58 @@ class _DetailsPageState extends State<DetailsPage> {
           title: Text('Observaciones del Plato'),
           content: StatefulBuilder(
             builder: (BuildContext context, StateSetter setState) {
+
+              List<Nota> filteredComidas = comidas;
+              if (searchText.isNotEmpty) {
+                filteredComidas = comidas
+                    .where((nota) => nota.descripcion_nota!.toLowerCase().contains(searchText.toLowerCase()))
+                    .toList();
+                if (filteredComidas.isNotEmpty) {
+                  final notaEncontrada = filteredComidas.removeAt(0);
+                  filteredComidas.insert(0, notaEncontrada);
+                }
+              }
+
               return Container(
                 height: MediaQuery.of(context).size.height * 0.5,
-                child: Scrollbar(
-                  thumbVisibility: true,
-                  child: SingleChildScrollView(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: List.generate(comidas.length, (index) {
-                        return CheckboxListTile(
-                          activeColor: Color(0xFFFF562F),
-                          title: Text(comidas[index].descripcion_nota!),
-                          value: _checkedItems[index],
-                          onChanged: (value) {
-                            setState(() {
-                              _checkedItems[index] = value ?? false;
-                            });
-                          },
-                        );
-                      }),
+                child: Column(
+                  children: [
+                    TextField(
+                      decoration: InputDecoration(
+                        labelText: 'Buscar nota',
+                        prefixIcon: Icon(Icons.search),
+                      ),
+                      onChanged: (value) {
+                        setState(() {
+                          searchText = value;
+                        });
+                      },
                     ),
-                  ),
+                    SizedBox(height: 10),
+                    Expanded(
+                      // height: MediaQuery.of(context).size.height * 0.39,
+                      child: Scrollbar(
+                        thumbVisibility: true,
+                        child: SingleChildScrollView(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: List.generate(filteredComidas.length, (index) {
+                              return CheckboxListTile(
+                                activeColor: Color(0xFFFF562F),
+                                title: Text(filteredComidas[index].descripcion_nota!),
+                                value: _checkedItems[comidas.indexOf(filteredComidas[index])],
+                                onChanged: (value) {
+                                  setState(() {
+                                    _checkedItems[comidas.indexOf(filteredComidas[index])] = value ?? false;
+                                  });
+                                },
+                              );
+                            }),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               );
             },
@@ -831,46 +863,6 @@ class _DetailsPageState extends State<DetailsPage> {
                   }
                 }
 
-                // if (widget.items_independientes) {
-                //   if (_stateConexionTicket) {
-                //     if (conexionBluetooth) {
-                //       await acNota(comidas, id_pedido_detalle, indexProducto,1);
-                //     } else {
-                //       String messague = 'No se ha encontrado conectado a un dispositivo Bluetooth.';
-                //       showMessangueDialog(messague);
-                //       return;
-                //     }
-                //   } else {
-                //     if (printerIP == null) {
-                //       String messague = 'No se ha encontrado la dirección IP de la impresora.';
-                //       showMessangueDialog(messague);
-                //       return; // Salir del método printLabel
-                //     } else {
-                //       await acNota(comidas, id_pedido_detalle, indexProducto,2);
-                //     }
-                //   }
-                // }
-                // else {
-                //   if (_stateConexionTicket) {
-                //     if (conexionBluetooth) {
-                //       await acNota(comidas, id_pedido_detalle, indexProducto,1);
-                //       refresh();
-                //     } else {
-                //       String messague = 'No se ha encontrado conectado a un dispositivo Bluetooth.';
-                //       showMessangueDialog(messague);
-                //       return;
-                //     }
-                //   } else {
-                //     if (printerIP == null) {
-                //       String messague = 'No se ha encontrado la dirección IP de la impresora.';
-                //       showMessangueDialog(messague);
-                //       return; // Salir del método printLabel
-                //     } else {
-                //       await acNota(comidas, id_pedido_detalle, indexProducto,2);
-                //       refresh();
-                //     }
-                //   }
-                // }
                 Navigator.pop(context, 'OK');
               },
               child: Text('Aceptar', style: TextStyle(color: Colors.white)),
