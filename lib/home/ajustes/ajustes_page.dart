@@ -501,7 +501,6 @@ class _AjustesPageState extends State<AjustesPage> {
         _sharedPref.remove('user_data');
         _sharedPref.remove('categorias');
         _sharedPref.remove('productos');
-        _sharedPref.remove('ipBar');
         _sharedPref.remove('stateConexionTicket');
         _sharedPref.remove('conexionBluetooth');
         PedidoResponse? respuestaData = await moduloLogin.logout(mozo.accessToken!);

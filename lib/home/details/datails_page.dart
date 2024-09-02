@@ -149,12 +149,12 @@ class _DetailsPageState extends State<DetailsPage> {
                     decoration: widget.productosSeleccionados?[index].id_pedido_detalle == null ||
                         widget.productosSeleccionados?[index].aCStock == true
                         ? BoxDecoration(
-                            border: Border.all(
-                              color: Colors.purpleAccent,
-                              width: 2.0,
-                            ),
-                            borderRadius: BorderRadius.circular(10.0),
-                          )
+                      border: Border.all(
+                        color: Colors.purpleAccent,
+                        width: 2.0,
+                      ),
+                      borderRadius: BorderRadius.circular(10.0),
+                    )
                         : null,
                     margin: const EdgeInsets.symmetric(
                         vertical: 5.0, horizontal: 10.0),
@@ -175,13 +175,13 @@ class _DetailsPageState extends State<DetailsPage> {
                           ),
                           Column(
                             children: [
-                               if (widget.mesa!.estadoMesa != 2 && widget.items_independientes == false)
+                              if (widget.mesa!.estadoMesa != 2 && widget.items_independientes == false)
                                 _addOrRemoveItem(index),
                               _precioProducto(index),
                             ],
                           ),
                           const SizedBox(width: 5),
-                           if (selectObjmesa.estadoMesa != 2 || widget.mesa!.estadoMesa != 2)
+                          if (selectObjmesa.estadoMesa != 2 || widget.mesa!.estadoMesa != 2)
                             Container(
                               decoration: BoxDecoration(
                                   color: Colors.grey[200],
@@ -232,15 +232,15 @@ class _DetailsPageState extends State<DetailsPage> {
     // Devuelve un widget vacío si el índice está fuera de rango o el detalle del pedido es nulo
     return Container(
       decoration: widget.items_independientes == true ?
-        BoxDecoration(
-          borderRadius: const BorderRadius.only(
+      BoxDecoration(
+        borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(8),
             bottomLeft: Radius.circular(8),
             bottomRight: Radius.circular(8),
             topRight: Radius.circular(8)
-          ),
-          color: widget.items_independientes == false ? Colors.grey[200] : null,
-        ) : null ,
+        ),
+        color: widget.items_independientes == false ? Colors.grey[200] : null,
+      ) : null ,
       child: Padding(
         padding: widget.items_independientes == true ?  EdgeInsets.all(8.0) : EdgeInsets.all(0),
         child: Text(
@@ -482,19 +482,19 @@ class _DetailsPageState extends State<DetailsPage> {
         print('Respuesta ${detalleAcJson}');
 
         List<Detalle_Pedido> detalleActualizado = detalleAcJson.map((json) => Detalle_Pedido.fromJson({
-                  "id_detalle": json["id_pedido_detalle"],
-                  "id_pedido": json["id_pedido"],
-                  "id_producto": json["id_producto"],
-                  "cantidad_producto": json["cantidad_producto"],
-                  "cantidad_actualizada": json["cantidad_actualizada"],
-                  "cantidad_exacta": json["cantidad_exacta"],
-                  "cantidad_real": json["cantidad_real"],
-                  "precio_producto": double.tryParse(json["precio_producto"]?.toString() ?? "0.0"),
-                  "precio_unitario": double.tryParse(json["precio_unitario"]?.toString() ?? "0.0"),
-                  "comentario": json["comentario"],
-                  "estado_detalle": json["estado_detalle"],
-                  "updated_at": DateTime.parse(json["updated_at"]),
-                })).toList();
+          "id_detalle": json["id_pedido_detalle"],
+          "id_pedido": json["id_pedido"],
+          "id_producto": json["id_producto"],
+          "cantidad_producto": json["cantidad_producto"],
+          "cantidad_actualizada": json["cantidad_actualizada"],
+          "cantidad_exacta": json["cantidad_exacta"],
+          "cantidad_real": json["cantidad_real"],
+          "precio_producto": double.tryParse(json["precio_producto"]?.toString() ?? "0.0"),
+          "precio_unitario": double.tryParse(json["precio_unitario"]?.toString() ?? "0.0"),
+          "comentario": json["comentario"],
+          "estado_detalle": json["estado_detalle"],
+          "updated_at": DateTime.parse(json["updated_at"]),
+        })).toList();
 
         print('detalleActualizado${detalleActualizado}');
         // Crear un mapa para contar la cantidad de productos por id_producto
@@ -503,8 +503,8 @@ class _DetailsPageState extends State<DetailsPage> {
         // Asignar id_pedido_detalle a productos sin id_pedido_detalle
         productosSinIdDetalle.forEach((producto) {
           Detalle_Pedido? detalleCorrespondiente = detalleActualizado.firstWhere((detalle) =>
-            detalle.id_producto == producto.id &&
-            detalle.precio_unitario == producto.precioproducto,
+          detalle.id_producto == producto.id &&
+              detalle.precio_unitario == producto.precioproducto,
           );
 
           if (detalleCorrespondiente != null) {
@@ -527,8 +527,8 @@ class _DetailsPageState extends State<DetailsPage> {
         productosConIdDetalle.forEach((producto) {
           if (detalleActualizado.any((detalle) => detalle.id_pedido_detalle == producto.id_pedido_detalle)) {
             Detalle_Pedido? detalleCorrespondiente = detalleActualizado.firstWhere((detalle) =>
-              detalle.id_producto == producto.id &&
-              detalle.id_pedido_detalle == producto.id_pedido_detalle,
+            detalle.id_producto == producto.id &&
+                detalle.id_pedido_detalle == producto.id_pedido_detalle,
             );
             print('paraAc : ${detalleCorrespondiente.toString()}');
 
@@ -749,7 +749,7 @@ class _DetailsPageState extends State<DetailsPage> {
     var productoSeleccionado = widget.productosSeleccionados![indexProducto];
 
     _checkedItems = List.filled(comidas.length, false);
-      
+
     for (int i = 0; i < comidas.length; i++) {
       if (seleccionadosBd.contains(comidas[i].descripcion_nota)) {
         _checkedItems[i] = true;
@@ -1098,7 +1098,7 @@ class _DetailsPageState extends State<DetailsPage> {
           if(BlueWifi == 1){
             ticketBluetooth.printLabelBluetooth(productoImprimir, 2, pedidoTotal, selectObjmesa.nombreMesa, usuario!, selectObjmesa.nombrePiso ?? widget.mesa!.nombrePiso, '', productoSeleccionado.idPedido);
           }else if(BlueWifi == 2){
-           imprimir(productoImprimir, 2, productoSeleccionado.idPedido);
+            imprimir(productoImprimir, 2, productoSeleccionado.idPedido);
           }
           mostrarMensajeActualizado('${respuestaData.mensaje}', false);
         }else {
@@ -1135,41 +1135,41 @@ class _DetailsPageState extends State<DetailsPage> {
         });
 
         if (widget.productosSeleccionados![productoindex].stock! <= 0) {
-           PedidoResponse respuestaData = await detallePedidoServicio.eliminarDetallePedido(id_pedido_detalle, usuario?.accessToken);
-           print('-------------- Eliminar ${respuestaData.status} -- ${respuestaData.mensaje}');
+          PedidoResponse respuestaData = await detallePedidoServicio.eliminarDetallePedido(id_pedido_detalle, usuario?.accessToken);
+          print('-------------- Eliminar ${respuestaData.status} -- ${respuestaData.mensaje}');
 
-           if(respuestaData.status == true){
-             List<Producto> productosToPrint = [];
-             var productoSeleccionado = widget.productosSeleccionados![productoindex];
-             productosToPrint.add(
-                 Producto(
-                     nombreproducto: productoSeleccionado.nombreproducto,
-                     stock:0
-                 )
-             );
+          if(respuestaData.status == true){
+            List<Producto> productosToPrint = [];
+            var productoSeleccionado = widget.productosSeleccionados![productoindex];
+            productosToPrint.add(
+                Producto(
+                    nombreproducto: productoSeleccionado.nombreproducto,
+                    stock:0
+                )
+            );
 
-             if (productosToPrint.isNotEmpty){
-               if (BlueWifi == 1) {
-                 ticketBluetooth.printLabelBluetooth(productosToPrint, 2, pedidoTotal, selectObjmesa.nombreMesa, usuario!, selectObjmesa.nombrePiso ?? widget.mesa!.nombrePiso, '', productoSeleccionado.idPedido);
-               } else if (BlueWifi == 2) {
-                 imprimir(productosToPrint, 2, productoSeleccionado.idPedido);
-               }
-               print('Hay productos que Actualizar');
-             }else{
-               mostrarMensajeActualizado('Revisal la lista productosToPrint : ${productosToPrint.length}', true);
-               print('No hay productos que Actualizar');
-             }
-             setState(() {
-               widget.productosSeleccionados!.removeAt(productoindex);
-             });
-           }else {
-             mostrarMensaje('${respuestaData.mensaje}');
+            if (productosToPrint.isNotEmpty){
+              if (BlueWifi == 1) {
+                ticketBluetooth.printLabelBluetooth(productosToPrint, 2, pedidoTotal, selectObjmesa.nombreMesa, usuario!, selectObjmesa.nombrePiso ?? widget.mesa!.nombrePiso, '', productoSeleccionado.idPedido);
+              } else if (BlueWifi == 2) {
+                imprimir(productosToPrint, 2, productoSeleccionado.idPedido);
+              }
+              print('Hay productos que Actualizar');
+            }else{
+              mostrarMensajeActualizado('Revisal la lista productosToPrint : ${productosToPrint.length}', true);
+              print('No hay productos que Actualizar');
+            }
+            setState(() {
+              widget.productosSeleccionados!.removeAt(productoindex);
+            });
+          }else {
+            mostrarMensaje('${respuestaData.mensaje}');
 
-             setState(() {
-               widget.productosSeleccionados![productoindex].stock = widget.productosSeleccionados![productoindex].stock! + 1;
-               widget.productosSeleccionados![productoindex].aCStock = false;
-             });
-           }
+            setState(() {
+              widget.productosSeleccionados![productoindex].stock = widget.productosSeleccionados![productoindex].stock! + 1;
+              widget.productosSeleccionados![productoindex].aCStock = false;
+            });
+          }
         }
         else{
           List<Producto> productosToPrint = [];
@@ -1344,6 +1344,114 @@ class _DetailsPageState extends State<DetailsPage> {
     );
   }
 
+  Future<String?> mostrarMesa(List<Mesa> mesas) async {
+    if (mesas.isEmpty) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Mesas no disponibles'),
+            content: Text('Lo sentimos, no hay mesas disponibles en este momento.'),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: Text('Aceptar'),
+              ),
+            ],
+          );
+        },
+      );
+      return null;
+    }
+
+    int? nuevaMesaId;
+    String? nomMesa;
+    nomMesa = await showDialog<String>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          title: const Text('Cambiar Mesa'),
+          content: StatefulBuilder(
+            builder: (BuildContext context, StateSetter setState) {
+              return DropdownButtonFormField<Mesa>(
+                hint: const Text(
+                  "Seleccione una mesa disponible",
+                  style: TextStyle(fontSize: 14),
+                ),
+                focusColor: Color(0xFFFF562F),
+                onChanged: (Mesa? newValue) {
+                  setState(() {
+                    nuevaMesaId = newValue?.id;
+                    nomMesa = newValue?.nombreMesa;
+                  });
+                },
+                items: mesas
+                    .map<DropdownMenuItem<Mesa>>(
+                      (Mesa mesa) => DropdownMenuItem<Mesa>(
+                    value: mesa,
+                    child: Text(
+                        '${mesa.nombreMesa} -> ${listaPisos.firstWhere((element) => element.id == mesa.pisoId).nombrePiso}'),
+                  ),
+                )
+                    .toList(),
+                borderRadius: BorderRadius.all(Radius.circular(20)),
+                menuMaxHeight: 500,
+                icon: Icon(Icons.table_bar),
+              );
+            },
+          ),
+          actions: <Widget>[
+            TextButton(
+              style: ButtonStyle(
+                backgroundColor: MaterialStateProperty.all(
+                    Color.fromRGBO(217, 217, 217, 0.8)),
+              ),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child:
+              const Text('Cancelar', style: TextStyle(color: Colors.black)),
+            ),
+            TextButton(
+              style: ButtonStyle(
+                backgroundColor: MaterialStateProperty.all(Color(0xFF4C95DD)),
+              ),
+              onPressed: () async {
+                if (nomMesa == null) {
+                  mostrarMensaje('Debes seleccionar una mesa');
+                } else {
+                  bool disponible = false; //bool disponible = await bdMesas.consultarMesa(nuevaMesaId!, context); -- SOMBREADO
+                  if (disponible == true) {
+                    int? idPedido =
+                    IDPEDIDOPRUEBA == 0 ? widget.idPedido : IDPEDIDOPRUEBA;
+                    bdPedido
+                        .actualizarPedido(idPedido, nuevaMesaId!, context)
+                        .then((_) async {
+                      //bdMesas.actualizarMesa(nuevaMesaId!, 3, context);
+                      //bdMesas.actualizarMesa(widget.mesa!.id, 1, context);
+                      widget.mesa?.id = nuevaMesaId;
+                      widget.mesa?.nombreMesa = nomMesa;
+                      Navigator.pop(context);
+                      Navigator.pop(context, idPedido);
+                    });
+                  } else {
+                    mostrarMensaje('La mesa esta ocupada');
+                  }
+                }
+              },
+              child: const Text('Confirmar',
+                  style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        );
+      },
+    );
+
+    return nomMesa;
+  }
 
   Widget _pedido() {
     return ElevatedButton(
@@ -1392,6 +1500,19 @@ class _DetailsPageState extends State<DetailsPage> {
 
     List<Categoria> categorias = [];
 
+    if(estado == 3){
+      print('precuenta {estado}]');
+      if (ipBar == null){
+        print('para cocina porque bar esta desabilitado 964');
+        impresora.printLabel(ipCocina!,ParaCocina,estado, pedidoTotal, selectObjmesa.nombreMesa ?? widget.mesa!.nombreMesa, usuario!, selectObjmesa.nombrePiso ?? widget.mesa!.nombrePiso,'',codigo);
+        return;
+      }else {
+        print('para bar 469');
+        impresora.printLabel(ipBar, ParaBar, estado, pedidoTotal, selectObjmesa.nombreMesa ?? widget.mesa!.nombreMesa, usuario!, selectObjmesa.nombrePiso ?? widget.mesa!.nombrePiso,'', codigo);
+        return;
+      }
+    }
+
     if (categoriasJson != null) {
       List<dynamic> categoriasList = json.decode(categoriasJson);
 
@@ -1420,11 +1541,15 @@ class _DetailsPageState extends State<DetailsPage> {
       if (ipBar == null) {
         if (prodSeleccionados.isNotEmpty) {
           print('Lista de productos seleccionados:');
-          impresora.printLabel(ipCocina!,prodSeleccionados,estado, pedidoTotal, selectObjmesa.nombreMesa ?? widget.mesa!.nombreMesa, usuario!, selectObjmesa.nombrePiso ?? widget.mesa!.nombrePiso,'', codigo);
+          for(int i = 0; i<4; i++) {
+            impresora.printLabel(ipCocina!, prodSeleccionados, estado, pedidoTotal, selectObjmesa.nombreMesa ?? widget.mesa!.nombreMesa, usuario!, selectObjmesa.nombrePiso ?? widget.mesa!.nombrePiso, '', codigo);
+            await Future.delayed(Duration(seconds: 1));
+          }
         } else {
           print('nada que imprimir');
         }
-      } else {
+      }
+      else {
         if (ParaBar.isNotEmpty) {
           impresora.printLabel(ipBar,ParaBar,estado, pedidoTotal, selectObjmesa.nombreMesa ?? widget.mesa!.nombreMesa, usuario!, selectObjmesa.nombrePiso ?? widget.mesa!.nombrePiso,'', codigo);
           if (ParaCocina.isNotEmpty) {
@@ -1436,7 +1561,7 @@ class _DetailsPageState extends State<DetailsPage> {
         } else {
           if (ParaCocina.isNotEmpty) {
             print('Lista de productos seleccionados:');
-           impresora.printLabel(ipCocina!,ParaCocina,estado, pedidoTotal, selectObjmesa.nombreMesa ?? widget.mesa!.nombreMesa, usuario!, selectObjmesa.nombrePiso ?? widget.mesa!.nombrePiso,'',codigo);
+            impresora.printLabel(ipCocina!,ParaCocina,estado, pedidoTotal, selectObjmesa.nombreMesa ?? widget.mesa!.nombreMesa, usuario!, selectObjmesa.nombrePiso ?? widget.mesa!.nombrePiso,'',codigo);
           } else {
             print('nada que imprimir');
           }
@@ -1454,8 +1579,8 @@ class _DetailsPageState extends State<DetailsPage> {
   Widget _preCuenta() {
     return ElevatedButton(
         style: ButtonStyle(
-          elevation: MaterialStateProperty.all(2),
-          backgroundColor:MaterialStateProperty.all(const Color(0xFFFFB500))
+            elevation: MaterialStateProperty.all(2),
+            backgroundColor:MaterialStateProperty.all(const Color(0xFFFFB500))
         ),
         onPressed: () async {
           bool hayProductoSinIdDetalle = widget.productosSeleccionados!.any((producto) => producto.id_pedido_detalle == null);
@@ -1484,6 +1609,10 @@ class _DetailsPageState extends State<DetailsPage> {
           Navigator.pop(context, 2);
 
           String? printerIP = await _pref.read('ipCocina');
+
+          String? ipBar = await _pref.read('ipBar');
+          String? ipCocina = await _pref.read('ipCocina');
+
           bool _stateConexionTicket = await _pref.read('stateConexionTicket') ?? false;
           bool conexionBluetooth = await _pref.read('conexionBluetooth') ?? false;
           print('CONEXION INICIAL $_stateConexionTicket');
@@ -1505,7 +1634,20 @@ class _DetailsPageState extends State<DetailsPage> {
               showMessangueDialog(messague);
               return; // Salir del método printLabel
             } else {
-              impresora.printLabel(printerIP, widget.productosSeleccionados, 3, pedidoTotal, selectObjmesa.nombreMesa ?? widget.mesa!.nombreMesa, usuario!, selectObjmesa.nombrePiso ?? widget.mesa!.nombrePiso, '', widget.productosSeleccionados![0].idPedido);
+              int estado = 3;
+              if(estado == 3){
+                print('precuenta {estado}]');
+                if (ipBar == null){
+                  print('para cocina porque bar esta desabilitado 964');
+                  impresora.printLabel(ipCocina!, widget.productosSeleccionados, 3, pedidoTotal, selectObjmesa.nombreMesa ?? widget.mesa!.nombreMesa, usuario!, selectObjmesa.nombrePiso ?? widget.mesa!.nombrePiso, '', widget.productosSeleccionados![0].idPedido);
+                  return;
+                }else {
+                  print('para bar 469');
+                  impresora.printLabel(ipBar, widget.productosSeleccionados, 3, pedidoTotal, selectObjmesa.nombreMesa ?? widget.mesa!.nombreMesa, usuario!, selectObjmesa.nombrePiso ?? widget.mesa!.nombrePiso, '', widget.productosSeleccionados![0].idPedido);
+                  return;
+                }
+              }
+              // impresora.printLabel(printerIP, widget.productosSeleccionados, 3, pedidoTotal, selectObjmesa.nombreMesa ?? widget.mesa!.nombreMesa, usuario!, selectObjmesa.nombrePiso ?? widget.mesa!.nombrePiso, '', widget.productosSeleccionados![0].idPedido);
             }
           }
           // if (selectObjmesa.estadoMesa != 2 || widget.mesa!.estadoMesa != 2) {
@@ -1581,9 +1723,9 @@ class _DetailsPageState extends State<DetailsPage> {
             Container(
               margin: EdgeInsets.only(left: 15),
               child:
-                  selectObjmesa.estadoMesa == 1 || widget.mesa!.estadoMesa == 1
-                      ? _pedido()
-                      : _preCuenta(),
+              selectObjmesa.estadoMesa == 1 || widget.mesa!.estadoMesa == 1
+                  ? _pedido()
+                  : _preCuenta(),
             ),
             // const SizedBox(width: 10),
             Spacer(),
