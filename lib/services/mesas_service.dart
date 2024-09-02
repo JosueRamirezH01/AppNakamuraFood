@@ -3,17 +3,21 @@ import 'package:restauflutter/model/PedidoResponse.dart';
 import 'package:restauflutter/model/mesa.dart';
 import 'package:http/http.dart' as http;
 
+import '../bd/api.dart';
+
 
 
 
 class MesaServicio {
 
-  final String _url = 'nakamurafoods.restaupe.com';
   final String _api = '/api/auth';
+  Api _apiRuta = Api();
 
 
 
   Future<List<Mesa>> getAll(String? accessToken, int? id) async {
+    String _url =  await _apiRuta.readApi();
+
     try {
       Uri url = Uri.https(_url, '$_api/MesasporPisos/$id');
       Map<String, String> headers = {
@@ -31,8 +35,9 @@ class MesaServicio {
   }
 
   Future<bool> consultarMesa(String? accessToken, int id) async {
-    try {
+    String _url =  await _apiRuta.readApi();
 
+    try {
       Uri url = Uri.https(_url, '$_api/obtenermesas/$id');
       print('${url}: ${url}');
 
@@ -62,9 +67,9 @@ class MesaServicio {
   }
 
   Future<PedidoResponse?> actualizarMesa(int? idMesa,String? accessToken, int idEstado ) async {
+    String _url =  await _apiRuta.readApi();
 
     try {
-
       Uri url = Uri.https(_url, '$_api/actualizar_estado_mesa/$idMesa/$idEstado');
       print('${url}: ${url}');
       String bodiParams = json.encode({
@@ -92,6 +97,8 @@ class MesaServicio {
   }
 
   Future<List<Mesa>> getAllxEstado(String? accessToken, int? idEstado) async {
+    String _url =  await _apiRuta.readApi();
+
     try {
       Uri url = Uri.https(_url, '$_api/lista_mesas/$idEstado');
       Map<String, String> headers = {
@@ -111,6 +118,8 @@ class MesaServicio {
   }
 
   void cambiar_mesa (String? accessToken, int id_mesaocupada) async {
+    String _url =  await _apiRuta.readApi();
+
     try{
       Uri url = Uri.https(_url, '$_api/MesasporPisos/$id_mesaocupada');
       Map<String, String> headers = {
@@ -125,9 +134,9 @@ class MesaServicio {
     }
   }
   Future<PedidoResponse?> cambiarMesa(int? mesaOcupada,String? accessToken, int? id_mesalibre ) async {
+    String _url =  await _apiRuta.readApi();
 
     try {
-
       Uri url = Uri.https(_url, '$_api/cambiar_mesa/$mesaOcupada');
       print('${url}: ${url}');
       String bodiParams = json.encode({
@@ -155,6 +164,8 @@ class MesaServicio {
   }
 
   Future<String?> obtenerMozoxMesa(int? idMesa, String? accessToken) async {
+    String _url =  await _apiRuta.readApi();
+
     try {
       Uri url = Uri.https(_url, '$_api/usuarios_por_mesa/$idMesa');
       Map<String, String> headers = {

@@ -550,7 +550,7 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
                     height: 40,
                     child: Text(
                       producto.nombreproducto ?? 'Nombre no disponible',
-                      maxLines: 2,
+                      maxLines: 3,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(fontSize: 15, fontFamily: 'NimbusSans'),
                     ),

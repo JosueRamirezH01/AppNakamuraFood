@@ -661,7 +661,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
           isLoading = true;
           print(_subOptType);
         });
-        listaPedido = await dbPedido.obtenerListasPedidos(_subOptType, idEstablecimiento, context);
+        //listaPedido = await dbPedido.obtenerListasPedidos(_subOptType, idEstablecimiento, context);
         refresh();
         setState(() {
           isLoading = false;

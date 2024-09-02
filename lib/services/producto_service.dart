@@ -9,15 +9,19 @@ import 'package:restauflutter/model/producto.dart';
 import 'package:restauflutter/utils/shared_pref.dart';
 import 'package:http/http.dart' as http;
 
+import '../bd/api.dart';
+
 class ProductoServicio {
 
   final SharedPref _sharedPref = SharedPref();
+  Api _apiRuta = Api();
 
-  final String _url = 'nakamurafoods.restaupe.com';
   final String _api = '/api/auth';
 
 
   Future<List<Categoria>?> getAll(String? accessToken) async {
+    String _url =  await _apiRuta.readApi();
+
     try {
       Uri url = Uri.https(_url, '$_api/categorias');
       Map<String, String> headers = {
@@ -71,6 +75,8 @@ class ProductoServicio {
 
 
   Future<List<Producto>?> getAllProducto(String? accessToken) async {
+    String _url =  await _apiRuta.readApi();
+
     try {
       Uri url = Uri.https(_url, '$_api/obtenerproductos');
       Map<String, String> headers = {

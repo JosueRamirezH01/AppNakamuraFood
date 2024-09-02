@@ -11,5 +11,5 @@ class Api {
     String urlString = await _pref.read('url');
     String url = urlString;
     return url;
-}
+  }
 }

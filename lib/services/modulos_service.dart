@@ -5,8 +5,12 @@ import 'package:mysql1/mysql1.dart';
 import 'package:restauflutter/bd/conexion.dart';
 import 'package:http/http.dart' as http;
 
+import '../bd/api.dart';
+
 class ModuloServicio {
   final Connection _connectionSQL = Connection();
+  Api _apiRuta = Api();
+  final String _api = '/api/auth';
 
   Future<bool> consultarRestriccion(BuildContext context) async {
     MySqlConnection? conn;
@@ -39,8 +43,11 @@ class ModuloServicio {
   }
 
   Future<bool> consultarItemsIndependientes(String? accessToken) async {
+    String _url =  await _apiRuta.readApi();
+
     try {
-      Uri url = Uri.parse('https://nakamurafoods.restaupe.com/api/auth/item_independiente');
+      Uri url = Uri.https(_url, '$_api/registrarPedido');
+
       Map<String, String> headers = {
         'Content-type': 'application/json',
         'Authorization': 'Bearer $accessToken'

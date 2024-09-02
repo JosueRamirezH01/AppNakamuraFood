@@ -6,13 +6,15 @@ import 'package:restauflutter/model/nota.dart';
 import 'package:restauflutter/model/pedido.dart';
 import 'package:restauflutter/model/producto.dart';
 
+import '../bd/api.dart';
+
 class DetallePedidoServicio {
 
-
-  final String _url = 'nakamurafoods.restaupe.com';
+  Api _apiRuta = Api();
   final String _api = '/api/auth';
 
   Future<Map<String, dynamic>> fetchPedidoDetalle(String? accessToken,int? idMesa) async {
+    String _url =  await _apiRuta.readApi();
 
     Uri url = Uri.https(_url, '$_api/obtener_pedidos_pormesa/$idMesa');
     Map<String, String> headers = {
@@ -41,6 +43,7 @@ class DetallePedidoServicio {
   }
 
   Future<Map<String, dynamic>> fetchPedidoDetalleRespuesta(String? accessToken,int? idMesa) async {
+    String _url =  await _apiRuta.readApi();
 
     Uri url = Uri.https(_url, '$_api/obtener_pedidos_pormesa/$idMesa');
     Map<String, String> headers = {
@@ -58,6 +61,8 @@ class DetallePedidoServicio {
   }
 
   Future<void> actualizarPedidoApi(String? accessToken, Map<String, dynamic> pedidoDetalle, int? idMesa) async {
+    String _url =  await _apiRuta.readApi();
+
     Uri uri = Uri.https(_url, '$_api/actualizarPedido/$idMesa');
     // pedidoDetalle['detalle'];
     String body = json.encode(pedidoDetalle);
@@ -84,6 +89,8 @@ class DetallePedidoServicio {
   }
 
   Future<Map<String, dynamic>> actualizarPedidoConRespuestaApi(String? accessToken, Map<String, dynamic> pedidoDetalle, int? idMesa) async {
+    String _url =  await _apiRuta.readApi();
+
     Uri uri = Uri.https(_url, '$_api/actualizarPedido/$idMesa');
     print('Datos del pedido enviados ->: ${json.encode(pedidoDetalle)}');
     String body = json.encode(pedidoDetalle);
@@ -117,6 +124,7 @@ class DetallePedidoServicio {
   }
 
   Future<PedidoResponse> eliminarDetallePedido(int id, String? accessToken) async {
+    String _url =  await _apiRuta.readApi();
 
     Uri uri = Uri.https(_url, '$_api/eliminar_detallepedido/$id');
 

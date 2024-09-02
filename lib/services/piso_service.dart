@@ -6,12 +6,16 @@ import 'package:restauflutter/model/piso.dart';
 import 'package:restauflutter/utils/shared_pref.dart';
 import 'package:http/http.dart' as http;
 
-class PisoServicio {
+import '../bd/api.dart';
 
-  final String _url = 'nakamurafoods.restaupe.com';
+class PisoServicio {
+  Api _apiRuta = Api();
+
   final String _api = '/api/auth';
 
   Future<List<Piso>?> getAll(String? accessToken) async {
+    String _url =  await _apiRuta.readApi();
+
     try {
       Uri url = Uri.https(_url, '$_api/pisosActivos');
       Map<String, String> headers = {
