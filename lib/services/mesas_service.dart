@@ -5,9 +5,6 @@ import 'package:http/http.dart' as http;
 
 import '../bd/api.dart';
 
-
-
-
 class MesaServicio {
 
   final String _api = '/api/auth';
