@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:mysql1/mysql1.dart';
+import 'package:restauflutter/bd/api.dart';
 import 'package:restauflutter/bd/conexion.dart';
 import 'package:restauflutter/home/home_page.dart';
 import 'package:restauflutter/model/detalle_pedido.dart';
@@ -15,12 +16,16 @@ import 'package:http/http.dart' as http;
 
 class PedidoServicio {
   final Connection _connectionSQL = Connection();
-  final String _url = 'chifalingling.restaupe.com';
   final String _api = '/api/auth';
+  Api _apiRuta = Api();
+
 
   Future<PedidoResponse?> registrarPedido(Map<String, dynamic> pedidoData, String? accessToken) async {
-    final url = Uri.parse('https://chifalingling.restaupe.com/api/auth/registrarPedido');
+    String _url =  await _apiRuta.readApi();
+
     try {
+      Uri url = Uri.https(_url, '$_api/registrarPedido');
+
       final response = await http.post(url,
         headers: {'Content-Type': 'application/json',
           'Authorization': 'Bearer $accessToken'
@@ -65,6 +70,8 @@ class PedidoServicio {
   }
 
   Future<List<Nota>> obtenerListasNota(String? accessToken) async {
+    String _url =  await _apiRuta.readApi();
+
     Uri url = Uri.https(_url, '$_api/notas');
     Map<String, String> headers = {
       'Content-type': 'application/json',
