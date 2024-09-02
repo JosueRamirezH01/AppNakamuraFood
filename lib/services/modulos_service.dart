@@ -46,7 +46,7 @@ class ModuloServicio {
     String _url =  await _apiRuta.readApi();
 
     try {
-      Uri url = Uri.https(_url, '$_api/registrarPedido');
+      Uri url = Uri.https(_url, '$_api/item_independiente');
 
       Map<String, String> headers = {
         'Content-type': 'application/json',
