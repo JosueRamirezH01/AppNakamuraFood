@@ -8,7 +8,7 @@ import 'package:http/http.dart' as http;
 
 class MesaServicio {
 
-  final String _url = 'chifalingling.restaupe.com';
+  final String _url = 'nakamurafoods.restaupe.com';
   final String _api = '/api/auth';
 
 

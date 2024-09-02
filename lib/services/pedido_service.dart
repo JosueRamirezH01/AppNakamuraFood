@@ -15,11 +15,11 @@ import 'package:http/http.dart' as http;
 
 class PedidoServicio {
   final Connection _connectionSQL = Connection();
-  final String _url = 'chifalingling.restaupe.com';
+  final String _url = 'nakamurafoods.restaupe.com';
   final String _api = '/api/auth';
 
   Future<PedidoResponse?> registrarPedido(Map<String, dynamic> pedidoData, String? accessToken) async {
-    final url = Uri.parse('https://chifalingling.restaupe.com/api/auth/registrarPedido');
+    final url = Uri.parse('https://nakamurafoods.restaupe.com/api/auth/registrarPedido');
     try {
       final response = await http.post(url,
         headers: {'Content-Type': 'application/json',

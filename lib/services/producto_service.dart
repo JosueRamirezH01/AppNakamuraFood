@@ -13,7 +13,7 @@ class ProductoServicio {
 
   final SharedPref _sharedPref = SharedPref();
 
-  final String _url = 'chifalingling.restaupe.com';
+  final String _url = 'nakamurafoods.restaupe.com';
   final String _api = '/api/auth';
 
 

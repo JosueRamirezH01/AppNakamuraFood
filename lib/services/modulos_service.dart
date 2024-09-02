@@ -40,7 +40,7 @@ class ModuloServicio {
 
   Future<bool> consultarItemsIndependientes(String? accessToken) async {
     try {
-      Uri url = Uri.parse('https://chifalingling.restaupe.com/api/auth/item_independiente');
+      Uri url = Uri.parse('https://nakamurafoods.restaupe.com/api/auth/item_independiente');
       Map<String, String> headers = {
         'Content-type': 'application/json',
         'Authorization': 'Bearer $accessToken'
