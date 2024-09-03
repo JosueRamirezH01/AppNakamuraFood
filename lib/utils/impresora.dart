@@ -57,7 +57,7 @@ class Impresora {
           styles: const PosStyles(bold: true, align: PosAlign.center, width: PosTextSize.size6, height: PosTextSize.size2),linesAfter: 1);
     }else{
       printer.text(tipoBoucher,
-          styles: const PosStyles(bold: true, align: PosAlign.center));
+          styles: const PosStyles(bold: true, align: PosAlign.center,width: PosTextSize.size2));
 
     }
 
@@ -72,7 +72,7 @@ class Impresora {
     _buildTableHeaderPreCuenta( tipoBoucher,printer );
 
     // Contenido de la tabla
-    _buildTableContentPreCuenta(producto, tipoBoucher, printer);
+    _buildTableContentPreCuenta( producto, tipoBoucher, printer);
 
     // Importe total
     if(tipoBoucher != 'Pedido' && tipoBoucher !='Pedidos Actualizados' && tipoBoucher !='Anulado'){
@@ -123,18 +123,22 @@ class Impresora {
 
   void _buildTableHeaderPreCuenta( String tipoBoucher, NetworkPrinter printer) {
     if(tipoBoucher != 'Pedido' && tipoBoucher !='Pedidos Actualizados'){
+      printer.hr();
+
       printer.row([
-        PosColumn(text: 'CANTIDAD', width: 2,styles: const PosStyles(bold: true)),  // 3 de ancho
-        PosColumn(text: 'PRODUCTO', width: 6,styles: const PosStyles(bold: true)),  // 6 de ancho
+        PosColumn(text: 'C.', width: 1,styles: const PosStyles(bold: true)),  // 3 de ancho
+        PosColumn(text: 'PRODUCTO', width: 7,styles: const PosStyles(bold: true)),  // 6 de ancho
         PosColumn(text: 'P.UNIT', width: 2,styles: const PosStyles(bold: true)),      // 3 de ancho
         PosColumn(text: 'TOTAL', width: 2,styles: const PosStyles(bold: true)),      // 3 de ancho
       ]);
       printer.hr();
     }else{
+      printer.hr();
+
       printer.row([
-        PosColumn(text: 'CANTIDAD', width: 3,styles: const PosStyles(bold: true)),  // 3 de ancho
-        PosColumn(text: 'PRODUCTO', width: 6,styles: const PosStyles(bold: true)),  // 6 de ancho
-        PosColumn(text: 'NOTA', width: 3,styles: const PosStyles(bold: true)),      // 3 de ancho
+        PosColumn(text: 'C.', width: 1,styles: const PosStyles(bold: true,)),  // 3 de ancho
+        PosColumn(text: 'PRODUCTO', width: 8,styles: const PosStyles(bold: true)),  // 6 de ancho
+        PosColumn(text: tipoBoucher == 'Pedido' ?'':'NOTA', width: 3,styles: const PosStyles(bold: true)),      // 3 de ancho
       ]);
       printer.hr();
     }
@@ -147,13 +151,14 @@ class Impresora {
     if(tipoBoucher != 'Pedido' && tipoBoucher !='Pedidos Actualizados'){
       producto?.forEach((producto) {
         printer.row([
-          PosColumn(text: '${producto.stock}', width: 2 ),
-          PosColumn(text: '${producto.nombreproducto}', width: 6),
+          PosColumn(text: '${producto.stock}', width: 1 ),
+          PosColumn(text: '${producto.nombreproducto}', width: 7),
           PosColumn(text: '${producto.precioproducto}', width: 2),
           PosColumn(text: '${producto.precioproducto! * producto.stock!}', width: 2),
         ]);
       });
-    }else{
+    }
+    else{
       producto?.forEach((producto) {
         if(producto.stock == 0){
           // printer.row([
@@ -161,30 +166,56 @@ class Impresora {
           //   PosColumn(text: '${producto.nombreproducto}', width: 6),
           //   PosColumn(text: producto.comentario ?? '', width: 3),
           // ]);
+          final int maxProductNameLength = 10;
+          List<String> productNameLines = truncateProductName(producto.nombreproducto!, maxProductNameLength);
           List<String> lines = cleanComentario(producto.comentario).split(';');
+
           printer.row([
-            PosColumn(text: producto.sinACStock == true ? 'No modicaficada':'Cancelado', width: 3),
-            PosColumn(text: '${producto.nombreproducto}', width: 6),
-            PosColumn(text: lines[0].trim(), width: 3),
+            PosColumn(text: producto.sinACStock == true ? 'Actualizado':'Cancelado', width:6,styles: PosStyles(width: PosTextSize.size2, bold: false)),
+            // PosColumn(text: '${producto.nombreproducto}', width: 6),
+            PosColumn(text: productNameLines.isNotEmpty ? productNameLines[0] : '', width: 6,styles: PosStyles(width: PosTextSize.size2, bold: false)),
+            // PosColumn(text: lines[0].trim(), width: 3),
           ]);
-          for (int i = 1; i < lines.length; i++) {
+
+          for (int i = 1; i < productNameLines.length; i++) {
             printer.row([
-              PosColumn(text: '', width: 3),
-              PosColumn(text: '', width: 6),
-              PosColumn(text: lines[i].trim(), width: 3),
+              PosColumn(text: '', width: 1),
+              PosColumn(text: productNameLines[i], width: 11,styles: PosStyles(width: PosTextSize.size2)),
+            ]);
+          }
+
+          for (int i = 0; i < lines.length; i++) {
+            printer.row([
+              PosColumn(text: i>0 ?'':'Notas :', width: 2,styles: const PosStyles(bold: true)),
+              PosColumn(text: lines[i].trim(), width: 10,styles: PosStyles(width: PosTextSize.size2)),
             ]);
           }
           printer.hr();
-        }else if(producto.stock! < 0){
+        }
+        else if(producto.stock! < 0){
+          final int maxProductNameLength = 18;
+          List<String> productNameLines = truncateProductName(producto.nombreproducto!, maxProductNameLength);
+
           printer.row([
             PosColumn(text: 'Restados', width: 2),
             PosColumn(text: '${producto.stock}', width: 1),
-            PosColumn(text: '${producto.nombreproducto}', width: 9),
+            PosColumn(text: productNameLines.isNotEmpty ? productNameLines[0] : '', width: 9,styles: PosStyles(width: PosTextSize.size2)),
           ]);
-          printer.hr();
-        }else{
-          if (producto.comentario != null){
 
+          // Imprimir las líneas restantes del nombre del producto.
+          for (int i = 1; i < productNameLines.length; i++) {
+            printer.row([
+              PosColumn(text: '', width: 1),
+              PosColumn(text: productNameLines[i], width: 11,styles: PosStyles(width: PosTextSize.size2)),
+            ]);
+          }
+          printer.hr();
+        }
+        else{
+          final int maxProductNameLength = 18;
+          List<String> productNameLines = truncateProductName(producto.nombreproducto!, maxProductNameLength);
+
+          if (producto.comentario != null) {
             String cleanComentario(String? comentario) {
               if (comentario == null || comentario.isEmpty) {
                 return '';
@@ -197,31 +228,62 @@ class Impresora {
             }
 
             List<String> lines = cleanComentario(producto.comentario!).split(';');
+
+            // Imprimir la primera línea del nombre del producto.
             printer.row([
-              PosColumn(text: '${producto.stock}', width: 3),
-              PosColumn(text: '${producto.nombreproducto}', width: 6),
-              PosColumn(text: lines[0].trim(), width: 3),
+              PosColumn(text: '${tipoBoucher == 'Pedidos Actualizados'?'+':''} ${producto.stock}', width: 2 ,styles: PosStyles(width: PosTextSize.size2)),
+              PosColumn(text: productNameLines.isNotEmpty ? productNameLines[0] : '', width: 10,styles: PosStyles(width: PosTextSize.size2, bold: false)),
             ]);
-            for (int i = 1; i < lines.length; i++) {
+
+            // Imprimir las líneas restantes del nombre del producto.
+            for (int i = 1; i < productNameLines.length; i++) {
               printer.row([
-                PosColumn(text: '', width: 3),
-                PosColumn(text: '', width: 6),
-                PosColumn(text: lines[i].trim(), width: 3),
+                PosColumn(text: '', width: 1),
+                PosColumn(text: productNameLines[i], width: 11,styles: PosStyles(width: PosTextSize.size2)),
+              ]);
+            }
+
+            // Imprimir las líneas del comentario.
+            for (int i = 0; i < lines.length; i++) {
+              printer.row([
+                PosColumn(text: i>0 ?'':'Notas :', width: 2,styles: const PosStyles(bold: true)),
+                PosColumn(text: lines[i].trim(), width: 10,styles: PosStyles(width: PosTextSize.size2)),
               ]);
             }
             printer.hr();
-          }else {
+          } else {
+            // Imprimir la primera línea del nombre del producto.
             printer.row([
-              PosColumn(text: '${producto.stock}', width: 3),
-              PosColumn(text: '${producto.nombreproducto}', width: 6),
-              PosColumn(text: '', width: 3),
+              PosColumn(text: '${tipoBoucher == 'Pedidos Actualizados'?'+':''} ${producto.stock}', width: 2,styles: PosStyles(width: PosTextSize.size2)),
+              PosColumn(text: productNameLines.isNotEmpty ? productNameLines[0] : '', width: 10,styles: PosStyles(width: PosTextSize.size2)),
             ]);
+
+            // Imprimir las líneas restantes del nombre del producto.
+            for (int i = 1; i < productNameLines.length; i++) {
+              printer.row([
+                PosColumn(text: '', width: 1),
+                PosColumn(text: productNameLines[i], width: 11,styles: PosStyles(width: PosTextSize.size2)),
+              ]);
+            }
             printer.hr();
           }
           //
         }
       });
     }
+  }
+  List<String> truncateProductName(String productName, int maxLength) {
+    List<String> lines = [];
+    while (productName.length > maxLength) {
+      int lastSpace = productName.substring(0, maxLength).lastIndexOf(' ');
+      if (lastSpace == -1) lastSpace = maxLength; // Si no hay espacios, cortar en el límite máximo.
+      lines.add(productName.substring(0, lastSpace).trim());
+      productName = productName.substring(lastSpace).trim();
+    }
+    if (productName.isNotEmpty) {
+      lines.add(productName);
+    }
+    return lines;
   }
 
   cleanComentario(String? comentario) {

@@ -1386,7 +1386,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
                 );
               },
             );
-          }else {
+          }
+          else {
             if (pedido.idPedido != null && pedido.detalle != null) {
               // Itera sobre la lista de detalles y actualiza el id_pedido
               for (var detalle in pedido.detalle!) {
@@ -1396,6 +1397,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
             }
             List<Detalle_Pedido>? detallePedido = [];
             detallePedido = pedido.detalle;
+
             // sin usarse
             print('-------LISTADO DE INSTANCIA $detallePedido');
             MesaDetallePedido mesaDetallePedido = MesaDetallePedido(mesa, detallePedido!);

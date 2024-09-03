@@ -86,11 +86,13 @@ class ProductoController {
       detalle_pedido.forEach((detalle) async {
         print('Controller : ${detalle.toJson()}');
         Producto? producto = await _getProductoPorId(detalle.id_producto);
+        print('todos productos : ${producto?.categoria_id}');
         Producto? setproducto = Producto(
             id_pedido_detalle: detalle.id_pedido_detalle,
             id: producto?.id,
             nombreproducto: producto?.nombreproducto,
             precioproducto: detalle.precio_producto,
+            categoria_id: producto?.categoria_id,
             stock: detalle.cantidad_producto,
             comentario: detalle.comentario,
             idPedido: detalle.id_pedido);

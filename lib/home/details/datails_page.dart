@@ -516,6 +516,7 @@ class _DetailsPageState extends State<DetailsPage> {
               producto.idPedido = detalleCorrespondiente.id_pedido;
             });
             producto.stock = detalleCorrespondiente.cantidad_actualizada;
+            print('CategoriaPrint : ${producto.categoria_id}');
             productosToPrint.add(producto);
 
             // Reducir el contador de productos
@@ -536,6 +537,8 @@ class _DetailsPageState extends State<DetailsPage> {
               setState(() {
                 widget.productosSeleccionados!.firstWhere((element) => element.id_pedido_detalle == detalleCorrespondiente.id_pedido_detalle).aCStock = false;
               });
+              print('CategoriaPrint : ${producto.categoria_id}');
+
 
               productosToPrint.add(Producto(
                 codigo: producto.codigo,
@@ -1384,6 +1387,7 @@ class _DetailsPageState extends State<DetailsPage> {
 
     List<Categoria> categorias = [];
 
+    int vecesToPrint = 1 ;
 
     if (categoriasJson != null) {
       List<dynamic> categoriasList = json.decode(categoriasJson);
@@ -1414,7 +1418,7 @@ class _DetailsPageState extends State<DetailsPage> {
         if (prodSeleccionados.isNotEmpty) {
           print('Lista de productos seleccionados:');
           if(estado == 1){
-            for(int i = 0; i<4; i++) {
+            for(int i = 0; i<vecesToPrint; i++) {
               impresora.printLabel(ipCocina!, prodSeleccionados, estado, pedidoTotal, selectObjmesa.nombreMesa ?? widget.mesa!.nombreMesa, usuario!, selectObjmesa.nombrePiso ?? widget.mesa!.nombrePiso, '', codigo);
             }
           }else{
@@ -1425,11 +1429,12 @@ class _DetailsPageState extends State<DetailsPage> {
         }
       } else {
         if (ParaBar.isNotEmpty) {
+          print('para bar actualizar');
           impresora.printLabel(ipBar,ParaBar,estado, pedidoTotal, selectObjmesa.nombreMesa ?? widget.mesa!.nombreMesa, usuario!, selectObjmesa.nombrePiso ?? widget.mesa!.nombrePiso,'', codigo);
           if (ParaCocina.isNotEmpty) {
             print('Lista de productos seleccionados:');
             if(estado == 1){
-              for(int i = 0; i<4; i++) {
+              for(int i = 0; i< vecesToPrint; i++) {
                 impresora.printLabel(ipCocina!, ParaCocina, estado, pedidoTotal, selectObjmesa.nombreMesa ?? widget.mesa!.nombreMesa, usuario!, selectObjmesa.nombrePiso ?? widget.mesa!.nombrePiso, '', codigo);
                 await Future.delayed(Duration(seconds: 1));
               }
@@ -1443,7 +1448,7 @@ class _DetailsPageState extends State<DetailsPage> {
           if (ParaCocina.isNotEmpty) {
             print('Lista de productos seleccionados:');
             if(estado == 1){
-              for(int i = 0; i<4; i++) {
+              for(int i = 0; i<vecesToPrint; i++) {
                 impresora.printLabel(ipCocina!,ParaCocina,estado, pedidoTotal, selectObjmesa.nombreMesa ?? widget.mesa!.nombreMesa, usuario!, selectObjmesa.nombrePiso ?? widget.mesa!.nombrePiso,'',codigo);
                 await Future.delayed(Duration(seconds: 1));
               }
