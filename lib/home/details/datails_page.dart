@@ -1419,6 +1419,7 @@ class _DetailsPageState extends State<DetailsPage> {
 
       if (ipBar == null) {
         if (prodSeleccionados.isNotEmpty) {
+          print('waza');
           print('Lista de productos seleccionados:');
           if(estado == 1 || estado == 2){
             for(int i = 0; i<vecesToPrint; i++) {
