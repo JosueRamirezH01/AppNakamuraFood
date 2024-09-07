@@ -738,11 +738,11 @@ class _DetailsPageState extends State<DetailsPage> {
     return selectedOptionsString.split(';');
   }
 
-  Future<String?> _nota( List<Nota> comidas, int indexProducto, int? id_pedido_detalle) async {
+  Future<String?> _nota(List<Nota> comidas, int indexProducto, int? id_pedido_detalle) async {
     print('Index entrada : ${indexProducto}');
-    print( 'comentario entrada : ${widget.productosSeleccionados?[indexProducto].comentario}');
+    print('comentario entrada : ${widget.productosSeleccionados?[indexProducto].comentario}');
 
-    String? notabd = cleanComentario( widget.productosSeleccionados?[indexProducto].comentario) ?? '';
+    String? notabd = cleanComentario(widget.productosSeleccionados?[indexProducto].comentario) ?? '';
     List<String> seleccionadosBd = convertStringToList(notabd);
 
     var productoSeleccionado = widget.productosSeleccionados![indexProducto];
@@ -753,6 +753,7 @@ class _DetailsPageState extends State<DetailsPage> {
         _checkedItems[i] = true;
       }
     }
+
     // Variable para almacenar el texto de búsqueda
     String searchText = '';
 
@@ -763,7 +764,7 @@ class _DetailsPageState extends State<DetailsPage> {
           title: Text('Observaciones del Plato'),
           content: StatefulBuilder(
             builder: (BuildContext context, StateSetter setState) {
-
+              // Filtrar y reorganizar la lista según la búsqueda
               List<Nota> filteredComidas = comidas;
               if (searchText.isNotEmpty) {
                 filteredComidas = comidas
@@ -792,25 +793,31 @@ class _DetailsPageState extends State<DetailsPage> {
                     ),
                     SizedBox(height: 10),
                     Expanded(
-                      // height: MediaQuery.of(context).size.height * 0.39,
-                      child: Scrollbar(
+                      child: filteredComidas.isNotEmpty
+                          ? Scrollbar(
                         thumbVisibility: true,
-                        child: SingleChildScrollView(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: List.generate(filteredComidas.length, (index) {
-                              return CheckboxListTile(
-                                activeColor: Color(0xFFFF562F),
-                                title: Text(filteredComidas[index].descripcion_nota!),
-                                value: _checkedItems[comidas.indexOf(filteredComidas[index])],
-                                onChanged: (value) {
-                                  setState(() {
-                                    _checkedItems[comidas.indexOf(filteredComidas[index])] = value ?? false;
-                                  });
-                                },
-                              );
-                            }),
-                          ),
+                        child: ListView.builder(
+                          itemCount: filteredComidas.length,
+                          itemBuilder: (context, index) {
+                            return CheckboxListTile(
+                              activeColor: Color(0xFFFF562F),
+                              title: Text(filteredComidas[index].descripcion_nota!),
+                              value: _checkedItems[comidas.indexOf(filteredComidas[index])],
+                              onChanged: (value) {
+                                setState(() {
+                                  _checkedItems[comidas.indexOf(filteredComidas[index])] = value ?? false;
+                                });
+                              },
+                            );
+                          },
+                        ),
+                      ) : Center(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            print('searchText${searchText}');
+                            // Acción para agregar una nueva nota
+                          },
+                          child: Text('Agregar comentario'),
                         ),
                       ),
                     ),
@@ -822,8 +829,7 @@ class _DetailsPageState extends State<DetailsPage> {
           actions: [
             TextButton(
               style: ButtonStyle(
-                backgroundColor: MaterialStateProperty.all(
-                    Color.fromRGBO(217, 217, 217, 0.8)),
+                backgroundColor: MaterialStateProperty.all(Color.fromRGBO(217, 217, 217, 0.8)),
               ),
               onPressed: () {
                 setState(() {
@@ -838,14 +844,13 @@ class _DetailsPageState extends State<DetailsPage> {
                 backgroundColor: MaterialStateProperty.all(Color(0xFF634FD2)),
               ),
               onPressed: () async {
-
                 String? printerIP = await _pref.read('ipCocina');
                 bool _stateConexionTicket = await _pref.read('stateConexionTicket') ?? false;
                 bool conexionBluetooth = await _pref.read('conexionBluetooth') ?? false;
 
                 if (_stateConexionTicket) {
                   if (conexionBluetooth) {
-                    await acNota(comidas, id_pedido_detalle, indexProducto,1);
+                    await acNota(comidas, id_pedido_detalle, indexProducto, 1);
                     refresh();
                   } else {
                     String messague = 'No se ha encontrado conectado a un dispositivo Bluetooth.';
@@ -858,7 +863,7 @@ class _DetailsPageState extends State<DetailsPage> {
                     showMessangueDialog(messague);
                     return; // Salir del método printLabel
                   } else {
-                    await acNota(comidas, id_pedido_detalle, indexProducto,2);
+                    await acNota(comidas, id_pedido_detalle, indexProducto, 2);
                     refresh();
                   }
                 }
