@@ -465,6 +465,7 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
                   categoria_id: producto.categoria_id,
                   comentario: producto.comentario
               );
+              print('newProducto : ${newProducto.toJson()}');
               _con.productosSeleccionados?.add(newProducto);
 
               // Muestra un mensaje de confirmation
@@ -491,12 +492,15 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
                     productoExistente.stock = (productoExistente.stock ?? 0) + 1;
                     productoExistente.aCStock = true;
                   });
+                  print('newProducto : ${productoExistente.toJson()}');
+
                   _con.agregarMsj('Se ha aumentado el stock de ${productoExistente.nombreproducto} en 1.');
                 }
               } else {
                 // El producto no está seleccionado, agrégalo a la lista de productos seleccionados
                 Producto producToAdd = producto;
                 producToAdd.stock = 1;
+                print(' producToAdd : ${producToAdd.toJson()} ');
                 setState(() {
                   _con.productosSeleccionados?.add(producToAdd);
                 });
@@ -535,38 +539,41 @@ class _ProductosPageState extends State<ProductosPage> with TickerProviderStateM
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    height: MediaQuery.of(context).size.height * 0.2,
+                    // height: MediaQuery.of(context).size.height * 0.08,
                     width: MediaQuery.of(context).size.width,
+                    margin: EdgeInsets.only(top: 10,bottom: 10),
                     padding: const EdgeInsets.only(left: 10, right: 10),
                     child: ClipRRect(
-                      child: Image.network(
-                        'http://137.184.54.213/storage/${producto.foto}',
-                        fit: BoxFit.contain,
-                      ),
+                      // child: Image.network(
+                      //   'http://137.184.54.213/storage/${producto.foto}',
+                      //   fit: BoxFit.contain,
+                      // ),
                     ),
                   ),
                   Container(
                     margin: const EdgeInsets.symmetric(horizontal: 20),
-                    height: 40,
+                    // height: 60,
                     child: Text(
                       producto.nombreproducto ?? 'Nombre no disponible',
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 15, fontFamily: 'NimbusSans'),
+                      // maxLines: 5,
+                      // overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 17, fontFamily: 'NimbusSans'),
                     ),
                   ),
                   const SizedBox(height: 10),
-                  Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Text(
-                      'S/ ${producto.precioproducto ?? 'Precio no disponible'} ',
-                      style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          fontFamily: 'NimbusSans'),
-                    ),
-                  )
+
                 ],
+              ),
+              Container(
+                alignment: Alignment.bottomLeft,
+                margin: const EdgeInsets.symmetric(horizontal: 20,vertical: 10),
+                child: Text(
+                  'S/ ${producto.precioproducto ?? 'Precio no disponible'} ',
+                  style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'NimbusSans'),
+                ),
               )
             ],
           ),

@@ -77,7 +77,7 @@ class LoginService {
         return null; // O maneja el error de alguna otra manera
       } else {
         Fluttertoast.showToast(
-          msg: "Cierre la sesión anterior",
+          msg: "Hay un error en los textos ingresados",
           toastLength: Toast.LENGTH_SHORT,
           gravity: ToastGravity.CENTER,
           timeInSecForIosWeb: 1,

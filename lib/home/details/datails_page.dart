@@ -95,7 +95,8 @@ class _DetailsPageState extends State<DetailsPage> {
         child: Column(
           children: [
             if (screenWidth < 600) icono(),
-            if (widget.mesa!.estadoMesa != 1 && widget.mesa!.estadoMesa != 2)
+            //if (widget.mesa!.estadoMesa != 1 && widget.mesa!.estadoMesa != 2)
+            if(widget.mesa!.estadoMesa != 1)
               cabecera(),
             contenido(),
             debajo()
@@ -119,7 +120,7 @@ class _DetailsPageState extends State<DetailsPage> {
       crossAxisCount = 2;
     }
     double sizeHeigth =
-    widget.mesa!.estadoMesa != 1 && widget.mesa!.estadoMesa != 2
+    widget.mesa!.estadoMesa != 1  /*&& widget.mesa!.estadoMesa != 2*/
         ? 0.56
         : 0.65;
     return NotificationListener<ScrollNotification>(
@@ -175,13 +176,14 @@ class _DetailsPageState extends State<DetailsPage> {
                           ),
                           Column(
                             children: [
-                               if (widget.mesa!.estadoMesa != 2 && widget.items_independientes == false)
+                               //if (widget.mesa!.estadoMesa != 2 && widget.items_independientes == false)
+                              if(widget.items_independientes == false)
                                 _addOrRemoveItem(index),
-                              _precioProducto(index),
+                                _precioProducto(index),
                             ],
                           ),
                           const SizedBox(width: 5),
-                           if (selectObjmesa.estadoMesa != 2 || widget.mesa!.estadoMesa != 2)
+                           //if (selectObjmesa.estadoMesa != 2 || widget.mesa!.estadoMesa != 2)
                             Container(
                               decoration: BoxDecoration(
                                   color: Colors.grey[200],
@@ -193,7 +195,7 @@ class _DetailsPageState extends State<DetailsPage> {
                               ),
                             ),
                           const SizedBox(width: 5),
-                          if (selectObjmesa.estadoMesa != 2 || widget.mesa!.estadoMesa != 2)
+                          //if (selectObjmesa.estadoMesa != 2 || widget.mesa!.estadoMesa != 2)
                             Container(
                               decoration: BoxDecoration( color: Colors.grey[200], borderRadius: BorderRadius.all(Radius.circular(20))),
                               margin: widget.items_independientes == false ? EdgeInsets.only(bottom: 25) : null ,
@@ -775,7 +777,6 @@ class _DetailsPageState extends State<DetailsPage> {
                   filteredComidas.insert(0, notaEncontrada);
                 }
               }
-
               return Container(
                 height: MediaQuery.of(context).size.height * 0.5,
                 child: Column(
@@ -1389,6 +1390,7 @@ class _DetailsPageState extends State<DetailsPage> {
 
     List<Categoria> categorias = [];
 
+    int vecesToPrint = 4 ;
 
     if (categoriasJson != null) {
       List<dynamic> categoriasList = json.decode(categoriasJson);
@@ -1419,7 +1421,7 @@ class _DetailsPageState extends State<DetailsPage> {
         if (prodSeleccionados.isNotEmpty) {
           print('Lista de productos seleccionados:');
           if(estado == 1){
-            for(int i = 0; i<4; i++) {
+            for(int i = 0; i<vecesToPrint; i++) {
               impresora.printLabel(ipCocina!, prodSeleccionados, estado, pedidoTotal, selectObjmesa.nombreMesa ?? widget.mesa!.nombreMesa, usuario!, selectObjmesa.nombrePiso ?? widget.mesa!.nombrePiso, '', codigo);
             }
           }else{
@@ -1430,11 +1432,12 @@ class _DetailsPageState extends State<DetailsPage> {
         }
       } else {
         if (ParaBar.isNotEmpty) {
+          print('para bar actualizar');
           impresora.printLabel(ipBar,ParaBar,estado, pedidoTotal, selectObjmesa.nombreMesa ?? widget.mesa!.nombreMesa, usuario!, selectObjmesa.nombrePiso ?? widget.mesa!.nombrePiso,'', codigo);
           if (ParaCocina.isNotEmpty) {
             print('Lista de productos seleccionados:');
             if(estado == 1){
-              for(int i = 0; i<4; i++) {
+              for(int i = 0; i< vecesToPrint; i++) {
                 impresora.printLabel(ipCocina!, ParaCocina, estado, pedidoTotal, selectObjmesa.nombreMesa ?? widget.mesa!.nombreMesa, usuario!, selectObjmesa.nombrePiso ?? widget.mesa!.nombrePiso, '', codigo);
                 await Future.delayed(Duration(seconds: 1));
               }
@@ -1448,7 +1451,7 @@ class _DetailsPageState extends State<DetailsPage> {
           if (ParaCocina.isNotEmpty) {
             print('Lista de productos seleccionados:');
             if(estado == 1){
-              for(int i = 0; i<4; i++) {
+              for(int i = 0; i<vecesToPrint; i++) {
                 impresora.printLabel(ipCocina!,ParaCocina,estado, pedidoTotal, selectObjmesa.nombreMesa ?? widget.mesa!.nombreMesa, usuario!, selectObjmesa.nombrePiso ?? widget.mesa!.nombrePiso,'',codigo);
                 await Future.delayed(Duration(seconds: 1));
               }
