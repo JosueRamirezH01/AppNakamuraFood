@@ -1420,7 +1420,7 @@ class _DetailsPageState extends State<DetailsPage> {
       if (ipBar == null) {
         if (prodSeleccionados.isNotEmpty) {
           print('Lista de productos seleccionados:');
-          if(estado == 1){
+          if(estado == 1 || estado == 2){
             for(int i = 0; i<vecesToPrint; i++) {
               impresora.printLabel(ipCocina!, prodSeleccionados, estado, pedidoTotal, selectObjmesa.nombreMesa ?? widget.mesa!.nombreMesa, usuario!, selectObjmesa.nombrePiso ?? widget.mesa!.nombrePiso, '', codigo);
             }
@@ -1436,7 +1436,7 @@ class _DetailsPageState extends State<DetailsPage> {
           impresora.printLabel(ipBar,ParaBar,estado, pedidoTotal, selectObjmesa.nombreMesa ?? widget.mesa!.nombreMesa, usuario!, selectObjmesa.nombrePiso ?? widget.mesa!.nombrePiso,'', codigo);
           if (ParaCocina.isNotEmpty) {
             print('Lista de productos seleccionados:');
-            if(estado == 1){
+            if(estado == 1 || estado == 2){
               for(int i = 0; i< vecesToPrint; i++) {
                 impresora.printLabel(ipCocina!, ParaCocina, estado, pedidoTotal, selectObjmesa.nombreMesa ?? widget.mesa!.nombreMesa, usuario!, selectObjmesa.nombrePiso ?? widget.mesa!.nombrePiso, '', codigo);
                 await Future.delayed(Duration(seconds: 1));
@@ -1450,7 +1450,7 @@ class _DetailsPageState extends State<DetailsPage> {
         } else {
           if (ParaCocina.isNotEmpty) {
             print('Lista de productos seleccionados:');
-            if(estado == 1){
+            if(estado == 1 || estado == 2){
               for(int i = 0; i<vecesToPrint; i++) {
                 impresora.printLabel(ipCocina!,ParaCocina,estado, pedidoTotal, selectObjmesa.nombreMesa ?? widget.mesa!.nombreMesa, usuario!, selectObjmesa.nombrePiso ?? widget.mesa!.nombrePiso,'',codigo);
                 await Future.delayed(Duration(seconds: 1));
