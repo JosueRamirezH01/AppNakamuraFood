@@ -743,11 +743,11 @@ class _DetailsPageState extends State<DetailsPage> {
     return selectedOptionsString.split(';');
   }
 
-  Future<String?> _nota(List<Nota> comidas, int indexProducto, int? id_pedido_detalle) async {
+  Future<String?> _nota( List<Nota> comidas, int indexProducto, int? id_pedido_detalle) async {
     print('Index entrada : ${indexProducto}');
-    print('Comentario entrada : ${widget.productosSeleccionados?[indexProducto].comentario}');
+    print( 'comentario entrada : ${widget.productosSeleccionados?[indexProducto].comentario}');
 
-    String? notabd = cleanComentario(widget.productosSeleccionados?[indexProducto].comentario) ?? '';
+    String? notabd = cleanComentario( widget.productosSeleccionados?[indexProducto].comentario) ?? '';
     List<String> seleccionadosBd = convertStringToList(notabd);
 
     var productoSeleccionado = widget.productosSeleccionados![indexProducto];
@@ -758,9 +758,8 @@ class _DetailsPageState extends State<DetailsPage> {
         _checkedItems[i] = true;
       }
     }
-
+    // Variable para almacenar el texto de búsqueda
     String searchText = '';
-    bool isCommentAdded = false; // Nueva variable para controlar si el comentario fue agregado
 
     return showDialog<String>(
       context: context,
@@ -779,7 +778,6 @@ class _DetailsPageState extends State<DetailsPage> {
                   filteredComidas.insert(0, notaEncontrada);
                 }
               }
-
               return Container(
                 height: MediaQuery.of(context).size.height * 0.5,
                 child: Column(
@@ -797,8 +795,8 @@ class _DetailsPageState extends State<DetailsPage> {
                     ),
                     SizedBox(height: 10),
                     Expanded(
-                      child: filteredComidas.isNotEmpty
-                          ? Scrollbar(
+                      // height: MediaQuery.of(context).size.height * 0.39,
+                      child: filteredComidas.isNotEmpty ? Scrollbar(
                         thumbVisibility: true,
                         child: SingleChildScrollView(
                           child: Column(
@@ -817,54 +815,8 @@ class _DetailsPageState extends State<DetailsPage> {
                             }),
                           ),
                         ),
-                      )
-                          : Center(
-                        child: isCommentAdded
-                            ? Expanded(
-                          child: ListView.builder(
-                            itemCount: listaNota.length,
-                            itemBuilder: (context, index) {
-                              return ListTile(
-                                title: Text(listaNota[index].descripcion_nota!),
-                              );
-                            },
-                          ),
-                        )
-                            : ElevatedButton(
-                          onPressed: () async {
-                            // Aquí se llama a la API para registrar el comentario
-                            PedidoResponse? notaActualizada = await bdPedido.registrarNota(usuario!.accessToken, searchText);
-
-                            if (notaActualizada != null && notaActualizada.status!) {
-                              setState(() {
-                                // Actualiza la lista de notas
-                                listaNota = notaActualizada.listaActualizadaNotas!;
-
-                                // Actualiza _checkedItems para reflejar las nuevas notas
-                                _checkedItems = List.filled(listaNota.length, false);
-
-                                // Marca como seleccionadas las nuevas notas coincidentes
-                                for (int i = 0; i < listaNota.length; i++) {
-                                  if (listaNota[i].descripcion_nota == searchText) {
-                                    _checkedItems[i] = true;
-                                  }
-                                }
-                                // Marca que se ha agregado el comentario
-                                isCommentAdded = true;
-                              });
-
-                              // Guarda la nueva lista de notas
-                              String listaNotaString = jsonEncode(listaNota);
-                              _pref.save('listaNota', listaNotaString);
-
-                              mostrarMensajeActualizado(notaActualizada.mensaje!, false);
-                              refresh();
-                            } else {
-                              mostrarMensajeActualizado(notaActualizada?.mensaje ?? 'Error al agregar comentario', true);
-                            }
-                          },
-                          child: Text('Agregar comentario'),
-                        ),
+                      ) : Center(
+                        child: ElevatedButton(onPressed: (){},child: Text('Agregar comentario'),),
                       ),
                     ),
                   ],
@@ -875,7 +827,8 @@ class _DetailsPageState extends State<DetailsPage> {
           actions: [
             TextButton(
               style: ButtonStyle(
-                backgroundColor: MaterialStateProperty.all(Color.fromRGBO(217, 217, 217, 0.8)),
+                backgroundColor: MaterialStateProperty.all(
+                    Color.fromRGBO(217, 217, 217, 0.8)),
               ),
               onPressed: () {
                 setState(() {
@@ -890,9 +843,31 @@ class _DetailsPageState extends State<DetailsPage> {
                 backgroundColor: MaterialStateProperty.all(Color(0xFF634FD2)),
               ),
               onPressed: () async {
-                // Procesamiento adicional para impresoras o acciones externas
-                await acNota(comidas, id_pedido_detalle, indexProducto, 1);
-                refresh();
+
+                String? printerIP = await _pref.read('ipCocina');
+                bool _stateConexionTicket = await _pref.read('stateConexionTicket') ?? false;
+                bool conexionBluetooth = await _pref.read('conexionBluetooth') ?? false;
+
+                if (_stateConexionTicket) {
+                  if (conexionBluetooth) {
+                    await acNota(comidas, id_pedido_detalle, indexProducto,1);
+                    refresh();
+                  } else {
+                    String messague = 'No se ha encontrado conectado a un dispositivo Bluetooth.';
+                    showMessangueDialog(messague);
+                    return;
+                  }
+                } else {
+                  if (printerIP == null) {
+                    String messague = 'No se ha encontrado la dirección IP de la impresora.';
+                    showMessangueDialog(messague);
+                    return; // Salir del método printLabel
+                  } else {
+                    await acNota(comidas, id_pedido_detalle, indexProducto,2);
+                    refresh();
+                  }
+                }
+
                 Navigator.pop(context, 'OK');
               },
               child: Text('Aceptar', style: TextStyle(color: Colors.white)),
