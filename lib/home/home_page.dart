@@ -1285,7 +1285,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
           Map<String, dynamic> pedidoRespuesta =  await dbDetallePedido.fetchPedidoDetalle(usuario!.accessToken, mesa.id  );
           String? mozo = await dbMesas.obtenerMozoxMesa(mesa.id, usuario!.accessToken);
           print('PEDIDO OBTENIDO POR MESA ${pedidoRespuesta.toString()}');
-          Pedido pedido = pedidoRespuesta['pedido_detalle'];
+          Pedido pedido = pedidoRespuesta['pedido_detalle'] ;
           /*if(pedido.idUsuario != usuario?.user?.id){
             showDialog(
               context: context,
