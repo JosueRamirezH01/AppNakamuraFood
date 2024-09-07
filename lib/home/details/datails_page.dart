@@ -95,7 +95,8 @@ class _DetailsPageState extends State<DetailsPage> {
         child: Column(
           children: [
             if (screenWidth < 600) icono(),
-            if (widget.mesa!.estadoMesa != 1 && widget.mesa!.estadoMesa != 2)
+            //if (widget.mesa!.estadoMesa != 1 && widget.mesa!.estadoMesa != 2)
+            if(widget.mesa!.estadoMesa != 1)
               cabecera(),
             contenido(),
             debajo()
@@ -119,7 +120,7 @@ class _DetailsPageState extends State<DetailsPage> {
       crossAxisCount = 2;
     }
     double sizeHeigth =
-    widget.mesa!.estadoMesa != 1 && widget.mesa!.estadoMesa != 2
+    widget.mesa!.estadoMesa != 1  /*&& widget.mesa!.estadoMesa != 2*/
         ? 0.56
         : 0.65;
     return NotificationListener<ScrollNotification>(
@@ -175,13 +176,14 @@ class _DetailsPageState extends State<DetailsPage> {
                           ),
                           Column(
                             children: [
-                               if (widget.mesa!.estadoMesa != 2 && widget.items_independientes == false)
+                               //if (widget.mesa!.estadoMesa != 2 && widget.items_independientes == false)
+                              if(widget.items_independientes == false)
                                 _addOrRemoveItem(index),
-                              _precioProducto(index),
+                                _precioProducto(index),
                             ],
                           ),
                           const SizedBox(width: 5),
-                           if (selectObjmesa.estadoMesa != 2 || widget.mesa!.estadoMesa != 2)
+                           //if (selectObjmesa.estadoMesa != 2 || widget.mesa!.estadoMesa != 2)
                             Container(
                               decoration: BoxDecoration(
                                   color: Colors.grey[200],
@@ -193,7 +195,7 @@ class _DetailsPageState extends State<DetailsPage> {
                               ),
                             ),
                           const SizedBox(width: 5),
-                          if (selectObjmesa.estadoMesa != 2 || widget.mesa!.estadoMesa != 2)
+                          //if (selectObjmesa.estadoMesa != 2 || widget.mesa!.estadoMesa != 2)
                             Container(
                               decoration: BoxDecoration( color: Colors.grey[200], borderRadius: BorderRadius.all(Radius.circular(20))),
                               margin: widget.items_independientes == false ? EdgeInsets.only(bottom: 25) : null ,
@@ -766,7 +768,6 @@ class _DetailsPageState extends State<DetailsPage> {
           title: Text('Observaciones del Plato'),
           content: StatefulBuilder(
             builder: (BuildContext context, StateSetter setState) {
-
               List<Nota> filteredComidas = comidas;
               if (searchText.isNotEmpty) {
                 filteredComidas = comidas
@@ -777,7 +778,6 @@ class _DetailsPageState extends State<DetailsPage> {
                   filteredComidas.insert(0, notaEncontrada);
                 }
               }
-
               return Container(
                 height: MediaQuery.of(context).size.height * 0.5,
                 child: Column(
@@ -796,7 +796,7 @@ class _DetailsPageState extends State<DetailsPage> {
                     SizedBox(height: 10),
                     Expanded(
                       // height: MediaQuery.of(context).size.height * 0.39,
-                      child: Scrollbar(
+                      child: filteredComidas.isNotEmpty ? Scrollbar(
                         thumbVisibility: true,
                         child: SingleChildScrollView(
                           child: Column(
@@ -815,6 +815,8 @@ class _DetailsPageState extends State<DetailsPage> {
                             }),
                           ),
                         ),
+                      ) : Center(
+                        child: ElevatedButton(onPressed: (){},child: Text('Agregar comentario'),),
                       ),
                     ),
                   ],
@@ -1794,18 +1796,21 @@ class _DetailsPageState extends State<DetailsPage> {
         };
         // Ya crea el pedido
         PedidoResponse? response = await pedidoServicio.registrarPedido(pedidoData, usuario?.accessToken);
+        if(response!.status!){
+          print('RESPUEST DE LA CREACION DE PEDIDO ${response.ultimoIdPedido}');
 
-        print('RESPUEST DE LA CREACION DE PEDIDO ${response?.ultimoIdPedido}');
+          PedidoResponse? updateMesa = await mesaServicio.actualizarMesa(selectObjmesa.id ?? widget.mesa!.id, usuario!.accessToken, 3);
 
-        PedidoResponse? updateMesa = await mesaServicio.actualizarMesa(selectObjmesa.id ?? widget.mesa!.id, usuario!.accessToken, 3);
+          if (WifiOBlue == 1) {
+            ticketBluetooth.printLabelBluetooth(widget.productosSeleccionados, 1, pedidoTotal, selectObjmesa.nombreMesa, usuario!, selectObjmesa.nombrePiso, '', response?.ultimoIdPedido);
+          } else if (WifiOBlue == 2) {
 
-        if (WifiOBlue == 1) {
-          ticketBluetooth.printLabelBluetooth(widget.productosSeleccionados, 1, pedidoTotal, selectObjmesa.nombreMesa, usuario!, selectObjmesa.nombrePiso, '', response?.ultimoIdPedido);
-        } else if (WifiOBlue == 2) {
-
-          imprimir(widget.productosSeleccionados!, 1,response?.ultimoIdPedido );
+            imprimir(widget.productosSeleccionados!, 1,response.ultimoIdPedido );
+          }
+          Navigator.pushNamedAndRemoveUntil(context, 'home', (route) => false);
+        }else{
+         mostrarMensaje('No se realizo el Pedido');
         }
-        Navigator.pushNamedAndRemoveUntil(context, 'home', (route) => false);
       } else {
         mostrarMensaje('No hay productos seleccionados');
         Navigator.pop(context);

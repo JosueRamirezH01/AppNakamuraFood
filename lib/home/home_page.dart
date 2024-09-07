@@ -1280,92 +1280,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
           print('ENTRAR MESA STATUS ${mesa.toJson()}');
           Navigator.pushNamed(context, 'home/productos', arguments: mesa);
         }
-        // if(mesa.estadoMesa == 2){
-        //
-        //   List<Widget> rows = [];
-        //
-        //   Map<String, dynamic> pedidoRespuesta =  await dbDetallePedido.fetchPedidoDetalleRespuesta(usuario!.accessToken, mesa.id  );
-        //   print('pedidoRespuesta : ${pedidoRespuesta.toString()}');
-        //   print('pedidoRespuestaDetalle : ${pedidoRespuesta['pedido_detalle']['detalle'].toString()}');
-        //   print('pedidoRespuestaDetalle : ${pedidoRespuesta['detalle'].toString()}');
-        //   List<dynamic> detalleAcJson = pedidoRespuesta['pedido_detalle']['detalle'];
-        //   print('Respuesta ${detalleAcJson}');
-        //
-        //   List<Detalle_Pedido> detalleActualizado = detalleAcJson.map((json) => Detalle_Pedido.fromJson({
-        //     "id_detalle": json["id_pedido_detalle"],
-        //     "id_pedido": json["id_pedido"],
-        //     "id_producto": json["id_producto"],
-        //     "cantidad_producto": json["cantidad_producto"],
-        //     "cantidad_actualizada": json["cantidad_actualizada"],
-        //     "cantidad_exacta": json["cantidad_exacta"],
-        //     "cantidad_real": json["cantidad_real"],
-        //     "precio_producto": double.tryParse(json["precio_producto"]?.toString() ?? "0.0"),
-        //     "precio_unitario": double.tryParse(json["precio_unitario"]?.toString() ?? "0.0"),
-        //     "comentario": json["comentario"],
-        //     "estado_detalle": json["estado_detalle"],
-        //     "updated_at": DateTime.parse(json["updated_at"]),
-        //   })).toList();
-        //   List<Detalle_Pedido>? detallePedido = [];
-        //
-        //   detalleActualizado.forEach((element) {
-        //     print('wazaaa : ${element.id_producto}');
-        //   });
-        //
-        //   showDialog(
-        //     context: context,
-        //     builder: (BuildContext context) {
-        //       return AlertDialog(
-        //         title: Container(
-        //           alignment: Alignment.center,
-        //           child:  Padding(
-        //             padding: const EdgeInsets.only(
-        //                 top: 10,
-        //                 bottom: 10
-        //             ),
-        //             child: Text(
-        //               //'n° pedido: ${listPedido.correlativoPedido}',
-        //               'n° pedido:  ${pedidoRespuesta['pedido_detalle']['correlativo_pedido']}',
-        //               style: const TextStyle(
-        //                   color: Color(0xFF111111),
-        //                   decoration: TextDecoration.none,
-        //                   fontSize : 30,
-        //                   fontWeight: FontWeight.w600
-        //               ),
-        //             ),
-        //           ),
-        //         ),
-        //         content: Container(
-        //           height: MediaQuery.of(context).size.height * 0.50,
-        //           child: Column(
-        //             children: [
-        //
-        //               // _producList(detallePedido!)
-        //               // Text('Wazaaaa'),
-        //             ],
-        //           ),
-        //         ),
-        //         actions: <Widget>[
-        //           TextButton(
-        //             style: ButtonStyle(
-        //                 elevation: MaterialStateProperty.all(2),
-        //                 backgroundColor: MaterialStateProperty.all(Color(0xFFFF562F))),
-        //             onPressed: () {
-        //               Navigator.of(context).pop();
-        //             },
-        //             child: Text('OK', style: TextStyle(color: Colors.white, fontSize: 16)),
-        //           ),
-        //         ],
-        //       );
-        //     },
-        //   );
-        // }
         else {
           print('ENTRAR MESA STATUS  ${mesa.toJson()}');
           Map<String, dynamic> pedidoRespuesta =  await dbDetallePedido.fetchPedidoDetalle(usuario!.accessToken, mesa.id  );
           String? mozo = await dbMesas.obtenerMozoxMesa(mesa.id, usuario!.accessToken);
           print('PEDIDO OBTENIDO POR MESA ${pedidoRespuesta.toString()}');
           Pedido pedido = pedidoRespuesta['pedido_detalle'];
-          if(pedido.idUsuario != usuario?.user?.id){
+          /*if(pedido.idUsuario != usuario?.user?.id){
             showDialog(
               context: context,
               builder: (BuildContext context) {
@@ -1387,7 +1308,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
               },
             );
           }
-          else {
+          else {*/
             if (pedido.idPedido != null && pedido.detalle != null) {
               // Itera sobre la lista de detalles y actualiza el id_pedido
               for (var detalle in pedido.detalle!) {
@@ -1404,87 +1325,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin      
             print('${detallePedido[0].toJson()}');
             Navigator.pushNamed(context, 'home/productos', arguments: mesaDetallePedido);
           }
-        }
-
-
-        // if (mesa.estadoMesa == 1) {
-        //   print('ENTRAR MESA  ${mesa.toJson()}');
-        //   Navigator.pushNamed(context, 'home/productos', arguments: mesa);
-        // } if(mesa.estadoMesa == 2){
-        //   String? printerIP = await _pref.read('ipCocina');
-        //   if(printerIP != null){
-        //     int? idPedido = await dbPedido.consultarMesasDisponibilidad(mozo!.id, mesa.id,context);
-        //     List<Detalle_Pedido> detallePedido =  await dbPedido.consultaObtenerDetallePedido(idPedido, context);
-        //     double total = 0;
-        //     detallePedido.forEach((element) {
-        //       total += element.precio_producto!;
-        //     });
-        //     List<Producto> listProduct= [];
-        //     for (int i = 0; i < detallePedido.length; i++) {
-        //       Detalle_Pedido detalle = detallePedido[i];
-        //       Producto originalProducto = ListadoProductos.firstWhere((producto) => producto.id == detalle.id_producto);
-        //
-        //       Producto producto = Producto(
-        //           id: originalProducto.id,
-        //           nombreproducto: originalProducto.nombreproducto,
-        //           foto: originalProducto.foto,
-        //           codigo_interno: originalProducto.codigo_interno,
-        //           categoria_id: originalProducto.categoria_id,
-        //           stock: detalle.cantidad_producto,
-        //           precioproducto: detalle.precio_unitario
-        //         // Copiar otras propiedades necesarias
-        //       );
-        //       // Producto producto = ListadoProductos.firstWhere((producto) => producto.id == detalle.id_producto);
-        //       // producto.stock = detalle.cantidad_producto;
-        //       // producto.precioproducto = detalle.precio_unitario;
-        //       print(producto.toJson());
-        //       listProduct.add(producto);
-        //     }
-        //     listProduct.forEach((element) {
-        //       print(' - ${element.toJson()}');
-        //     });
-        //     impresora.printLabel(printerIP,listProduct,3, total, mesa.nombreMesa, mozo!, ListadoPisos.firstWhere((element) => element.id == mesa.pisoId),'');
-        //     print('Imprimir');
-        //   }else{
-        //     showDialog(
-        //       context: context,
-        //       builder: (BuildContext context) {
-        //         return AlertDialog(
-        //           title: const Text('Error'),
-        //           content: const Text('No se ha encontrado ninguna impresora.'),
-        //           actions: <Widget>[
-        //             TextButton(
-        //               child: const Text('OK'),
-        //               onPressed: () {
-        //                 Navigator.of(context).pop();
-        //                 Navigator.pushNamed(context, 'home/ajustes');
-        //               },
-        //             ),
-        //           ],
-        //         );
-        //       },
-        //     );
-        //   }
         //}
-          // else {
-          // int? idPedido = await dbPedido.consultarMesasDisponibilidad(mozo!.id, mesa.id,context);
-          // if(idPedido != null){
-            // final response = await http.get(Uri.parse('https://chifalingling.restaupe.com/api/obtener_lista_productos'));
-            // List<dynamic> productosData = json.decode(response.body);
-            // productosData = productosData.where((producto) {
-            //   return producto['estado'] == 1 && producto['establecimiento_id'] == mozo!.id_establecimiento;
-            // }).toList();
-            //
-            // // Guardar productos filtrados en SharedPreferences
-            // // SharedPreferences prefs = await SharedPreferences.getInstance();
-            // _pref.save('productos', json.encode(productosData));
 
-
-            //Navigator.pushNamed(context, 'home/productos', arguments: mesaDetallePedido);
-          // }else {
-
-          // }
-        //}
       },
       child: SizedBox(
         child: Card(
