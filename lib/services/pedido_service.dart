@@ -15,9 +15,32 @@ import '../model/PedidoResponse.dart';
 import 'package:http/http.dart' as http;
 
 class PedidoServicio {
-  final Connection _connectionSQL = Connection();
   final String _api = '/api/auth';
   Api _apiRuta = Api();
+
+  Future<PedidoResponse?> registrarNota(String? accessToken, String? nota) async {
+    String _url =  await _apiRuta.readApi();
+    try {
+      Uri url = Uri.https(_url, '$_api/registrar_notas_producto');
+      final response = await http.post(url,
+        headers: {'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken'
+        },
+        body: json.encode({"descripcion_nota": nota!}),
+      );
+      if (response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+        return PedidoResponse.fromJson(responseData);
+      } else {
+        print('Error: ${response.statusCode}');
+      }
+
+    }catch (e) {
+      print('Error en la solicitud: $e');
+      mostrarMensaje('Error al registrar el pedido: $e');
+    }
+    return null;
+  }
 
 
   Future<PedidoResponse?> registrarPedido(Map<String, dynamic> pedidoData, String? accessToken) async {
@@ -32,6 +55,7 @@ class PedidoServicio {
         },
         body: json.encode(pedidoData),
       );
+
       if (response.statusCode == 200 || response.statusCode == 201) {
         agregarMsj('Pedido registrado exitosamente');
         final responseData = json.decode(response.body);
@@ -99,7 +123,7 @@ class PedidoServicio {
 
 
 
-  Future<int?> consultarMesasDisponibilidad( int? idUsuario, int? idMesa ,BuildContext context) async {
+  /*Future<int?> consultarMesasDisponibilidad( int? idUsuario, int? idMesa ,BuildContext context) async {
     MySqlConnection? conn;
     try {
       conn = await _connectionSQL.getConnection();
@@ -304,7 +328,7 @@ class PedidoServicio {
       }
     }
   }
-
+*/
 
 
 
